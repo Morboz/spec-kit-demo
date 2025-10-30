@@ -9,6 +9,7 @@ from typing import Optional, Callable
 from src.models.game_state import GameState
 from src.game.end_game_detector import EndGameDetector
 from src.game.winner_determiner import WinnerDeterminer
+from src.game.turn_manager import TurnManager
 
 
 class GameLoop:
@@ -32,6 +33,9 @@ class GameLoop:
         # Initialize detectors
         self.end_game_detector = EndGameDetector(game_state)
         self.winner_determiner = WinnerDeterminer(game_state)
+
+        # Initialize turn manager for advanced turn management
+        self.turn_manager = TurnManager(game_state)
 
     def check_and_handle_game_end(self) -> bool:
         """
@@ -147,3 +151,87 @@ class GameLoop:
         # Trigger callback if available
         if self.on_game_end:
             self.on_game_end(self.game_state)
+
+    # Enhanced turn management methods using TurnManager
+
+    def advance_to_next_active_player(self):
+        """
+        Advance turn to the next active (not eliminated) player.
+
+        Returns:
+            The player who now has the turn, or None if no active players
+
+        Note:
+            This method uses TurnManager to skip inactive players
+        """
+        return self.turn_manager.advance_to_next_active_player()
+
+    def skip_current_player(self):
+        """
+        Mark current player as passed and advance to next player.
+
+        Returns:
+            The next player who has the turn, or None
+
+        Note:
+            This method uses TurnManager to handle skip logic
+        """
+        return self.turn_manager.skip_current_player()
+
+    def can_current_player_move(self) -> bool:
+        """
+        Check if the current player can make a move.
+
+        Returns:
+            True if current player can move, False otherwise
+        """
+        current_player = self.game_state.get_current_player()
+        if current_player is None:
+            return False
+
+        return self.turn_manager.can_player_move(current_player.player_id)
+
+    def should_end_round(self) -> bool:
+        """
+        Check if the current round should end.
+
+        Returns:
+            True if round should end, False otherwise
+        """
+        return self.turn_manager.should_end_round()
+
+    def should_end_game(self) -> bool:
+        """
+        Check if the game should end.
+
+        Returns:
+            True if game should end, False otherwise
+        """
+        return self.turn_manager.should_end_game()
+
+    def get_next_player(self):
+        """
+        Get the next player who will have a turn.
+
+        Returns:
+            Next player, or None if no active players
+        """
+        return self.turn_manager.get_next_player()
+
+    def get_turn_info(self):
+        """
+        Get current turn information.
+
+        Returns:
+            Tuple of (round_number, turn_number, current_player)
+        """
+        return self.turn_manager.get_turn_info()
+
+    def get_turn_manager(self) -> TurnManager:
+        """
+        Get the TurnManager instance.
+
+        Returns:
+            TurnManager for advanced turn operations
+        """
+        return self.turn_manager
