@@ -10,6 +10,7 @@ from src.models.game_state import GameState
 from src.game.end_game_detector import EndGameDetector
 from src.game.winner_determiner import WinnerDeterminer
 from src.game.turn_manager import TurnManager
+from src.game.scoring import ScoringSystem
 
 
 class GameLoop:
@@ -132,6 +133,28 @@ class GameLoop:
         Update all players' scores to final calculated values.
         """
         self.winner_determiner.update_all_player_scores()
+
+    def update_current_player_score(self) -> None:
+        """
+        Update the current player's score based on current game state.
+
+        This should be called after each piece placement to keep scores
+        up-to-date during gameplay.
+        """
+        current_player = self.game_state.get_current_player()
+        if current_player:
+            ScoringSystem.update_player_score(current_player)
+
+    def update_all_active_player_scores(self) -> None:
+        """
+        Update scores for all active (not eliminated) players.
+
+        This should be called after significant game state changes
+        to ensure all UI displays are synchronized.
+        """
+        for player in self.game_state.players:
+            if player.is_active:
+                ScoringSystem.update_player_score(player)
 
     def is_game_over(self) -> bool:
         """

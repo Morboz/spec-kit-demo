@@ -10,6 +10,7 @@ from tkinter import ttk
 from typing import Optional, List, Dict
 from src.models.player import Player
 from src.models.board import Board
+from src.ui.score_breakdown import ScoreBreakdown
 
 
 class Scoreboard(ttk.Frame):
@@ -166,3 +167,58 @@ class Scoreboard(ttk.Frame):
             self.tree.delete(item)
         self.players = []
         self.board = None
+
+    def show_score_breakdown(self, player_id: int) -> Optional[ScoreBreakdown]:
+        """
+        Show detailed score breakdown for a specific player.
+
+        Args:
+            player_id: ID of the player to show breakdown for
+
+        Returns:
+            ScoreBreakdown widget if player found, None otherwise
+        """
+        # Find the player
+        player = next((p for p in self.players if p.player_id == player_id), None)
+        if not player:
+            return None
+
+        # Create a new window for the breakdown
+        breakdown_window = tk.Toplevel(self)
+        breakdown_window.title(f"Score Breakdown - {player.name}")
+        breakdown_window.geometry("300x250")
+
+        # Create and pack the breakdown widget
+        breakdown = ScoreBreakdown(breakdown_window, player)
+        breakdown.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        return breakdown
+
+    def get_player_detailed_info(self, player_id: int) -> Optional[Dict]:
+        """
+        Get detailed information about a player's score.
+
+        Args:
+            player_id: ID of the player
+
+        Returns:
+            Dictionary with detailed player info or None if not found
+        """
+        player = next((p for p in self.players if p.player_id == player_id), None)
+        if not player:
+            return None
+
+        # Calculate squares placed
+        squares = 0
+        if self.board:
+            squares = self.board.count_player_squares(player_id)
+
+        # Get pieces remaining
+        pieces_left = player.get_remaining_piece_count()
+
+        return {
+            "player": player,
+            "squares_placed": squares,
+            "pieces_remaining": pieces_left,
+            "score": player.score,
+        }
