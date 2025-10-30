@@ -132,12 +132,14 @@ class GameConfig:
         if self.cell_size < 10 or self.cell_size > 50:
             raise ValueError(f"Cell size must be between 10 and 50, got {self.cell_size}")
 
-        # Validate player count
+        # Validate player count (only if players are set)
+        # This allows empty configurations for presets that will be filled later
         player_count = len(self.players)
-        if player_count < self.min_players or player_count > self.max_players:
-            raise ValueError(
-                f"Player count must be between {self.min_players} and {self.max_players}, got {player_count}"
-            )
+        if player_count > 0:  # Only validate if players are set
+            if player_count < self.min_players or player_count > self.max_players:
+                raise ValueError(
+                    f"Player count must be between {self.min_players} and {self.max_players}, got {player_count}"
+                )
 
         # Validate color scheme
         if self.current_color_scheme not in self.color_schemes:
