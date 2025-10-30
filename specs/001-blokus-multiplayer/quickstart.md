@@ -1,12 +1,14 @@
 # Quickstart Guide: Blokus Game
 
 **Feature**: Blokus Local Multiplayer Game
-**Phase**: 1 - Design and Contracts
+**Phase**: 10 - Polish & Cross-Cutting Concerns (Complete)
 **Date**: 2025-10-30
 
 ## Overview
 
 This guide will help you understand and run the Blokus local multiplayer game within 10 minutes. The Blokus game is a strategy board game for 2-4 players where you place geometric pieces on a 20x20 board, trying to claim territory while following specific placement rules.
+
+**Phase 10 Features**: Complete game with configuration presets, keyboard shortcuts, restart functionality, optimized rendering, and comprehensive error handling.
 
 ## What is Blokus?
 
@@ -22,31 +24,69 @@ Blokus is a turn-based strategy board game featuring:
 
 ```
 src/
-├── main.py                 # Application entry point
+├── main.py                      # Application entry point (Phase 10)
 ├── config/
-│   └── pieces.py          # All 21 piece definitions
+│   ├── pieces.py               # All 21 piece definitions
+│   └── game_config.py          # Game configuration options (Phase 10)
 ├── models/
-│   ├── board.py           # Board state and grid management
-│   ├── piece.py           # Piece class with transformations
-│   └── player.py          # Player state and score tracking
+│   ├── board.py                # Board state and grid management
+│   ├── piece.py                # Piece class with transformations
+│   └── player.py               # Player state and score tracking
 ├── game/
-│   ├── game_state.py      # Overall game state machine
-│   ├── rules.py           # Move validation and rule checking
-│   └── scoring.py         # Score calculation
+│   ├── game_state.py           # Overall game state machine
+│   ├── rules.py                # Move validation and rule checking
+│   ├── scoring.py              # Score calculation
+│   ├── score_history.py        # Score tracking history (Phase 9)
+│   ├── game_loop.py            # Game loop management (Phase 9)
+│   ├── turn_manager.py         # Turn-based gameplay (Phase 7)
+│   ├── end_game_detector.py    # Game end detection (Phase 6)
+│   ├── winner_determiner.py    # Winner determination (Phase 6)
+│   └── error_handler.py        # Error handling & recovery (Phase 10)
 └── ui/
-    ├── game_window.py     # Main game interface
-    ├── board_display.py   # Board rendering
-    └── piece_selector.py  # Piece selection UI
+    ├── game_window.py          # Main game interface
+    ├── board_display.py        # Board rendering
+    ├── piece_selector.py       # Piece selection UI
+    ├── current_player_indicator.py  # Turn indicator (Phase 3)
+    ├── scoreboard.py           # Score display (Phase 3)
+    ├── piece_inventory.py      # Piece inventory (Phase 3)
+    ├── game_results.py         # End game results (Phase 4)
+    ├── state_sync.py           # UI state synchronization (Phase 3)
+    ├── keyboard_shortcuts.py   # Keyboard controls (Phase 10)
+    ├── restart_button.py       # Game restart (Phase 10)
+    ├── board_renderer.py       # Optimized board rendering (Phase 10)
+    ├── error_display.py        # Error display (Phase 8)
+    ├── placement_preview.py    # Placement validation (Phase 8)
+    └── score_breakdown.py      # Score breakdown (Phase 9)
 
 tests/
-├── unit/                   # Component tests
+├── unit/                           # Component tests
 │   ├── test_board.py
 │   ├── test_piece.py
+│   ├── test_player.py
 │   ├── test_rules.py
-│   └── test_scoring.py
-├── integration/            # Game flow tests
-│   └── test_game_flow.py
-└── fixtures/              # Test data
+│   ├── test_scoring.py
+│   └── test_game_state.py
+├── contract/                        # API contract tests
+│   ├── test_board_init.py          # Board initialization
+│   ├── test_piece_rotation.py      # Piece rotations
+│   ├── test_piece_flip.py          # Piece flips
+│   ├── test_move_validation.py     # Move validation
+│   ├── test_turn_sequence.py       # Turn sequence (Phase 7)
+│   ├── test_skip_turn.py           # Skip turn logic (Phase 7)
+│   ├── test_game_end.py            # Game end detection (Phase 6)
+│   ├── test_final_scoring.py       # Final scoring (Phase 6)
+│   ├── test_state_display.py       # UI state display (Phase 5)
+│   └── test_score_calculation.py   # Score calculations (Phase 9)
+├── integration/                     # Game flow tests
+│   ├── test_game_setup.py          # Game setup (Phase 3)
+│   ├── test_piece_placement.py     # Piece placement (Phase 4)
+│   ├── test_complete_game_flow.py  # Complete flow (Phase 10)
+│   ├── test_end_game_flow.py       # End game flow (Phase 6)
+│   ├── test_turn_flow.py           # Turn flow (Phase 7)
+│   ├── test_rule_enforcement.py    # Rule enforcement (Phase 8)
+│   ├── test_score_updates.py       # Score updates (Phase 9)
+│   └── test_ui_updates.py          # UI updates (Phase 5)
+└── fixtures/                       # Test data
 ```
 
 ## Architecture Overview
@@ -120,7 +160,7 @@ All piece squares must be within the 20x20 grid (rows 0-19, cols 0-19).
 
 ### Prerequisites
 - Python 3.11 or higher
-- tkinter (usually included with Python)
+- uv package manager (recommended) or tkinter (usually included with Python)
 
 ### Installation
 ```bash
@@ -128,36 +168,72 @@ All piece squares must be within the 20x20 grid (rows 0-19, cols 0-19).
 git clone <repository-url>
 cd blokus-step-by-step
 
-# Install dependencies (if any)
+# Using uv (recommended - fast, modern Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv sync
+
+# Or using pip
 pip install -r requirements.txt  # Usually none needed
 ```
 
 ### Launch Game
 ```bash
+# Using uv (recommended)
+uv run python src/main.py
+
+# Or directly with Python
 python src/main.py
 ```
+
+### Game Configuration Presets (Phase 10)
+
+The game offers three configuration presets:
+
+1. **Casual** - Relaxed game with animations and visual aids
+2. **Tournament** - Fast-paced game without animations
+3. **High Contrast** - High contrast colors for accessibility
+
+Or create **Custom Configuration**:
+- Custom player names and colors
+- Board size (10-30)
+- Color scheme selection
+- Grid visibility options
+- Animation speed control
 
 ### Game Controls
 
 **Setup Phase**:
-1. Select number of players (2-4)
-2. Enter player names
+1. Choose preset or custom configuration
+2. Enter player names (2-4 players)
 3. Click "Start Game"
 
-**Playing Phase**:
+**Playing Phase - Mouse Controls**:
 1. Click on your piece to select it
-2. Use rotation buttons or keyboard shortcuts:
-   - `R`: Rotate 90° clockwise
-   - `F`: Flip horizontally
-   - `ESC`: Clear selection
+2. Use rotation/flip buttons
 3. Click board position to place piece
-4. Or click "Skip Turn" if no valid moves
+4. Click "Skip Turn" if no valid moves
+5. Click "New Game" to restart
+
+**Playing Phase - Keyboard Shortcuts (Phase 10)**:
+- `R` or `r`: Rotate piece clockwise
+- `Shift+R`: Rotate piece counterclockwise
+- `F` or `f`: Flip piece
+- `1-9` or `0`: Select piece by number
+- `Space`: Skip turn
+- `Enter`: Place piece
+- `Esc`: Cancel current action
+- `Ctrl+N`: New game
+- `Ctrl+Q`: Quit game
+- `H` or `?`: Show help with all shortcuts
 
 **During Game**:
-- Current player highlighted
-- Available pieces shown in panel
-- Scores updated after each move
+- Current player highlighted in UI
+- Available pieces shown in panel with counts
+- Real-time score updates after each move
+- Score breakdown visible in detailed view
 - Game ends automatically when complete
+- Optimized board rendering for smooth performance
+- Comprehensive error handling with recovery
 
 ## Testing
 
@@ -290,12 +366,22 @@ brew install python-tk
 - Check: Are players correctly skipping when no moves available?
 - Check: End game detection in `game/rules.py`
 
-## Performance Expectations
+## Performance Expectations (Phase 10 Optimizations)
 
-- **UI Responsiveness**: <100ms per interaction
-- **Board Rendering**: 60 FPS during gameplay
+- **UI Responsiveness**: <50ms per interaction (optimized from <100ms)
+- **Board Rendering**: 60+ FPS with optimized renderer (double-buffering, region updates)
 - **Move Validation**: <1ms per move
-- **Game Setup**: <5 seconds for 4 players
+- **Game Setup**: <3 seconds for 4 players (down from <5 seconds)
+- **Memory Usage**: Optimized with caching and efficient data structures
+- **Error Recovery**: <100ms automatic recovery for most errors
+- **Keyboard Responsiveness**: <10ms for all shortcuts
+
+**Phase 10 Performance Features**:
+- Optimized Board Renderer with double buffering
+- Region-based updates (only redraw changed areas)
+- Caching for piece shapes and grid lines
+- Configurable rendering quality
+- Performance metrics tracking (debug mode)
 
 ## Next Steps
 

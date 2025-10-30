@@ -3,11 +3,18 @@ Main application entry point for Blokus game.
 
 This module provides the main application class that initializes the game,
 handles the setup flow, and manages the overall game lifecycle.
+
+Phase 10: Complete application with:
+- Game configuration support
+- Keyboard shortcuts
+- Game restart functionality
+- Optimized board rendering
+- Comprehensive error handling
 """
 
 import tkinter as tk
 from tkinter import messagebox, ttk
-from typing import Optional
+from typing import Optional, Dict, Any
 from src.ui.setup_window import SetupWindow
 from src.game.game_setup import GameSetup
 from src.game.placement_handler import PlacementHandler
@@ -17,6 +24,11 @@ from src.ui.current_player_indicator import CurrentPlayerIndicator
 from src.ui.scoreboard import Scoreboard
 from src.ui.piece_inventory import PieceInventory
 from src.ui.state_sync import StateSynchronizer
+from src.ui.keyboard_shortcuts import GameKeyboardHandler
+from src.ui.restart_button import RestartButton, GameRestartDialog
+from src.ui.board_renderer import OptimizedBoardRenderer
+from src.config.game_config import GameConfig, create_config_from_preset
+from src.game.error_handler import setup_error_handling, get_error_handler
 
 
 class BlokusApp:
@@ -24,8 +36,16 @@ class BlokusApp:
 
     def __init__(self) -> None:
         """Initialize the application."""
+        # Setup error handling first
+        setup_error_handling(log_file="blokus_errors.log")
+
+        # Create root window
         self.root = tk.Tk()
         self.root.title("Blokus - Local Multiplayer")
+        self.root.geometry("1200x800")
+
+        # Game configuration
+        self.game_config: Optional[GameConfig] = None
 
         # Game state
         self.game_setup: Optional[GameSetup] = None
@@ -38,11 +58,20 @@ class BlokusApp:
 
         # UI components
         self.game_window: Optional[tk.Toplevel] = None
+        self.board_canvas: Optional[tk.Canvas] = None
+        self.board_renderer: Optional[OptimizedBoardRenderer] = None
         self.piece_selector: Optional[PieceSelector] = None
         self.piece_display: Optional[PieceDisplay] = None
         self.current_player_indicator: Optional[CurrentPlayerIndicator] = None
         self.scoreboard: Optional[Scoreboard] = None
         self.piece_inventory: Optional[PieceInventory] = None
+
+        # Phase 10 additions
+        self.keyboard_handler: Optional[GameKeyboardHandler] = None
+        self.restart_button: Optional[RestartButton] = None
+
+        # Performance metrics
+        self.performance_metrics: Dict[str, Any] = {}
 
     def run(self) -> None:
         """Run the application main loop."""
@@ -50,40 +79,155 @@ class BlokusApp:
         self._show_setup()
 
         # Start the main loop
-        self.root.mainloop()
+        try:
+            self.root.mainloop()
+        except KeyboardInterrupt:
+            print("Game interrupted by user")
+        except Exception as e:
+            error_handler = get_error_handler()
+            error_handler.handle_error(e, show_user_message=True)
+        finally:
+            self._cleanup()
+
+    def _cleanup(self):
+        """Clean up resources before exit."""
+        if self.board_renderer:
+            self.board_renderer.cleanup()
 
     def _show_setup(self) -> None:
         """Show the game setup dialog."""
-        self.setup_window = SetupWindow(self.root)
-        result = self.setup_window.show()
+        # Ask user if they want to use a preset or custom config
+        use_preset = messagebox.askyesno(
+            "Game Setup",
+            "Use a preset configuration?\n\n"
+            "Yes - Choose from preset (Casual, Tournament, etc.)\n"
+            "No - Custom configuration",
+            icon="question",
+        )
 
-        if result is None:
-            # User cancelled
+        if use_preset:
+            # Show preset selection
+            preset_names = ["casual", "tournament", "high_contrast"]
+            preset_choice = self._choose_preset(preset_names)
+            if preset_choice:
+                self.game_config = create_config_from_preset(preset_choice)
+            else:
+                self.root.quit()
+                return
+        else:
+            # Use custom configuration dialog
+            dialog = GameRestartDialog(self.root)
+            config_dict = dialog.show()
+            if config_dict is None:
+                self.root.quit()
+                return
+
+            # Create config from dialog result
+            self.game_config = GameConfig()
+            for i, name in enumerate(config_dict["player_names"]):
+                color = self.game_config.get_player_color(i + 1)
+                self.game_config.add_player(i + 1, name, color)
+
+        # Setup the game with config
+        try:
+            self._setup_game_from_config()
+        except Exception as e:
+            error_handler = get_error_handler()
+            error_handler.handle_error(e, show_user_message=True)
+            self.root.quit()
+
+    def _choose_preset(self, preset_names: list) -> Optional[str]:
+        """
+        Choose a preset configuration.
+
+        Args:
+            preset_names: List of available preset names
+
+        Returns:
+            Selected preset name or None
+        """
+        preset_window = tk.Toplevel(self.root)
+        preset_window.title("Choose Preset")
+        preset_window.geometry("400x300")
+        preset_window.transient(self.root)
+        preset_window.grab_set()
+
+        selected_preset = {"name": None}
+
+        # Center window
+        preset_window.geometry("+%d+%d" % (
+            self.root.winfo_rootx() + 50,
+            self.root.winfo_rooty() + 50
+        ))
+
+        # Preset descriptions
+        descriptions = {
+            "casual": "Relaxed game with animations and visual aids",
+            "tournament": "Fast-paced game without animations",
+            "high_contrast": "High contrast colors for accessibility",
+        }
+
+        # Create buttons for each preset
+        for preset_name in preset_names:
+            frame = tk.Frame(preset_window, relief=tk.RAISED, bd=2)
+            frame.pack(fill=tk.X, padx=20, pady=10)
+
+            btn = tk.Button(
+                frame,
+                text=preset_name.title(),
+                command=lambda n=preset_name: self._select_preset(n, preset_window, selected_preset),
+                font=("Arial", 12, "bold"),
+                pady=10,
+            )
+            btn.pack(fill=tk.X)
+
+            desc_label = tk.Label(
+                frame,
+                text=descriptions.get(preset_name, ""),
+                font=("Arial", 9),
+                wraplength=350,
+            )
+            desc_label.pack()
+
+        # Wait for selection
+        preset_window.wait_window()
+        return selected_preset["name"]
+
+    def _select_preset(self, preset_name: str, window: tk.Toplevel, selected: dict):
+        """Select a preset and close dialog."""
+        selected["name"] = preset_name
+        window.destroy()
+
+    def _setup_game_from_config(self):
+        """Setup game from configuration."""
+        if not self.game_config:
+            return
+
+        # Validate config
+        errors = self.game_config.validate()
+        if errors:
+            error_msg = "\n".join(errors)
+            messagebox.showerror("Configuration Error", error_msg)
             self.root.quit()
             return
 
-        try:
-            # Setup the game
-            self.game_setup = GameSetup()
-            self.game_state = self.game_setup.setup_game(
-                num_players=result["num_players"], player_names=result["player_names"]
+        # Setup the game
+        self.game_setup = GameSetup()
+        self.game_state = self.game_setup.setup_game(
+            num_players=len(self.game_config.players),
+            player_names=[p.name for p in self.game_config.players]
+        )
+
+        # Initialize placement handler
+        current_player = self.game_state.get_current_player()
+        if current_player:
+            self.placement_handler = PlacementHandler(
+                self.game_state.board, self.game_state, current_player
             )
+            self._setup_callbacks()
 
-            # Initialize placement handler
-            current_player = self.game_state.get_current_player()
-            if current_player:
-                self.placement_handler = PlacementHandler(
-                    self.game_state.board, self.game_state, current_player
-                )
-                self._setup_callbacks()
-
-            # Show the game UI
-            self._show_game_ui()
-
-        except ValueError as e:
-            # Show error
-            messagebox.showerror("Setup Error", str(e))
-            self.root.quit()
+        # Show the game UI
+        self._show_game_ui()
 
     def _setup_callbacks(self) -> None:
         """Setup callbacks for placement handler."""
@@ -151,14 +295,20 @@ class BlokusApp:
         # Create game window
         self.game_window = tk.Toplevel(self.root)
         self.game_window.title("Blokus - Game")
-        self.game_window.geometry("1400x900")
+        self.game_window.geometry(
+            f"{self.game_config.window_width}x{self.game_config.window_height}"
+            if self.game_config else "1400x900"
+        )
         self.game_window.resizable(True, True)
+
+        # Setup keyboard shortcuts
+        self._setup_keyboard_handler()
 
         # Create main container
         main_frame = ttk.Frame(self.game_window, padding="10")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Create top panel (current player indicator and scoreboard)
+        # Create top panel (current player indicator, scoreboard, restart button)
         top_panel = ttk.Frame(main_frame)
         top_panel.pack(side=tk.TOP, fill=tk.X, pady=(0, 10))
 
@@ -174,6 +324,16 @@ class BlokusApp:
         self.state_synchronizer.attach_current_player_indicator(
             self.current_player_indicator
         )
+
+        # Center of top panel - Restart button
+        if self.restart_button:
+            restart_frame = ttk.Frame(top_panel)
+            restart_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
+            restart_button_widget = self.restart_button.create_button(
+                text="New Game (Ctrl+N)",
+                tooltip="Start a new game with current or different settings"
+            )
+            restart_button_widget.pack(expand=True)
 
         # Right side of top panel - Scoreboard
         scoreboard_frame = ttk.Frame(top_panel)
@@ -218,20 +378,37 @@ class BlokusApp:
         if current_player:
             self.piece_inventory.select_player_tab(current_player.player_id)
 
-        # Create center panel (game board placeholder)
+        # Create center panel (game board with optimized renderer)
         center_panel = ttk.Frame(main_frame)
         center_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # Board placeholder
-        board_placeholder = ttk.Label(
+        # Board canvas with optimized rendering
+        self.board_canvas = tk.Canvas(
             center_panel,
-            text="Game Board\n\n(Board rendering will be implemented in future phases)",
-            font=("Arial", 16),
-            justify=tk.CENTER,
-            relief="solid",
-            borderwidth=2,
+            bg="white",
+            highlightthickness=0,
         )
-        board_placeholder.pack(fill=tk.BOTH, expand=True, padx=10, pady=0)
+        self.board_canvas.pack(fill=tk.BOTH, expand=True, padx=10, pady=0)
+
+        # Initialize optimized board renderer
+        if self.game_config:
+            self.board_renderer = OptimizedBoardRenderer(
+                self.board_canvas,
+                board_size=self.game_config.board_size,
+                cell_size=self.game_config.cell_size,
+            )
+            self.board_renderer.configure(
+                double_buffer=True,
+                region_updates=True,
+                caching=True,
+                quality="high" if not self.game_config.debug_mode else "medium",
+            )
+        else:
+            # Use default settings
+            self.board_renderer = OptimizedBoardRenderer(self.board_canvas)
+
+        # Initial board render
+        self._render_board()
 
         # Game status bar
         status_frame = ttk.Frame(main_frame)
@@ -246,13 +423,114 @@ class BlokusApp:
         )
         self.status_label.pack(side=tk.LEFT)
 
+        # Keyboard shortcuts help
+        help_btn = ttk.Button(
+            status_frame,
+            text="Help (?)",
+            command=self._show_help,
+        )
+        help_btn.pack(side=tk.LEFT, padx=(10, 0))
+
+        # Performance metrics button (debug mode)
+        if self.game_config and self.game_config.debug_mode:
+            metrics_btn = ttk.Button(
+                status_frame,
+                text="Metrics",
+                command=self._show_performance_metrics,
+            )
+            metrics_btn.pack(side=tk.LEFT, padx=(10, 0))
+
         # Close button
-        close_btn = ttk.Button(status_frame, text="Quit Game", command=self.root.quit)
+        close_btn = ttk.Button(status_frame, text="Quit (Ctrl+Q)", command=self._quit_game)
         close_btn.pack(side=tk.RIGHT)
+
+        # Setup restart button
+        self.restart_button = RestartButton(
+            status_frame,
+            self.game_state,
+            self.game_state.board,
+            on_restart=self._on_restart_game,
+            preserve_stats=True,
+        )
 
         # Perform initial state sync
         if self.state_synchronizer:
             self.state_synchronizer.full_update()
+
+    def _setup_keyboard_handler(self):
+        """Setup keyboard shortcuts handler."""
+        if not self.keyboard_handler:
+            self.keyboard_handler = GameKeyboardHandler(
+                self.game_window,
+                self.game_state,
+                self.game_state.board,
+                self.piece_display,
+            )
+
+    def _render_board(self):
+        """Render the game board."""
+        if not self.board_renderer or not self.game_state:
+            return
+
+        # Get board state
+        board_state = {}
+        for row in range(self.game_state.board.size):
+            for col in range(self.game_state.board.size):
+                cell_value = self.game_state.board.grid[row][col]
+                if cell_value != 0:
+                    board_state[(row, col)] = cell_value
+
+        # Render with performance metrics
+        metrics = self.board_renderer.render_board(
+            board_state=board_state,
+            pieces=None,
+            show_grid=self.game_config.show_grid_lines if self.game_config else True,
+            show_coordinates=self.game_config.show_coordinates if self.game_config else False,
+        )
+
+        # Store metrics
+        self.performance_metrics["board_render"] = metrics
+
+    def _on_restart_game(self):
+        """Handle game restart."""
+        # Reset game state
+        self._show_setup()
+
+    def _show_help(self):
+        """Show help dialog with keyboard shortcuts."""
+        if self.keyboard_handler:
+            self.keyboard_handler._display_help()
+
+    def _show_performance_metrics(self):
+        """Show performance metrics (debug mode)."""
+        if not self.performance_metrics:
+            messagebox.showinfo("Performance Metrics", "No metrics available yet")
+            return
+
+        metrics_window = tk.Toplevel(self.game_window)
+        metrics_window.title("Performance Metrics")
+        metrics_window.geometry("500x400")
+
+        text_widget = tk.Text(metrics_window, wrap=tk.WORD)
+        text_widget.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Format metrics
+        metrics_text = "=== PERFORMANCE METRICS ===\n\n"
+        for key, value in self.performance_metrics.items():
+            metrics_text += f"{key}:\n{value}\n\n"
+
+        text_widget.insert(tk.END, metrics_text)
+        text_widget.config(state=tk.DISABLED)
+
+    def _quit_game(self):
+        """Quit the game with confirmation."""
+        result = messagebox.askyesno(
+            "Quit Game",
+            "Are you sure you want to quit?",
+            icon="question",
+        )
+        if result:
+            self.root.quit()
 
     def _on_piece_selected(self, piece_name: str) -> None:
         """
