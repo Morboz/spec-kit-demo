@@ -195,7 +195,9 @@ class TestBoard:
         """Test retrieving adjacent positions including diagonal."""
         board = Board()
         center = (10, 10)
-        adjacent = board.get_adjacent_positions(center[0], center[1], include_diagonal=True)
+        adjacent = board.get_adjacent_positions(
+            center[0], center[1], include_diagonal=True
+        )
 
         # Should have 8 total neighbors (4 orthogonal + 4 diagonal)
         assert len(adjacent) == 8

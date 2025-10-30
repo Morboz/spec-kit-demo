@@ -67,11 +67,15 @@ class SetupWindow:
         main_frame.pack(fill=tk.BOTH, expand=True)
 
         # Title
-        title_label = ttk.Label(main_frame, text="New Blokus Game", font=("Arial", 16, "bold"))
+        title_label = ttk.Label(
+            main_frame, text="New Blokus Game", font=("Arial", 16, "bold")
+        )
         title_label.pack(pady=(0, 20))
 
         # Number of players selection
-        players_frame = ttk.LabelFrame(main_frame, text="Number of Players", padding="10")
+        players_frame = ttk.LabelFrame(
+            main_frame, text="Number of Players", padding="10"
+        )
         players_frame.pack(fill=tk.X, pady=(0, 10))
 
         for num in [2, 3, 4]:
@@ -111,7 +115,9 @@ class SetupWindow:
         cancel_btn = ttk.Button(button_frame, text="Cancel", command=self._on_cancel)
         cancel_btn.pack(side=tk.RIGHT, padx=(10, 0))
 
-        start_btn = ttk.Button(button_frame, text="Start Game", command=self._on_start_game)
+        start_btn = ttk.Button(
+            button_frame, text="Start Game", command=self._on_start_game
+        )
         start_btn.pack(side=tk.RIGHT)
 
         # Focus on first entry

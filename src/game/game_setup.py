@@ -72,7 +72,9 @@ class GameSetup:
         """
         # Check player count
         if num_players < 2 or num_players > 4:
-            raise ValueError(f"Number of players must be between 2 and 4, got {num_players}")
+            raise ValueError(
+                f"Number of players must be between 2 and 4, got {num_players}"
+            )
 
         # Check player names list length
         if len(player_names) != num_players:
@@ -98,7 +100,8 @@ class GameSetup:
             # Check for duplicate names
             if clean_name in seen_names:
                 raise ValueError(
-                    f"Duplicate player name: '{clean_name}'. " "All player names must be unique"
+                    f"Duplicate player name: '{clean_name}'. "
+                    "All player names must be unique"
                 )
 
             seen_names.add(clean_name)
@@ -147,4 +150,8 @@ class GameSetup:
         Returns:
             True if game is configured and ready to play
         """
-        return self.board is not None and self.game_state is not None and len(self.players) >= 2
+        return (
+            self.board is not None
+            and self.game_state is not None
+            and len(self.players) >= 2
+        )

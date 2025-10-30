@@ -114,11 +114,13 @@ class Piece:
         flipped.is_placed = False
         flipped.placed_position = None
 
-        # Apply flip transformation: (x, y) -> (-x, y)
-        flipped.coordinates = [(-x, y) for x, y in self.coordinates]
+        # Apply flip transformation: (x, y) -> (x, -y)
+        flipped.coordinates = [(x, -y) for x, y in self.coordinates]
         return flipped
 
-    def get_absolute_positions(self, anchor_row: int, anchor_col: int) -> List[Tuple[int, int]]:
+    def get_absolute_positions(
+        self, anchor_row: int, anchor_col: int
+    ) -> List[Tuple[int, int]]:
         """
         Calculate actual board positions when piece is anchored at position.
 

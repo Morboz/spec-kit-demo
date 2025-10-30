@@ -74,7 +74,9 @@ class Board:
         # Validate all positions
         for pos_row, pos_col in positions:
             if not self.is_position_valid(pos_row, pos_col):
-                raise ValueError(f"Position ({pos_row}, {pos_col}) is outside board bounds")
+                raise ValueError(
+                    f"Position ({pos_row}, {pos_col}) is outside board bounds"
+                )
             if not self.is_position_empty(pos_row, pos_col):
                 raise ValueError(f"Position ({pos_row}, {pos_col}) is already occupied")
 

@@ -100,11 +100,15 @@ class TestCompleteSetupFlow:
         setup = GameSetup()
 
         # Test: Too few players
-        with pytest.raises(ValueError, match="Number of players must be between 2 and 4"):
+        with pytest.raises(
+            ValueError, match="Number of players must be between 2 and 4"
+        ):
             setup.setup_game(1, ["Alice"])
 
         # Test: Too many players
-        with pytest.raises(ValueError, match="Number of players must be between 2 and 4"):
+        with pytest.raises(
+            ValueError, match="Number of players must be between 2 and 4"
+        ):
             setup.setup_game(5, ["Alice", "Bob", "Charlie", "Diana", "Eve"])
 
         # Test: Empty player name

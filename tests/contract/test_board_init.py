@@ -61,7 +61,9 @@ class TestBoardInitializationContract:
         board = Board()
 
         # Verify board can report empty status (returns set)
-        assert len(board.get_occupied_positions()) == 0, "Board should have no occupied positions"
+        assert (
+            len(board.get_occupied_positions()) == 0
+        ), "Board should have no occupied positions"
 
         # Verify board can count player squares (initially 0)
         for player_id in [1, 2, 3, 4]:

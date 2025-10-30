@@ -13,7 +13,9 @@ from src.config.pieces import get_all_piece_names, get_player_color, get_startin
 class Player:
     """Represents a Blokus game player."""
 
-    def __init__(self, player_id: int, name: str, pieces: Optional[List[Piece]] = None) -> None:
+    def __init__(
+        self, player_id: int, name: str, pieces: Optional[List[Piece]] = None
+    ) -> None:
         """
         Initialize a new player.
 

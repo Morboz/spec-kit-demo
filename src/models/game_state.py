@@ -197,7 +197,9 @@ class GameState:
         Returns:
             List of eliminated players
         """
-        return [p for p in self.players if not p.has_pieces_remaining() or not p.is_active]
+        return [
+            p for p in self.players if not p.has_pieces_remaining() or not p.is_active
+        ]
 
     def should_end_round(self) -> bool:
         """
