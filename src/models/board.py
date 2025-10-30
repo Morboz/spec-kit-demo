@@ -51,11 +51,7 @@ class Board:
         return self.is_position_valid(row, col) and (row, col) not in self.grid
 
     def place_piece(
-        self,
-        piece: Piece,
-        anchor_row: int,
-        anchor_col: int,
-        player_id: int
+        self, piece: Piece, anchor_row: int, anchor_col: int, player_id: int
     ) -> List[Tuple[int, int]]:
         """
         Place a piece on the board at the specified anchor position.
@@ -78,13 +74,9 @@ class Board:
         # Validate all positions
         for pos_row, pos_col in positions:
             if not self.is_position_valid(pos_row, pos_col):
-                raise ValueError(
-                    f"Position ({pos_row}, {pos_col}) is outside board bounds"
-                )
+                raise ValueError(f"Position ({pos_row}, {pos_col}) is outside board bounds")
             if not self.is_position_empty(pos_row, pos_col):
-                raise ValueError(
-                    f"Position ({pos_row}, {pos_col}) is already occupied"
-                )
+                raise ValueError(f"Position ({pos_row}, {pos_col}) is already occupied")
 
         # Place the piece
         for pos_row, pos_col in positions:
@@ -111,9 +103,7 @@ class Board:
         Returns:
             Set of (row, col) tuples for the player's pieces
         """
-        return {
-            pos for pos, pid in self.grid.items() if pid == player_id
-        }
+        return {pos for pos, pid in self.grid.items() if pid == player_id}
 
     def get_occupant(self, row: int, col: int) -> Optional[int]:
         """
@@ -142,10 +132,7 @@ class Board:
         return (row, col) in self.grid
 
     def get_adjacent_positions(
-        self,
-        row: int,
-        col: int,
-        include_diagonal: bool = False
+        self, row: int, col: int, include_diagonal: bool = False
     ) -> List[Tuple[int, int]]:
         """
         Get all orthogonal (or diagonal) adjacent positions to a given cell.

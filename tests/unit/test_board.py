@@ -186,18 +186,16 @@ class TestBoard:
 
         # Should have 4 orthogonal neighbors
         assert len(adjacent) == 4
-        assert (9, 10) in adjacent   # Up
+        assert (9, 10) in adjacent  # Up
         assert (11, 10) in adjacent  # Down
-        assert (10, 9) in adjacent   # Left
+        assert (10, 9) in adjacent  # Left
         assert (10, 11) in adjacent  # Right
 
     def test_get_adjacent_positions_with_diagonal(self):
         """Test retrieving adjacent positions including diagonal."""
         board = Board()
         center = (10, 10)
-        adjacent = board.get_adjacent_positions(
-            center[0], center[1], include_diagonal=True
-        )
+        adjacent = board.get_adjacent_positions(center[0], center[1], include_diagonal=True)
 
         # Should have 8 total neighbors (4 orthogonal + 4 diagonal)
         assert len(adjacent) == 8
@@ -222,8 +220,8 @@ class TestBoard:
 
         # Corner has only 2 orthogonal neighbors
         assert len(adjacent) == 2
-        assert (1, 0) in adjacent   # Down
-        assert (0, 1) in adjacent   # Right
+        assert (1, 0) in adjacent  # Down
+        assert (0, 1) in adjacent  # Right
 
     def test_count_player_squares(self):
         """Test counting squares for a player."""

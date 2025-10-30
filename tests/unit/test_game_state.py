@@ -334,6 +334,7 @@ class TestGameState:
 
         # Place a piece
         from src.models.piece import Piece
+
         piece = player1.get_piece("I2")
         game.board.place_piece(piece, 5, 5, 1)
 

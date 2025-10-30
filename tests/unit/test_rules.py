@@ -49,9 +49,7 @@ class TestBlokusRules:
 
     def test_validate_move_with_nonexistent_player(self):
         """Test that validation fails for non-existent player."""
-        result = BlokusRules.validate_move(
-            self.game_state, 999, Piece("I1"), 0, 0
-        )
+        result = BlokusRules.validate_move(self.game_state, 999, Piece("I1"), 0, 0)
         assert not result.is_valid
         assert "Player not found" in result.reason
 
@@ -59,9 +57,7 @@ class TestBlokusRules:
         """Test that validation fails for piece not owned by player."""
         # Create a custom piece not in player's inventory
         piece = Piece.from_coordinates("Custom", [(0, 0)])
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece, 0, 0)
         assert not result.is_valid
         assert "does not own this piece" in result.reason
 
@@ -70,9 +66,7 @@ class TestBlokusRules:
         piece = self.player1.get_piece("I1")
         self.player1.place_piece("I1", 0, 0)
 
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece, 5, 5
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece, 5, 5)
         assert not result.is_valid
         assert "already placed" in result.reason
 
@@ -81,9 +75,7 @@ class TestBlokusRules:
         piece = self.player1.get_piece("I5")
 
         # Try to place near bottom edge
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece, 18, 0
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece, 18, 0)
         assert not result.is_valid
         assert "outside board bounds" in result.reason
 
@@ -95,9 +87,7 @@ class TestBlokusRules:
 
         # Try to place another piece on the same position
         piece2 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece2, 5, 5
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece2, 5, 5)
         assert not result.is_valid
         assert "already occupied" in result.reason
 
@@ -109,9 +99,7 @@ class TestBlokusRules:
 
         # Try to place another piece that touches it edge-to-edge
         piece2 = self.player1.get_piece("I1")
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece2, 5, 6
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece2, 5, 6)
         assert not result.is_valid
         assert "edge-to-edge contact" in result.reason
 
@@ -128,9 +116,7 @@ class TestBlokusRules:
 
         # Place another piece for player 1 (different piece from I1)
         piece3 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece3, 5, 5
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece3, 5, 5)
         # This should be valid - opponent contact is allowed
         assert result.is_valid
 
@@ -143,9 +129,7 @@ class TestBlokusRules:
 
         # Try to place another piece that only touches diagonally
         piece2 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece2, 5, 5
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece2, 5, 5)
         # This should be valid - diagonal contact is allowed
         assert result.is_valid
 
@@ -155,16 +139,12 @@ class TestBlokusRules:
         piece = self.player1.get_piece("I1")
 
         # Valid placement in corner
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece, 0, 0)
         assert result.is_valid
 
         # Invalid placement not in corner - use a different piece
         piece2 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece2, 5, 5
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece2, 5, 5)
         assert not result.is_valid
         assert "corner" in result.reason.lower()
 
@@ -174,18 +154,14 @@ class TestBlokusRules:
         piece.rotate(90)  # Make it vertical
 
         # Place so that it includes corner (0,0)
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece, 0, 0)
         assert result.is_valid
 
     def test_validate_move_not_in_first_move(self):
         """Test that non-first moves don't need to be in corner."""
         # Make the first move for player 1
         piece1 = self.player1.get_piece("I1")
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece1, 0, 0
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece1, 0, 0)
         assert result.is_valid
 
         # Place the piece on the board
@@ -194,27 +170,21 @@ class TestBlokusRules:
 
         # Now player 1's subsequent moves don't need to be in corner
         piece2 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece2, 5, 5
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece2, 5, 5)
         assert result.is_valid
 
     def test_validate_valid_move(self):
         """Test a completely valid move."""
         # Player 1's first move in corner
         piece = self.player1.get_piece("I1")
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece, 0, 0)
         assert result.is_valid
 
     def test_get_valid_moves(self):
         """Test getting all valid moves for a piece."""
         # For first move, only corner is valid
         piece = self.player1.get_piece("I1")
-        valid_moves = BlokusRules.get_valid_moves(
-            self.game_state, 1, piece
-        )
+        valid_moves = BlokusRules.get_valid_moves(self.game_state, 1, piece)
 
         # At least corner (0,0) should be valid
         assert (0, 0) in valid_moves
@@ -225,9 +195,7 @@ class TestBlokusRules:
 
         # Player 2's first move
         piece2 = self.player2.get_piece("I1")
-        valid_moves = BlokusRules.get_valid_moves(
-            self.game_state, 2, piece2
-        )
+        valid_moves = BlokusRules.get_valid_moves(self.game_state, 2, piece2)
 
         # Player 2's corner is (0, 19)
         assert (0, 19) in valid_moves
@@ -235,9 +203,7 @@ class TestBlokusRules:
     def test_get_invalid_positions(self):
         """Test getting invalid positions and their reasons."""
         piece = self.player1.get_piece("I1")
-        invalid_moves = BlokusRules.get_invalid_positions(
-            self.game_state, 1, piece
-        )
+        invalid_moves = BlokusRules.get_invalid_positions(self.game_state, 1, piece)
 
         # Many positions should be invalid for first move
         assert len(invalid_moves) > 0
@@ -257,9 +223,7 @@ class TestBlokusRules:
         piece = self.player1.get_piece("L4")
 
         # First move in corner
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece, 0, 0)
         # This is valid as long as (0,0) is included
         assert result.is_valid
 
@@ -267,16 +231,12 @@ class TestBlokusRules:
         """Test that each player has different corner requirements."""
         # Player 1: top-left corner (0, 0)
         piece1 = self.player1.get_piece("I1")
-        result1 = BlokusRules.validate_move(
-            self.game_state, 1, piece1, 0, 0
-        )
+        result1 = BlokusRules.validate_move(self.game_state, 1, piece1, 0, 0)
         assert result1.is_valid
 
         # Player 2: top-right corner (0, 19)
         piece2 = self.player2.get_piece("I1")
-        result2 = BlokusRules.validate_move(
-            self.game_state, 2, piece2, 0, 19
-        )
+        result2 = BlokusRules.validate_move(self.game_state, 2, piece2, 0, 19)
         assert result2.is_valid
 
     def test_validate_move_with_rotation(self):
@@ -285,9 +245,7 @@ class TestBlokusRules:
         rotated_piece = piece.rotate(90)
 
         # First move in corner with rotated piece
-        result = BlokusRules.validate_move(
-            self.game_state, 1, rotated_piece, 0, 0
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, rotated_piece, 0, 0)
         assert result.is_valid
 
     def test_validate_move_with_flip(self):
@@ -301,9 +259,7 @@ class TestBlokusRules:
         piece = self.player1.get_piece("L4")
         flipped_piece = piece.flip()
 
-        result = BlokusRules.validate_move(
-            self.game_state, 1, flipped_piece, 5, 5
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, flipped_piece, 5, 5)
         assert result.is_valid
 
     def test_board_boundaries(self):
@@ -316,9 +272,7 @@ class TestBlokusRules:
         # Valid placement at edge for subsequent moves
         # I2 anchored at (18,19) places squares at (18,19) and (19,19)
         piece2 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(
-            self.game_state, 1, piece2, 18, 19
-        )
+        result = BlokusRules.validate_move(self.game_state, 1, piece2, 18, 19)
         assert result.is_valid
 
     def test_empty_board_state(self):
@@ -331,7 +285,5 @@ class TestBlokusRules:
         game_state.start_game()
 
         piece = player1.get_piece("I1")
-        result = BlokusRules.validate_move(
-            game_state, 1, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(game_state, 1, piece, 0, 0)
         assert result.is_valid

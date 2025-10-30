@@ -14,6 +14,7 @@ from src.models.piece import Piece
 
 class GamePhase(Enum):
     """Enumeration of possible game phases."""
+
     SETUP = auto()
     PLAYING = auto()
     GAME_OVER = auto()
@@ -23,9 +24,7 @@ class GameState:
     """Manages the complete state of a Blokus game."""
 
     def __init__(
-        self,
-        players: Optional[List[Player]] = None,
-        board: Optional[Board] = None
+        self, players: Optional[List[Player]] = None, board: Optional[Board] = None
     ) -> None:
         """
         Initialize a new game state.
@@ -140,7 +139,7 @@ class GameState:
         row: int,
         col: int,
         rotation: int = 0,
-        flipped: bool = False
+        flipped: bool = False,
     ) -> None:
         """
         Record a move in the game history.

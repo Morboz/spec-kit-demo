@@ -138,7 +138,7 @@ class ScoringSystem:
             "unplaced_squares": unplaced_squares,
             "base_score": base_score,
             "all_pieces_bonus": bonus,
-            "final_score": final_score
+            "final_score": final_score,
         }
 
     @staticmethod

@@ -75,7 +75,9 @@ class Piece:
         rotated.coordinates = self._rotate_coordinates(self.coordinates, degrees)
         return rotated
 
-    def _rotate_coordinates(self, coords: List[Tuple[int, int]], degrees: int) -> List[Tuple[int, int]]:
+    def _rotate_coordinates(
+        self, coords: List[Tuple[int, int]], degrees: int
+    ) -> List[Tuple[int, int]]:
         """
         Rotate coordinates by specified degrees.
 
