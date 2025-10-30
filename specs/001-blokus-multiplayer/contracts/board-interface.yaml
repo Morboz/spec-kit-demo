@@ -1,0 +1,144 @@
+# Board Module Interface Contract
+
+**Component**: Board
+**Phase**: 1 - Design and Contracts
+**Date**: 2025-10-30
+
+## Purpose
+Defines the interface contract for the Board module that manages the 20x20 game grid and piece placement validation.
+
+## Public Interface
+
+### Methods
+
+#### `__init__(self) -> None`
+**Description**: Initialize a new 20x20 game board
+**Returns**: None
+**Preconditions**: None
+**Postconditions**:
+- Board size set to 20x20
+- All grid positions initialized to empty (None)
+- Starting corners mapped to player positions
+
+#### `initialize_game(num_players: int) -> None`
+**Description**: Set up board with starting positions for specified number of players
+**Parameters**:
+- `num_players` (int): Number of players (2-4)
+**Returns**: None
+**Preconditions**: num_players must be 2-4
+**Postconditions**:
+- Starting corners configured for num_players
+- Game ready to begin
+**Errors**: Raises ValueError if num_players not in [2, 4]
+
+#### `is_within_bounds(self, row: int, col: int) -> bool`
+**Description**: Check if a board position is within the 20x20 grid
+**Parameters**:
+- `row` (int): Row coordinate
+- `col` (int): Column coordinate
+**Returns**: True if position is on board, False otherwise
+**Preconditions**: row and col are integers
+**Postconditions**: None (pure function)
+
+#### `is_occupied(self, row: int, col: int) -> bool`
+**Description**: Check if a board position is already occupied by a piece
+**Parameters**:
+- `row` (int): Row coordinate
+- `col` (int): Column coordinate
+**Returns**: True if position has a piece, False if empty
+**Preconditions**: Position must be within bounds
+**Errors**: Raises IndexError if position out of bounds
+
+#### `place_piece(self, player_id: int, piece_positions: List[Tuple[int, int]]) -> None`
+**Description**: Place a piece on the board at specified positions
+**Parameters**:
+- `player_id` (int): ID of player placing the piece (1-4)
+- `piece_positions` (List[Tuple[int, int]]): List of (row, col) tuples for piece squares
+**Returns**: None
+**Preconditions**:
+- All positions must be within bounds
+- All positions must be unoccupied
+- player_id must be valid
+**Postconditions**:
+- All positions marked as occupied by player_id
+**Errors**:
+- Raises IndexError if any position out of bounds
+- Raises ValueError if any position already occupied
+
+#### `get_occupancy(self, row: int, col: int) -> Optional[int]`
+**Description**: Get which player occupies a position
+**Parameters**:
+- `row` (int): Row coordinate
+- `col` (int): Column coordinate
+**Returns**: Player ID if occupied, None if empty
+**Preconditions**: Position must be within bounds
+**Errors**: Raises IndexError if position out of bounds
+
+#### `get_starting_corner(self, player_id: int) -> Tuple[int, int]`
+**Description**: Get the starting corner position for a player
+**Parameters**:
+- `player_id` (int): Player ID (1-4)
+**Returns**: Tuple of (row, col) for player's starting corner
+**Preconditions**: player_id must be valid
+**Errors**: Raises ValueError if player_id not in [1, 4]
+
+#### `get_all_occupied_positions(self) -> List[Tuple[int, int, int]]`
+**Description**: Get all occupied positions with their owners
+**Returns**: List of (row, col, player_id) tuples
+**Preconditions**: None
+**Postconditions**: None (pure function)
+
+#### `is_corner_position(self, row: int, col: int) -> bool`
+**Description**: Check if a position is a board corner (starting position)
+**Parameters**:
+- `row` (int): Row coordinate
+- `col` (int): Column coordinate
+**Returns**: True if position is a corner
+**Preconditions**: None
+**Postconditions**: None (pure function)
+
+#### `is_adjacent_to_player(self, row: int, col: int, player_id: int) -> bool`
+**Description**: Check if position is adjacent to any piece belonging to player
+**Parameters**:
+- `row` (int): Row coordinate
+- `col` (int): Column coordinate
+- `player_id` (int): Player to check adjacency against
+**Returns**: True if position touches player's pieces (corner or edge)
+**Preconditions**: Position must be within bounds
+**Postconditions**: None (pure function)
+
+## Data Structures
+
+### Board State Representation
+```python
+{
+  'size': int (20),
+  'grid': List[List[Optional[int]]],  # 20x2D array of player IDs or None
+  'starting_corners': Dict[int, Tuple[int, int]]  # player_id -> (row, col)
+}
+```
+
+## Validation Rules
+
+1. Board is always 20x20 grid
+2. Positions use 0-based indexing (row 0-19, col 0-19)
+3. Starting corners at: (0,0), (0,19), (19,19), (19,0)
+4. Only one piece per position
+5. Player IDs are integers from 1 to 4
+
+## Error Handling
+
+All methods raise appropriate exceptions:
+- `IndexError`: Position out of bounds
+- `ValueError`: Invalid parameter values
+- No custom exceptions required
+
+## Testing Contract
+
+**Test Scenarios**:
+1. Initialize board and verify 20x20 empty grid
+2. Place piece and verify occupancy tracking
+3. Attempt to place piece on occupied square raises ValueError
+4. Place piece out of bounds raises IndexError
+5. Check adjacency detection for all players
+6. Verify starting corners are correct for 2, 3, and 4 players

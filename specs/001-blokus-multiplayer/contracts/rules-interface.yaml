@@ -1,0 +1,198 @@
+# Game Rules Validation Interface Contract
+
+**Component**: Game Rules Validator
+**Phase**: 1 - Design and Contracts
+**Date**: 2025-10-30
+
+## Purpose
+Defines the interface contract for the Game Rules component that validates all moves against official Blokus rules.
+
+## Public Interface
+
+### `validate_move(game_state, player_id: int, piece, position: Tuple[int, int]) -> ValidationResult`
+**Description**: Comprehensive validation of a proposed piece placement
+**Parameters**:
+- `game_state` (GameState): Current game state
+- `player_id` (int): ID of player making the move (1-4)
+- `piece` (Piece): Piece to be placed
+- `position` (Tuple[int, int]): (row, col) where piece will be placed
+**Returns**: ValidationResult with is_valid and error_message
+**Preconditions**: piece is not placed, position is tuple of two ints
+**Postconditions**: None (pure function)
+
+### `validate_first_move(player_id: int, piece, position: Tuple[int, int], board) -> bool`
+**Description**: Validate that first move follows corner placement rule
+**Parameters**:
+- `player_id` (int): Player ID
+- `piece` (Piece): Piece being placed
+- `position` (Tuple[int, int]): Proposed position
+- `board` (Board): Game board
+**Returns**: True if move follows first-move rule, False otherwise
+**Preconditions**: player has not made first move yet
+**Postconditions**: None (pure function)
+
+**Blokus First Move Rule**:
+- Player's very first piece MUST touch their starting corner
+- At least one square of the piece must occupy the corner position
+- Corner positions: P1=(0,0), P2=(0,19), P3=(19,19), P4=(19,0)
+
+### `validate_piece_fits(piece, position: Tuple[int, int], board) -> bool`
+**Description**: Check if piece fits on board (within bounds, no overlaps)
+**Parameters**:
+- `piece` (Piece): Piece to place
+- `position` (Tuple[int, int]): (row, col) anchor position
+- `board` (Board): Game board
+**Returns**: True if piece fits, False otherwise
+**Preconditions**: None
+**Postconditions**: None (pure function)
+
+**Validation Checks**:
+1. All piece squares within board bounds (0-19, 0-19)
+2. All piece squares unoccupied
+3. No piece squares outside board
+
+### `validate_adjacency(player_id: int, piece, position: Tuple[int, int], board) -> bool`
+**Description**: Validate piece adjacency rule (can only touch own pieces at corners)
+**Parameters**:
+- `player_id` (int): Player ID
+- `piece` (Piece): Piece being placed
+- `position` (Tuple[int, int]): (row, col) anchor position
+- `board` (Board): Game board
+**Returns**: True if adjacency rules satisfied, False otherwise
+**Preconditions**: piece fits on board
+**Postconditions**: None (pure function)
+
+**Blokus Adjacency Rule**:
+- Player's piece MAY touch their own pieces at corners (diagonally)
+- Player's piece MAY NOT touch their own pieces at edges (orthogonally)
+- Player's piece MAY touch opponents' pieces at edges or corners (no restriction)
+
+### `get_valid_moves(player_id: int, board) -> List[Tuple[Piece, Tuple[int, int]]]`
+**Description**: Find all valid moves for a player on current board
+**Parameters**:
+- `player_id` (int): Player ID
+- `board` (Board): Current board state
+**Returns**: List of (Piece, position) tuples representing all valid moves
+**Preconditions**: player has pieces available
+**Postconditions**: None (pure function)
+
+### `check_game_end(game_state) -> bool`
+**Description**: Check if game should end based on current state
+**Parameters**:
+- `game_state` (GameState): Current game state
+**Returns**: True if game should end, False otherwise
+**Preconditions**: game in "playing" phase
+**Postconditions**: None (pure function)
+
+**End Game Conditions** (any of):
+1. All players have no valid moves (consecutive skips >= num_players)
+2. All players have placed all their pieces
+3. All players have no pieces remaining AND no valid moves
+
+### `calculate_score(player) -> int`
+**Description**: Calculate a player's current score
+**Parameters**:
+- `player` (Player): Player object
+**Returns**: Current score as integer
+**Preconditions**: None
+**Postconditions**: None (pure function)
+
+**Scoring Rules**:
+- +1 point per square of placed pieces
+- -5 points per unplaced piece
+- +15 points if player places all pieces (bonus)
+- Score can be negative
+
+## Data Structures
+
+### ValidationResult
+```python
+{
+  'is_valid': bool,
+  'error_code': Optional[str],  # e.g., "OUT_OF_BOUNDS", "OVERLAP", "FIRST_MOVE_RULE", "ADJACENCY_RULE"
+  'error_message': Optional[str],  # Human-readable error message
+  'validation_details': Dict[str, Any]  # Additional context for debugging
+}
+```
+
+### Error Codes
+- `OUT_OF_BOUNDS`: Piece extends outside 20x20 board
+- `OVERLAP`: Piece overlaps existing piece
+- `FIRST_MOVE_RULE`: First move doesn't touch starting corner
+- `ADJACENCY_RULE`: Piece touches own piece edge-to-edge
+- `ALREADY_PLACED`: Piece is already on board
+- `INVALID_POSITION`: Position format invalid
+
+## Rule Specifications
+
+### Rule 1: Board Bounds
+- Board is 20x20 grid (rows 0-19, cols 0-19)
+- All piece squares must be within these bounds
+- Corner positions are at: (0,0), (0,19), (19,19), (19,0)
+
+### Rule 2: First Move (Corner Placement)
+- Each player's first piece must include their starting corner
+- Starting corners: P1=(0,0), P2=(0,19), P3=(19,19), P4=(19,0)
+- Rule applies only to first move per player
+- After first move, subsequent moves have no corner restriction
+
+### Rule 3: Piece Placement
+- Only one piece per position
+- Pieces cannot overlap
+- Pieces can be rotated (90°, 180°, 270°) and/or flipped
+- Pieces can be placed in any valid position
+
+### Rule 4: Adjacency (Own Pieces Only)
+- Player's pieces may touch their own pieces ONLY at corners (diagonally)
+- Player's pieces may NOT touch their own pieces at edges (orthogonally)
+- No restrictions on touching opponents' pieces
+- Adjacent means sharing any edge or corner
+
+### Rule 5: Game End
+- Game ends when: all players skip consecutively OR all pieces placed
+- Winner determined by highest score
+- Tie: multiple winners possible
+
+### Rule 6: Turn Order
+- Players take turns in sequence (P1 → P2 → P3 → P4 → P1...)
+- Player may skip if no valid moves available
+- Turn automatically advances after valid placement
+- Game continues until end condition met
+
+## Testing Contract
+
+**Unit Test Scenarios**:
+1. Validate first move in corner succeeds
+2. Validate first move outside corner fails
+3. Validate piece fits within bounds
+4. Validate piece overlapping fails
+5. Validate corner-touching succeeds
+6. Validate edge-touching fails
+7. Validate all 21 pieces have valid positions on empty board
+8. Validate game end detection
+9. Validate score calculation for various scenarios
+
+**Integration Test Scenarios**:
+1. Complete 2-player game flow
+2. Complete 4-player game flow
+3. Player skips turn due to no moves
+4. Game ends with all players unable to move
+5. Game ends with all pieces placed
+6. Complex board state with many pieces
+
+## Error Messages
+
+All validation failures must return clear, actionable error messages:
+
+- `OUT_OF_BOUNDS`: "Piece extends beyond board edges (20x20 grid)"
+- `OVERLAP`: "Cannot place piece on top of existing piece"
+- `FIRST_MOVE_RULE`: "First piece must touch your starting corner"
+- `ADJACENCY_RULE`: "Your pieces can only touch diagonally, not edge-to-edge"
+- `ALREADY_PLACED`: "This piece is already on the board"
+- `INVALID_POSITION`: "Invalid position specified"
+
+## Performance Requirements
+
+- `validate_move()` must complete in < 1ms for typical board states
+- `get_valid_moves()` must complete in < 10ms for empty board
+- Rule validation happens on every move (critical path)

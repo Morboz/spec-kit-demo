@@ -31,7 +31,11 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] Principle I: Incremental Development - Implementation broken into small, verifiable steps
+- [ ] Principle II: Test-First Development - TDD approach planned for all game logic
+- [ ] Principle III: Modular Architecture - Clear separation of board, pieces, players, rules
+- [ ] Principle IV: Rules Compliance - Plan to implement exact Blokus rules with validation
+- [ ] Principle V: Clear Documentation - Documentation approach defined for all interfaces
 
 ## Project Structure
 

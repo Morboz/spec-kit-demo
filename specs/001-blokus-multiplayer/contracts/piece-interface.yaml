@@ -1,0 +1,171 @@
+# Piece Module Interface Contract
+
+**Component**: Blokus Piece
+**Phase**: 1 - Design and Contracts
+**Date**: 2025-10-30
+
+## Purpose
+Defines the interface contract for the Blokus Piece component that manages piece shapes, transformations, and state.
+
+## Public Interface
+
+### `__init__(self, name: str, coordinates: List[Tuple[int, int]]) -> None`
+**Description**: Initialize a new Blokus piece with name and shape definition
+**Parameters**:
+- `name` (str): Unique piece identifier (e.g., "I1", "L4", "X5")
+- `coordinates` (List[Tuple[int, int]]): Relative positions defining shape
+**Returns**: None
+**Preconditions**:
+- name must be unique and valid
+- coordinates must define connected shape
+- size must be 1-5 squares
+**Postconditions**:
+- piece created with is_placed = False
+- piece has no placed position
+
+### Properties
+
+#### `name` (read-only) -> str
+**Description**: Piece identifier
+
+#### `size` (read-only) -> int
+**Description**: Number of squares in piece (1-5)
+**Computed**: len(coordinates)
+
+#### `is_placed` (read-only) -> bool
+**Description**: Whether piece has been placed on board
+
+#### `placed_position` (read-only) -> Optional[Tuple[int, int]]
+**Description**: Position where piece was placed, or None if not placed
+
+### Transformations
+
+#### `rotate(self, degrees: int) -> Piece`
+**Description**: Create a new piece rotated 90, 180, or 270 degrees clockwise
+**Parameters**:
+- `degrees` (int): Rotation angle (90, 180, 270)
+**Returns**: New Piece instance with rotated coordinates
+**Preconditions**: degrees must be 90, 180, or 270
+**Postconditions**: Original piece unchanged (immutable operation)
+**Errors**: Raises ValueError if degrees not in [90, 180, 270]
+
+**Implementation Notes**:
+- 90°: (x, y) → (-y, x)
+- 180°: (x, y) → (-x, -y)
+- 270°: (x, y) → (y, -x)
+
+#### `flip(self) -> Piece`
+**Description**: Create a new piece mirrored horizontally
+**Returns**: New Piece instance with flipped coordinates
+**Preconditions**: None
+**Postconditions**: Original piece unchanged (immutable operation)
+**Implementation**: (x, y) → (-x, y)
+
+#### `get_absolute_positions(self, anchor_row: int, anchor_col: int) -> List[Tuple[int, int]]`
+**Description**: Calculate actual board positions when piece is anchored at position
+**Parameters**:
+- `anchor_row` (int): Row where piece's origin (0,0) will be placed
+- `anchor_col` (int): Column where piece's origin (0,0) will be placed
+**Returns**: List of (row, col) tuples for all piece squares
+**Preconditions**: anchor_row and anchor_col are valid board positions
+**Postconditions**: None (pure function)
+
+### Utility Methods
+
+#### `can_place_at(self, board, row: int, col: int) -> bool`
+**Description**: Check if piece can be legally placed at position on given board
+**Parameters**:
+- `board`: Board instance to validate against
+- `row` (int): Anchor row position
+- `col` (int): Anchor column position
+**Returns**: True if placement is valid, False otherwise
+**Preconditions**: board is valid Board instance
+**Postconditions**: None (pure function)
+
+#### `get_bounding_box(self) -> Tuple[int, int, int, int]`
+**Description**: Get the minimum bounding rectangle for the piece
+**Returns**: Tuple of (min_row, min_col, max_row, max_col)
+**Preconditions**: None
+**Postconditions**: None (pure function)
+**Example**: L4 piece might return (0, 0, 1, 2)
+
+#### `get_adjacent_positions(self, anchor_row: int, anchor_col: int) -> Set[Tuple[int, int]]`
+**Description**: Get all positions adjacent to placed piece (for validation)
+**Parameters**:
+- `anchor_row` (int): Anchor row position
+- `anchor_col` (int): Anchor column position
+**Returns**: Set of all positions touching the piece (including diagonals)
+**Preconditions**: None
+**Postconditions**: None (pure function)
+
+### State Management
+
+#### `place_at(self, row: int, col: int) -> None`
+**Description**: Mark piece as placed at given position
+**Parameters**:
+- `row` (int): Row where piece was placed
+- `col` (int): Column where piece was placed
+**Returns**: None
+**Preconditions**: Piece must not already be placed
+**Postconditions**:
+- is_placed becomes True
+- placed_position set to (row, col)
+
+#### `unplace(self) -> None`
+**Description**: Mark piece as unplaced (for game reset)
+**Returns**: None
+**Preconditions**: Piece must be placed
+**Postconditions**:
+- is_placed becomes False
+- placed_position set to None
+
+## Data Structures
+
+### Piece Definition
+```python
+{
+  'name': str,  # e.g., "I1", "L4", "X5"
+  'coordinates': List[Tuple[int, int]],  # Relative positions
+  'is_placed': bool,
+  'placed_position': Optional[Tuple[int, int]]
+}
+```
+
+### Standard Piece Library
+All 21 standard Blokus pieces defined with coordinate lists:
+```
+I1: [(0,0)]
+I2: [(0,0), (1,0)]
+I3: [(0,0), (1,0), (2,0)]
+I4: [(0,0), (1,0), (2,0), (3,0)]
+I5: [(0,0), (1,0), (2,0), (3,0), (4,0)]
+[... and 16 more pieces ...]
+```
+
+## Validation Rules
+
+1. Coordinates must define connected shape (no isolated squares)
+2. Piece cannot overlap itself
+3. Rotation and flip create new instances (immutable pattern)
+4. A piece can only be placed once
+5. Anchor position must be on board
+
+## Testing Contract
+
+**Test Scenarios**:
+1. Create all 21 standard pieces with correct coordinates
+2. Rotate piece 90°, 180°, 270° and verify coordinates
+3. Flip piece and verify horizontal mirror
+4. Place piece and verify state changes
+5. Cannot place already-placed piece
+6. Cannot rotate/flip by invalid angles
+7. Absolute position calculation accuracy
+8. Adjacent position detection
+
+## Immutable Pattern
+
+Piece transformations (rotate, flip) return new Piece instances rather than modifying the original. This enables:
+- Undo operations
+- Preview before placement
+- Safe concurrent access
+- Simplified testing
