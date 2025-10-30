@@ -472,13 +472,8 @@ class BlokusApp:
         if not self.board_renderer or not self.game_state:
             return
 
-        # Get board state
-        board_state = {}
-        for row in range(self.game_state.board.size):
-            for col in range(self.game_state.board.size):
-                cell_value = self.game_state.board.grid[row][col]
-                if cell_value != 0:
-                    board_state[(row, col)] = cell_value
+        # Get board state - grid is a dict {(row, col): player_id}
+        board_state = self.game_state.board.grid.copy()
 
         # Render with performance metrics
         metrics = self.board_renderer.render_board(

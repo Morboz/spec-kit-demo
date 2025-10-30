@@ -439,26 +439,30 @@ class ErrorHandler:
         """
         exception = error_record.exception
 
+        # Get exception message - use str() for all exceptions
+        exception_msg = str(exception)
+
         if isinstance(exception, GameRuleException):
-            return f"Invalid move: {exception.message}"
+            return f"Invalid move: {exception_msg}"
 
         elif isinstance(exception, BoardOperationException):
-            return f"Board operation failed: {exception.message}"
+            return f"Board operation failed: {exception_msg}"
 
         elif isinstance(exception, PieceOperationException):
-            return f"Cannot perform that action: {exception.message}"
+            return f"Cannot perform that action: {exception_msg}"
 
         elif isinstance(exception, UIRenderingException):
-            return f"Display error: {exception.message}"
+            return f"Display error: {exception_msg}"
 
         elif isinstance(exception, UserInputException):
-            return exception.message
+            return exception_msg
 
         elif isinstance(exception, FileNotFoundError):
-            return f"Required file not found: {exception.filename}"
+            filename = getattr(exception, 'filename', 'unknown file')
+            return f"Required file not found: {filename}"
 
         else:
-            return f"An error occurred: {exception.message}"
+            return f"An error occurred: {exception_msg}"
 
     def _handle_fatal_error(self, error_record: ErrorRecord):
         """Handle a fatal error."""
