@@ -143,14 +143,16 @@ class OptimizedBoardRenderer:
         import time
         start_time = time.time()
 
-        if self.enable_region_updates:
+        if self.enable_region_updates and self.dirty_regions:
             # Only redraw dirty regions
             metrics["regions_updated"] = self._render_regions(
                 board_state, pieces, show_grid, show_coordinates, highlight_regions
             )
         else:
-            # Full redraw
+            # Full redraw (either region updates disabled or no dirty regions)
             self._render_full(board_state, pieces, show_grid, show_coordinates, highlight_regions)
+            # If we rendered everything, clear dirty regions
+            self.dirty_regions.clear()
 
         metrics["render_time"] = (time.time() - start_time) * 1000  # ms
 

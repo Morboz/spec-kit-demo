@@ -410,6 +410,9 @@ class BlokusApp:
         # Initial board render
         self._render_board()
 
+        # Setup board click handling for piece placement
+        self._setup_board_click_handling()
+
         # Game status bar
         status_frame = ttk.Frame(main_frame)
         status_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=(10, 0))
@@ -475,6 +478,7 @@ class BlokusApp:
         # Get board state - grid is a dict {(row, col): player_id}
         board_state = self.game_state.board.grid.copy()
 
+        # Convert to format expected by renderer (dict of positions)
         # Render with performance metrics
         metrics = self.board_renderer.render_board(
             board_state=board_state,
@@ -485,6 +489,59 @@ class BlokusApp:
 
         # Store metrics
         self.performance_metrics["board_render"] = metrics
+
+    def _setup_board_click_handling(self):
+        """Setup click handling for piece placement on the board."""
+        if not self.board_canvas or not self.placement_handler:
+            return
+
+        # Bind canvas click event for piece placement
+        def on_canvas_click(event):
+            """Handle canvas click for piece placement."""
+            if not self.placement_handler or not self.placement_handler.selected_piece:
+                return
+
+            # Calculate board position from click
+            canvas_x = event.x
+            canvas_y = event.y
+
+            # Get cell size from renderer
+            cell_size = self.game_config.cell_size if self.game_config else 30
+
+            # Calculate board row and column
+            board_row = canvas_y // cell_size
+            board_col = canvas_x // cell_size
+
+            # Validate position
+            if not self.game_state.board.is_position_valid(board_row, board_col):
+                messagebox.showerror("Invalid Position", "Position is outside board bounds")
+                return
+
+            # Attempt to place piece
+            piece_name = self.placement_handler.selected_piece.name
+            try:
+                # Use placement handler to place piece
+                # Note: place_piece returns (success, error_message) tuple
+                success, error_msg = self.placement_handler.place_piece(board_row, board_col)
+
+                if success:
+                    # Piece placed successfully
+                    # Re-render board
+                    self._render_board()
+
+                    # Refresh UI
+                    if self.piece_selector:
+                        self.piece_selector.refresh()
+                    if self.piece_display:
+                        self.piece_display.clear()
+                else:
+                    # Show error message
+                    messagebox.showerror("Invalid Move", error_msg or "Cannot place piece at this position")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to place piece: {str(e)}")
+
+        # Bind the click event
+        self.board_canvas.bind("<Button-1>", on_canvas_click)
 
     def _on_restart_game(self):
         """Handle game restart."""
