@@ -12,8 +12,9 @@ This module provides:
 import sys
 import traceback
 import logging
+import json
 from typing import Optional, Dict, List, Callable, Any, Type
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from enum import Enum
 from datetime import datetime
 
@@ -157,6 +158,10 @@ class ErrorHandler:
         # Setup logging
         self.logger = self._setup_logging()
 
+        # Setup structured event logging
+        self.structured_log_file = "blokus_errors.log"
+        self._setup_structured_logging()
+
         # Error tracking
         self.error_history: List[ErrorRecord] = []
         self.error_counts: Dict[str, int] = {}
@@ -174,6 +179,12 @@ class ErrorHandler:
 
         # Global exception hook
         self._original_excepthook = sys.excepthook
+
+    def _setup_structured_logging(self):
+        """Setup structured event logging for game events."""
+        # Create or append to structured log file
+        # File is opened in append mode each time we write
+        pass
 
     def _setup_logging(self) -> logging.Logger:
         """Setup logging configuration."""
@@ -548,6 +559,48 @@ class ErrorHandler:
 
         # Call original handler
         self._original_excepthook(exc_type, exc_value, exc_traceback)
+
+    def log_structured_event(
+        self,
+        event_type: str,
+        player_id: Optional[int] = None,
+        piece_name: Optional[str] = None,
+        position: Optional[tuple[int, int]] = None,
+        error_message: Optional[str] = None,
+        additional_data: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """
+        Log a structured event to blokus_errors.log in JSON format.
+
+        Args:
+            event_type: Type of event (piece_selected, placement_attempted, placement_failed, etc.)
+            player_id: ID of the player
+            piece_name: Name of the piece
+            position: Tuple of (row, col) position
+            error_message: Error message if applicable
+            additional_data: Additional context data
+        """
+        event_data = {
+            "timestamp": datetime.now().isoformat(),
+            "event_type": event_type,
+            "player_id": player_id,
+            "piece_name": piece_name,
+            "position": position,
+            "error_message": error_message,
+        }
+
+        # Add additional data
+        if additional_data:
+            event_data.update(additional_data)
+
+        # Write to log file in JSON format (one JSON object per line)
+        try:
+            with open(self.structured_log_file, "a", encoding="utf-8") as f:
+                f.write(json.dumps(event_data, ensure_ascii=False) + "\n")
+        except Exception as e:
+            # Fallback to regular logging if structured logging fails
+            self.logger.error(f"Failed to write structured event log: {e}")
+            self.logger.error(f"Event data: {event_data}")
 
 
 # Global error handler instance

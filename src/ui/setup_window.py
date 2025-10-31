@@ -25,7 +25,7 @@ class SetupWindow:
         self.dialog: Optional[tk.Toplevel] = None
 
         # Player configuration
-        self.num_players_var = tk.IntVar(value=2)
+        self.num_players_var = tk.IntVar(value=4)
         self.player_names: List[tk.StringVar] = [
             tk.StringVar(value=f"Player {i+1}") for i in range(4)
         ]

@@ -190,7 +190,15 @@ class KeyboardShortcuts:
 class GameKeyboardHandler:
     """Handles keyboard shortcuts for the game."""
 
-    def __init__(self, root: tk.Tk, game_state: Any, board: Any, piece_display: Any):
+    def __init__(
+        self, 
+        root: tk.Tk, 
+        game_state: Any, 
+        board: Any, 
+        piece_display: Any,
+        on_rotate: Optional[Callable[[], None]] = None,
+        on_flip: Optional[Callable[[], None]] = None,
+    ):
         """
         Initialize game keyboard handler.
 
@@ -199,11 +207,15 @@ class GameKeyboardHandler:
             game_state: Game state object
             board: Board object
             piece_display: Piece display component
+            on_rotate: Callback for rotating piece
+            on_flip: Callback for flipping piece
         """
         self.root = root
         self.game_state = game_state
         self.board = board
         self.piece_display = piece_display
+        self.on_rotate_callback = on_rotate
+        self.on_flip_callback = on_flip
         self.keyboard = KeyboardShortcuts(root)
 
         # Setup callbacks
@@ -246,17 +258,25 @@ class GameKeyboardHandler:
 
     def _rotate_clockwise(self):
         """Rotate current piece clockwise."""
-        if self.piece_display:
+        if self.on_rotate_callback:
+            self.on_rotate_callback()
+        elif self.piece_display:
             self.piece_display.rotate_piece(clockwise=True)
 
     def _rotate_counterclockwise(self):
         """Rotate current piece counterclockwise."""
-        if self.piece_display:
+        if self.on_rotate_callback:
+            # For now, treat both R and Shift+R as the same rotation
+            # If you want different behavior, you can add a separate callback
+            self.on_rotate_callback()
+        elif self.piece_display:
             self.piece_display.rotate_piece(clockwise=False)
 
     def _flip_piece(self):
         """Flip current piece."""
-        if self.piece_display:
+        if self.on_flip_callback:
+            self.on_flip_callback()
+        elif self.piece_display:
             self.piece_display.flip_piece()
 
     def _select_piece(self, index: int):

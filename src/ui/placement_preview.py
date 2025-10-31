@@ -29,6 +29,8 @@ class PlacementPreview:
         self,
         board_canvas: tk.Canvas,
         game_state: GameState,
+        cell_size: int = 30,
+        board_size: int = 20,
         error_display: Optional[ttk.Frame] = None,
     ):
         """
@@ -37,11 +39,15 @@ class PlacementPreview:
         Args:
             board_canvas: The game board canvas
             game_state: Current game state
+            cell_size: Size of each board cell in pixels
+            board_size: Number of cells in each dimension
             error_display: Optional error display component
         """
         self.board_canvas = board_canvas
         self.game_state = game_state
         self.error_display = error_display
+        self.cell_size = cell_size
+        self.board_size = board_size
 
         # Current preview state
         self.current_piece: Optional[object] = None
@@ -51,8 +57,8 @@ class PlacementPreview:
         self.is_active = False
 
         # Visual settings
-        self.valid_color = "#00AA00"  # Green for valid
-        self.invalid_color = "#CC0000"  # Red for invalid
+        self.valid_color = "#00DD00"  # Bright green for valid
+        self.invalid_color = "#DD0000"  # Bright red for invalid
         self.preview_alpha = 0.5  # Transparency for preview
 
         # Bind mouse events
@@ -138,17 +144,13 @@ class PlacementPreview:
         Returns:
             Tuple of (row, col) or (None, None) if invalid
         """
-        # This would depend on your board canvas implementation
-        # Assuming 20x20 grid with known cell size
-        cell_size = 25  # pixels per cell
-        board_origin_x = 50  # offset from canvas edge
-        board_origin_y = 50
-
-        col = int((x - board_origin_x) / cell_size)
-        row = int((y - board_origin_y) / cell_size)
+        # Calculate board position from canvas coordinates
+        # Canvas starts at (0, 0), board cells are cell_size pixels each
+        col = x // self.cell_size
+        row = y // self.cell_size
 
         # Validate bounds
-        if 0 <= row < 20 and 0 <= col < 20:
+        if 0 <= row < self.board_size and 0 <= col < self.board_size:
             return row, col
 
         return None, None
@@ -174,25 +176,39 @@ class PlacementPreview:
         self.preview_positions = positions
 
         # Choose color based on validity
-        color = self.valid_color if validation_result.is_valid else self.invalid_color
+        if validation_result.is_valid:
+            fill_color = self.valid_color
+            outline_color = "#00FF00"  # Bright green outline
+        else:
+            fill_color = self.invalid_color
+            outline_color = "#FF0000"  # Bright red outline
 
-        # Draw preview rectangles
-        cell_size = 25
-        board_origin_x = 50
-        board_origin_y = 50
-
+        # Draw preview rectangles with semi-transparent effect
         for pos_row, pos_col in positions:
             # Calculate pixel coordinates
-            x1 = board_origin_x + pos_col * cell_size
-            y1 = board_origin_y + pos_row * cell_size
-            x2 = x1 + cell_size
-            y2 = y1 + cell_size
+            x1 = pos_col * self.cell_size
+            y1 = pos_row * self.cell_size
+            x2 = x1 + self.cell_size
+            y2 = y1 + self.cell_size
 
-            # Draw rectangle
+            # Draw filled rectangle with stipple for transparency effect
             rect_id = self.board_canvas.create_rectangle(
-                x1, y1, x2, y2, fill=color, outline=color, stipple="gray50"
+                x1 + 1, y1 + 1, x2 - 1, y2 - 1,
+                fill=fill_color,
+                outline=outline_color,
+                width=2,
+                stipple="gray50",  # Creates a semi-transparent effect
             )
             self.preview_rectangles.append(rect_id)
+
+            # Add a second layer for better visibility
+            inner_rect = self.board_canvas.create_rectangle(
+                x1 + 3, y1 + 3, x2 - 3, y2 - 3,
+                fill="",
+                outline=outline_color,
+                width=1,
+            )
+            self.preview_rectangles.append(inner_rect)
 
     def clear_preview(self):
         """Clear all preview indicators."""

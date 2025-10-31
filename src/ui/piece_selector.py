@@ -33,6 +33,7 @@ class PieceSelector(ttk.Frame):
         self.on_piece_selected = on_piece_selected
         self.selected_piece: Optional[str] = None
         self.piece_buttons: List[ttk.Button] = []
+        self.selected_button: Optional[ttk.Button] = None
 
         self._create_widgets()
         self._update_piece_list()
@@ -89,7 +90,7 @@ class PieceSelector(ttk.Frame):
         """
         self.selected_piece = piece_name
 
-        # Highlight selected button
+        # Clear all button states first
         for button in self.piece_buttons:
             button.state(["!pressed"])
 
@@ -99,7 +100,10 @@ class PieceSelector(ttk.Frame):
                 # Find corresponding button by text
                 for button in self.piece_buttons:
                     if piece_name in button.cget("text"):
+                        # Apply pressed state to show selection
                         button.state(["pressed"])
+                        # Store reference to selected button
+                        self.selected_button = button
                         break
                 break
 
@@ -119,6 +123,7 @@ class PieceSelector(ttk.Frame):
     def clear_selection(self) -> None:
         """Clear the current selection."""
         self.selected_piece = None
+        self.selected_button = None
         for button in self.piece_buttons:
             button.state(["!pressed"])
 
@@ -126,3 +131,12 @@ class PieceSelector(ttk.Frame):
         """Refresh the piece list (e.g., after placing a piece)."""
         self._update_piece_list()
         self.clear_selection()
+
+    def set_player(self, new_player: Player) -> None:
+        """Update the player reference and refresh the display.
+
+        Args:
+            new_player: The new player whose pieces to display
+        """
+        self.player = new_player
+        self.refresh()
