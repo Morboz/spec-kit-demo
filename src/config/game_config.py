@@ -51,9 +51,9 @@ class GameConfig:
     players: List[PlayerConfig] = field(default_factory=list)
 
     # UI settings
-    window_width: int = 1200
+    window_width: int = 1500
     window_height: int = 800
-    cell_size: int = 30
+    cell_size: int = 28
     show_grid_lines: bool = True
     show_coordinates: bool = False
     animation_speed: int = 100  # milliseconds
