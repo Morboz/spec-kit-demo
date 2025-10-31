@@ -102,6 +102,13 @@ class BlokusRules:
             )
             if not corner_result.is_valid:
                 return corner_result
+        else:
+            # For non-first moves, must have corner-to-corner contact with own pieces
+            corner_contact_result = BlokusRules._check_corner_connection(
+                positions, player_id, game_state.board
+            )
+            if not corner_contact_result.is_valid:
+                return corner_contact_result
 
         return ValidationResult(True, "Move is valid")
 
@@ -185,6 +192,54 @@ class BlokusRules:
                     )
 
         return ValidationResult(True, "No edge-to-edge contact with own pieces")
+
+    @staticmethod
+    def _check_corner_connection(
+        positions: List[Tuple[int, int]], player_id: int, board: Board
+    ) -> ValidationResult:
+        """
+        Check that piece has corner-to-corner contact with at least one own piece.
+
+        This is required for all moves after the first move.
+        Diagonal (corner-to-corner) contact is required.
+
+        Args:
+            positions: List of (row, col) positions for new piece
+            player_id: ID of the player placing the piece
+            board: Game board
+
+        Returns:
+            ValidationResult
+        """
+        player_positions = board.get_player_positions(player_id)
+
+        # If player has no pieces yet, this check should not be called
+        if not player_positions:
+            return ValidationResult(
+                False, "Player has no pieces on board (should use first move rule)"
+            )
+
+        # Check if any square of the new piece has diagonal contact with own pieces
+        for row, col in positions:
+            # Check all 4 diagonal neighbors
+            diagonal_neighbors = [
+                (row - 1, col - 1),  # Upper-left
+                (row - 1, col + 1),  # Upper-right
+                (row + 1, col - 1),  # Lower-left
+                (row + 1, col + 1),  # Lower-right
+            ]
+
+            for neighbor_row, neighbor_col in diagonal_neighbors:
+                if (neighbor_row, neighbor_col) in player_positions:
+                    # Found corner-to-corner contact with own piece
+                    return ValidationResult(
+                        True, "Piece has corner-to-corner contact with own piece"
+                    )
+
+        return ValidationResult(
+            False,
+            "Piece must touch at least one of your own pieces corner-to-corner (diagonally)",
+        )
 
     @staticmethod
     def _is_first_move(player: Player, game_state: GameState) -> bool:

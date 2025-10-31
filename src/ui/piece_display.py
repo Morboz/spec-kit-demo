@@ -7,7 +7,7 @@ rotation and flip controls for gameplay.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional, Callable, List, Tuple
+from typing import Optional, Callable
 from src.models.piece import Piece
 
 
@@ -18,6 +18,8 @@ class PieceDisplay(ttk.Frame):
         self,
         parent: tk.Widget,
         on_place_piece: Optional[Callable[[int, int], None]] = None,
+        on_rotate: Optional[Callable[[], None]] = None,
+        on_flip: Optional[Callable[[], None]] = None,
     ) -> None:
         """
         Initialize the piece display.
@@ -25,9 +27,13 @@ class PieceDisplay(ttk.Frame):
         Args:
             parent: Parent widget
             on_place_piece: Callback when piece is placed (receives row, col)
+            on_rotate: Callback when rotate button is clicked
+            on_flip: Callback when flip button is clicked
         """
         super().__init__(parent)
         self.on_place_piece = on_place_piece
+        self.on_rotate = on_rotate
+        self.on_flip = on_flip
         self.current_piece: Optional[Piece] = None
         self.canvas: Optional[tk.Canvas] = None
 
@@ -92,13 +98,21 @@ class PieceDisplay(ttk.Frame):
 
     def rotate_piece(self) -> None:
         """Rotate the current piece 90 degrees clockwise."""
-        if self.current_piece and not self.current_piece.is_placed:
+        if self.on_rotate:
+            # Call the external handler to rotate the piece
+            self.on_rotate()
+        elif self.current_piece and not self.current_piece.is_placed:
+            # Fallback: rotate locally if no callback
             self.current_piece = self.current_piece.rotate(90)
             self._redraw()
 
     def flip_piece(self) -> None:
         """Flip the current piece horizontally."""
-        if self.current_piece and not self.current_piece.is_placed:
+        if self.on_flip:
+            # Call the external handler to flip the piece
+            self.on_flip()
+        elif self.current_piece and not self.current_piece.is_placed:
+            # Fallback: flip locally if no callback
             self.current_piece = self.current_piece.flip()
             self._redraw()
 

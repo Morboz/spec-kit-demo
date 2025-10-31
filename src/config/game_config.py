@@ -332,17 +332,14 @@ def create_config_from_preset(preset_name: str) -> GameConfig:
     if preset_name not in CONFIG_PRESETS:
         raise ValueError(f"Unknown preset: {preset_name}. Available presets: {list(CONFIG_PRESETS.keys())}")
 
-    # Return a copy of the preset
-    preset = CONFIG_PRESETS[preset_name]
-
     # Create new instance with default players
     if preset_name == "tournament":
         return GameConfig.create_default_four_player()
     elif preset_name == "high_contrast":
-        config = GameConfig.create_default_two_player()
+        config = GameConfig.create_default_four_player()
         config.current_color_scheme = "high_contrast"
         config.show_grid_lines = True
         config.cell_size = 35
         return config
     else:
-        return GameConfig.create_default_two_player()
+        return GameConfig.create_default_four_player()

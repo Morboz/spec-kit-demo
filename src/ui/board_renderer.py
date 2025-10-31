@@ -513,33 +513,11 @@ class OptimizedBoardRenderer:
 
     def _cache_grid(self):
         """Cache the grid lines for faster rendering."""
-        if not self.enable_caching:
-            return
-
-        # Create an offscreen canvas for caching
-        cache_canvas = tk.Canvas(
-            width=self.canvas_width,
-            height=self.canvas_height,
-        )
-
-        # Draw grid on cache canvas
-        for i in range(self.board_size + 1):
-            x = i * self.cell_size
-            y = i * self.cell_size
-
-            cache_canvas.create_line(
-                x, 0, x, self.canvas_height,
-                fill="#CCCCCC",
-                width=1,
-            )
-            cache_canvas.create_line(
-                0, y, self.canvas_width, y,
-                fill="#CCCCCC",
-                width=1,
-            )
-
-        # Convert to image
-        self.grid_lines_cache = tk.PhotoImage(canvas=cache_canvas)
+        # NOTE: Grid caching is disabled because tk.PhotoImage doesn't support
+        # creating from canvas directly in a simple way.
+        # Grid drawing is fast enough without caching.
+        # This method is kept as a stub for potential future optimization.
+        return
 
     def mark_dirty(self, x: int, y: int, width: int = 1, height: int = 1):
         """

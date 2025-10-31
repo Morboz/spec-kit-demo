@@ -242,6 +242,9 @@ class BlokusApp:
         # Set callback for successful piece placement
         def on_piece_placed(piece_name: str):
             """Handle successful piece placement."""
+            # Re-render board to show the new piece
+            self._render_board()
+            
             # Deactivate placement preview
             if self.placement_preview:
                 self.placement_preview.deactivate()
@@ -369,7 +372,11 @@ class BlokusApp:
             self.piece_selector.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
         # Piece display with controls
-        self.piece_display = PieceDisplay(middle_left_panel)
+        self.piece_display = PieceDisplay(
+            middle_left_panel,
+            on_rotate=self._on_rotate_piece,
+            on_flip=self._on_flip_piece,
+        )
         self.piece_display.pack(fill=tk.X)
 
         # Create middle-right panel (piece inventory)
@@ -470,8 +477,13 @@ class BlokusApp:
             self.state_synchronizer.full_update()
 
         # Initialize placement preview for visual feedback
+        cell_size = self.game_config.cell_size if self.game_config else 30
+        board_size = self.game_config.board_size if self.game_config else 20
         self.placement_preview = PlacementPreview(
-            self.board_canvas, self.game_state
+            self.board_canvas, 
+            self.game_state,
+            cell_size=cell_size,
+            board_size=board_size,
         )
 
     def _setup_keyboard_handler(self):
@@ -535,24 +547,14 @@ class BlokusApp:
                 return
 
             # Attempt to place piece
-            piece_name = self.placement_handler.selected_piece.name
             try:
                 # Use placement handler to place piece
                 # Note: place_piece returns (success, error_message) tuple
+                # The placement_handler will call on_piece_placed callback if successful
                 success, error_msg = self.placement_handler.place_piece(board_row, board_col)
 
-                if success:
-                    # Piece placed successfully
-                    # Re-render board
-                    self._render_board()
-
-                    # Refresh UI
-                    if self.piece_selector:
-                        self.piece_selector.refresh()
-                    if self.piece_display:
-                        self.piece_display.clear()
-                else:
-                    # Show error message
+                if not success:
+                    # Show error message (success case is handled by callback)
                     messagebox.showerror("Invalid Move", error_msg or "Cannot place piece at this position")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to place piece: {str(e)}")
@@ -637,6 +639,50 @@ class BlokusApp:
                         piece=selected_piece,
                         player_id=current_player.player_id
                     )
+
+    def _on_rotate_piece(self) -> None:
+        """Handle piece rotation."""
+        if not self.placement_handler:
+            return
+
+        # Rotate in placement handler
+        self.placement_handler.rotate_piece()
+
+        # Update display
+        selected_piece = self.placement_handler.get_selected_piece()
+        if selected_piece and self.piece_display:
+            self.piece_display.set_piece(selected_piece)
+
+        # Update placement preview
+        if self.placement_preview and selected_piece and self.game_state:
+            current_player = self.game_state.get_current_player()
+            if current_player:
+                self.placement_preview.activate(
+                    piece=selected_piece,
+                    player_id=current_player.player_id
+                )
+
+    def _on_flip_piece(self) -> None:
+        """Handle piece flip."""
+        if not self.placement_handler:
+            return
+
+        # Flip in placement handler
+        self.placement_handler.flip_piece()
+
+        # Update display
+        selected_piece = self.placement_handler.get_selected_piece()
+        if selected_piece and self.piece_display:
+            self.piece_display.set_piece(selected_piece)
+
+        # Update placement preview
+        if self.placement_preview and selected_piece and self.game_state:
+            current_player = self.game_state.get_current_player()
+            if current_player:
+                self.placement_preview.activate(
+                    piece=selected_piece,
+                    player_id=current_player.player_id
+                )
 
 
 
