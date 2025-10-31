@@ -49,6 +49,9 @@ class GameSetup:
 
         # Create game state
         self.game_state = GameState(board=self.board, players=self.players)
+        
+        # Start the game (transition to PLAYING phase)
+        self.game_state.start_game()
 
         return self.game_state
 

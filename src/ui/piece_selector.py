@@ -40,11 +40,12 @@ class PieceSelector(ttk.Frame):
 
     def _create_widgets(self) -> None:
         """Create and arrange UI widgets."""
-        # Title
-        title_label = ttk.Label(
-            self, text=f"{self.player.name}'s Pieces", font=("Arial", 12, "bold")
+        # Title (use StringVar so we can update it)
+        self.title_var = tk.StringVar(value=f"{self.player.name}'s Pieces")
+        self.title_label = ttk.Label(
+            self, textvariable=self.title_var, font=("Arial", 12, "bold")
         )
-        title_label.pack(pady=(0, 10))
+        self.title_label.pack(pady=(0, 10))
 
         # Scrollable frame for pieces
         self.canvas = tk.Canvas(self, height=200)
@@ -139,4 +140,6 @@ class PieceSelector(ttk.Frame):
             new_player: The new player whose pieces to display
         """
         self.player = new_player
+        # Update the title to show the new player's name
+        self.title_var.set(f"{new_player.name}'s Pieces")
         self.refresh()
