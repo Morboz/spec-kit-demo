@@ -494,6 +494,8 @@ class BlokusApp:
                 self.game_state,
                 self.game_state.board,
                 self.piece_display,
+                on_rotate=self._on_rotate_piece,
+                on_flip=self._on_flip_piece,
             )
 
     def _render_board(self):
