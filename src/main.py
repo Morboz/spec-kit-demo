@@ -27,6 +27,7 @@ from src.ui.state_sync import StateSynchronizer
 from src.ui.keyboard_shortcuts import GameKeyboardHandler
 from src.ui.restart_button import RestartButton, GameRestartDialog
 from src.ui.board_renderer import OptimizedBoardRenderer
+from src.ui.placement_preview import PlacementPreview
 from src.config.game_config import GameConfig, create_config_from_preset
 from src.game.error_handler import setup_error_handling, get_error_handler
 
@@ -65,6 +66,7 @@ class BlokusApp:
         self.current_player_indicator: Optional[CurrentPlayerIndicator] = None
         self.scoreboard: Optional[Scoreboard] = None
         self.piece_inventory: Optional[PieceInventory] = None
+        self.placement_preview: Optional[PlacementPreview] = None
 
         # Phase 10 additions
         self.keyboard_handler: Optional[GameKeyboardHandler] = None
@@ -218,16 +220,19 @@ class BlokusApp:
             player_names=[p.name for p in self.game_config.players]
         )
 
-        # Initialize placement handler
+        # Initialize placement handler (but don't setup callbacks yet)
         current_player = self.game_state.get_current_player()
         if current_player:
             self.placement_handler = PlacementHandler(
                 self.game_state.board, self.game_state, current_player
             )
-            self._setup_callbacks()
 
-        # Show the game UI
+        # Show the game UI (this creates PieceSelector)
         self._show_game_ui()
+
+        # NOW setup callbacks after PieceSelector is created
+        if current_player:
+            self._setup_callbacks()
 
     def _setup_callbacks(self) -> None:
         """Setup callbacks for placement handler."""
@@ -237,6 +242,10 @@ class BlokusApp:
         # Set callback for successful piece placement
         def on_piece_placed(piece_name: str):
             """Handle successful piece placement."""
+            # Deactivate placement preview
+            if self.placement_preview:
+                self.placement_preview.deactivate()
+
             # Refresh piece selector
             if self.piece_selector:
                 self.piece_selector.refresh()
@@ -460,6 +469,11 @@ class BlokusApp:
         if self.state_synchronizer:
             self.state_synchronizer.full_update()
 
+        # Initialize placement preview for visual feedback
+        self.placement_preview = PlacementPreview(
+            self.board_canvas, self.game_state
+        )
+
     def _setup_keyboard_handler(self):
         """Setup keyboard shortcuts handler."""
         if not self.keyboard_handler:
@@ -498,7 +512,10 @@ class BlokusApp:
         # Bind canvas click event for piece placement
         def on_canvas_click(event):
             """Handle canvas click for piece placement."""
-            if not self.placement_handler or not self.placement_handler.selected_piece:
+            if not self.placement_handler:
+                return
+
+            if not self.placement_handler.selected_piece:
                 return
 
             # Calculate board position from click
@@ -596,10 +613,31 @@ class BlokusApp:
 
         # Select the piece
         if self.placement_handler.select_piece(piece_name):
+            # Log piece selection event
+            if self.game_state:
+                current_player = self.game_state.get_current_player()
+                if current_player:
+                    error_handler = get_error_handler()
+                    error_handler.log_structured_event(
+                        event_type="piece_selected",
+                        player_id=current_player.player_id,
+                        piece_name=piece_name,
+                    )
+
             # Display the piece
             selected_piece = self.placement_handler.get_selected_piece()
             if selected_piece and self.piece_display:
                 self.piece_display.set_piece(selected_piece)
+
+            # Activate placement preview
+            if self.placement_preview and selected_piece and self.game_state:
+                current_player = self.game_state.get_current_player()
+                if current_player:
+                    self.placement_preview.activate(
+                        piece=selected_piece,
+                        player_id=current_player.player_id
+                    )
+
 
 
 def main() -> None:

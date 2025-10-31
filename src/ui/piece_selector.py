@@ -33,6 +33,7 @@ class PieceSelector(ttk.Frame):
         self.on_piece_selected = on_piece_selected
         self.selected_piece: Optional[str] = None
         self.piece_buttons: List[ttk.Button] = []
+        self.selected_button: Optional[ttk.Button] = None
 
         self._create_widgets()
         self._update_piece_list()
@@ -78,6 +79,9 @@ class PieceSelector(ttk.Frame):
                 text=f"{piece.name} ({piece.size} squares)",
                 command=lambda p=piece.name: self._select_piece(p),
             )
+            # Add hover binding for enhanced visual feedback
+            button.bind("<Enter>", lambda e, b=button: self._on_button_hover(b, True))
+            button.bind("<Leave>", lambda e, b=button: self._on_button_hover(b, False))
             button.pack(fill=tk.X, padx=5, pady=2)
             self.piece_buttons.append(button)
 
@@ -89,9 +93,9 @@ class PieceSelector(ttk.Frame):
         """
         self.selected_piece = piece_name
 
-        # Highlight selected button
+        # Clear all button states first
         for button in self.piece_buttons:
-            button.state(["!pressed"])
+            button.state(["!pressed", "!hover"])
 
         # Find and highlight selected button
         for piece in self.player.get_unplaced_pieces():
@@ -99,13 +103,30 @@ class PieceSelector(ttk.Frame):
                 # Find corresponding button by text
                 for button in self.piece_buttons:
                     if piece_name in button.cget("text"):
+                        # Apply strong pressed state with enhanced styling
                         button.state(["pressed"])
+                        # Store reference to selected button for hover effect
+                        self.selected_button = button
                         break
                 break
 
         # Call callback if provided
         if self.on_piece_selected:
             self.on_piece_selected(piece_name)
+
+    def _on_button_hover(self, button: ttk.Button, entering: bool) -> None:
+        """Handle button hover effect.
+
+        Args:
+            button: The button being hovered
+            entering: True if mouse is entering, False if leaving
+        """
+        if not button.state(["pressed"]):
+            # Only add hover effect if not selected
+            if entering:
+                button.state(["hover"])
+            else:
+                button.state(["!hover"])
 
     def get_selected_piece(self) -> Optional[str]:
         """
@@ -119,10 +140,20 @@ class PieceSelector(ttk.Frame):
     def clear_selection(self) -> None:
         """Clear the current selection."""
         self.selected_piece = None
+        self.selected_button = None
         for button in self.piece_buttons:
-            button.state(["!pressed"])
+            button.state(["!pressed", "!hover"])
 
     def refresh(self) -> None:
         """Refresh the piece list (e.g., after placing a piece)."""
         self._update_piece_list()
         self.clear_selection()
+
+    def set_player(self, new_player: Player) -> None:
+        """Update the player reference and refresh the display.
+
+        Args:
+            new_player: The new player whose pieces to display
+        """
+        self.player = new_player
+        self.refresh()

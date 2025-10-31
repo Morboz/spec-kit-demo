@@ -11,6 +11,7 @@ from src.models.player import Player
 from src.models.game_state import GameState
 from src.models.piece import Piece
 from src.game.rules import BlokusRules
+from src.game.error_handler import get_error_handler
 
 
 class PlacementHandler:
@@ -95,6 +96,16 @@ class PlacementHandler:
         if not self.selected_piece:
             return False, "No piece selected"
 
+        # Log placement attempt
+        error_handler = get_error_handler()
+        piece_name = self.selected_piece.name
+        error_handler.log_structured_event(
+            event_type="placement_attempted",
+            player_id=self.current_player.player_id,
+            piece_name=piece_name,
+            position=(row, col),
+        )
+
         # Validate the move using Blokus rules
         validation_result = BlokusRules.validate_move(
             self.game_state,
@@ -105,6 +116,14 @@ class PlacementHandler:
         )
 
         if not validation_result.is_valid:
+            # Log placement failure
+            error_handler.log_structured_event(
+                event_type="placement_failed",
+                player_id=self.current_player.player_id,
+                piece_name=piece_name,
+                position=(row, col),
+                error_message=validation_result.reason,
+            )
             return False, validation_result.reason
 
         # Place the piece on the board
@@ -114,17 +133,28 @@ class PlacementHandler:
             )
 
             # Update player's piece state
-            self.current_player.place_piece(self.selected_piece.name, row, col)
+            self.current_player.place_piece(piece_name, row, col)
 
             # Record the move
             self.game_state.record_move(
                 player_id=self.current_player.player_id,
-                piece_name=self.selected_piece.name,
+                piece_name=piece_name,
                 row=row,
                 col=col,
                 rotation=self.rotation_count * 90,
                 flipped=self.is_flipped,
             )
+
+            # Log successful placement
+            error_handler.log_structured_event(
+                event_type="placement_succeeded",
+                player_id=self.current_player.player_id,
+                piece_name=piece_name,
+                position=(row, col),
+            )
+
+            # Store piece name before clearing
+            piece_name_to_callback = piece_name
 
             # Clear selection
             self.clear_selection()
@@ -134,11 +164,19 @@ class PlacementHandler:
 
             # Call callback
             if self.on_piece_placed:
-                self.on_piece_placed(self.selected_piece.name)
+                self.on_piece_placed(piece_name_to_callback)
 
             return True, None
 
         except ValueError as e:
+            # Log placement failure with exception
+            error_handler.log_structured_event(
+                event_type="placement_failed",
+                player_id=self.current_player.player_id,
+                piece_name=piece_name,
+                position=(row, col),
+                error_message=str(e),
+            )
             return False, str(e)
 
     def clear_selection(self) -> None:
