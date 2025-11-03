@@ -24,6 +24,7 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+ (portable, rapid prototyping, good game libraries): Follow standard conventions
 
 ## Recent Changes
+- 002-ai-battle-mode: Added Python 3.11+ + tkinter (standard library)
 - 001-fix-piece-placement: Added Python 3.11+ + tkinter (standard library), pytest (testing)
 
 - 001-blokus-multiplayer: Added Python 3.11+ (portable, rapid prototyping, good game libraries) + tkinter (standard library, no external dependencies, sufficient for 2D board game)

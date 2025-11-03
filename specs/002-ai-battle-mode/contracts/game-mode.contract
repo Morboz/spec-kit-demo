@@ -1,0 +1,470 @@
+# GameMode Contract
+
+**Purpose**: Define configuration for different AI battle modes
+
+## Interface Specification
+
+### Class: GameMode
+
+```python
+from typing import List, Optional
+from enum import Enum
+
+class GameModeType(Enum):
+    """Supported game mode types"""
+    SINGLE_AI = "single_ai"
+    THREE_AI = "three_ai"
+    SPECTATE = "spectate"
+
+class Difficulty(Enum):
+    """AI difficulty levels"""
+    EASY = "Easy"
+    MEDIUM = "Medium"
+    HARD = "Hard"
+
+class GameMode:
+    """
+    Configuration for Blokus game mode with AI players
+
+    Attributes define the player composition and difficulty for a game.
+    Used to configure the game before starting.
+    """
+
+    def __init__(self,
+                 mode_type: GameModeType,
+                 difficulty: Difficulty = Difficulty.MEDIUM,
+                 custom_ai_configs: Optional[List['AIConfig']] = None):
+        """
+        Initialize game mode configuration
+
+        Args:
+            mode_type: Type of game mode
+            difficulty: Default difficulty for AI players
+            custom_ai_configs: Custom AI configurations (optional)
+
+        Raises:
+            ValueError: If configuration is invalid
+        """
+
+    @property
+    def mode_type(self) -> GameModeType:
+        """Get game mode type"""
+
+    @property
+    def difficulty(self) -> Difficulty:
+        """Get default difficulty for AI players"""
+
+    @difficulty.setter
+    def difficulty(self, value: Difficulty):
+        """Set default difficulty for AI players"""
+
+    @property
+    def human_player_position(self) -> Optional[int]:
+        """
+        Get position of human player (1-4)
+
+        Returns:
+            Player position (1-4) or None if spectate mode
+        """
+
+    @property
+    def ai_players(self) -> List['AIConfig']:
+        """
+        Get list of AI player configurations
+
+        Returns:
+            List of AIConfig objects for all AI players in this mode
+        """
+
+    def get_player_config(self, position: int) -> Optional['PlayerConfig']:
+        """
+        Get configuration for specific board position
+
+        Args:
+            position: Board position (1-4)
+
+        Returns:
+            PlayerConfig (human or AI) or None if position not used
+
+        Raises:
+            ValueError: If position is not 1-4
+        """
+
+    def is_ai_turn(self, current_player: int) -> bool:
+        """
+        Check if current player is AI-controlled
+
+        Args:
+            current_player: Current player ID (1-4)
+
+        Returns:
+            True if player is AI, False if human
+        """
+
+    def get_next_player(self, current_player: int) -> int:
+        """
+        Get next player in turn order
+
+        Args:
+            current_player: Current player ID (1-4)
+
+        Returns:
+            Next player ID (1-4)
+
+        Note:
+            Skips positions not used in this mode (e.g., position 2 in single AI)
+        """
+
+    def validate(self) -> bool:
+        """
+        Validate game mode configuration
+
+        Returns:
+            True if configuration is valid
+
+        Raises:
+            ConfigurationError: If configuration is invalid
+        """
+
+    @classmethod
+    def single_ai(cls, difficulty: Difficulty = Difficulty.MEDIUM) -> 'GameMode':
+        """
+        Create single AI mode configuration
+
+        Args:
+            difficulty: AI difficulty level
+
+        Returns:
+            GameMode configured for human vs 1 AI
+
+        Configuration:
+            Human: Position 1
+            AI: Position 3
+            Empty: Positions 2, 4
+        """
+
+    @classmethod
+    def three_ai(cls, difficulty: Difficulty = Difficulty.MEDIUM) -> 'GameMode':
+        """
+        Create three AI mode configuration
+
+        Args:
+            difficulty: AI difficulty level
+
+        Returns:
+            GameMode configured for human vs 3 AI
+
+        Configuration:
+            Human: Position 1
+            AI: Positions 2, 3, 4
+        """
+
+    @classmethod
+    def spectate_ai(cls) -> 'GameMode':
+        """
+        Create spectator mode configuration
+
+        Returns:
+            GameMode configured for 4 AI players (no human)
+
+        Configuration:
+            AI: Positions 1, 2, 3, 4
+            Difficulty: Mixed (Hard, Medium, Hard, Easy)
+        """
+```
+
+### Class: AIConfig
+
+```python
+class AIConfig:
+    """
+    Configuration for a single AI player
+    """
+
+    def __init__(self,
+                 position: int,
+                 difficulty: Difficulty,
+                 name: Optional[str] = None,
+                 color: Optional[str] = None):
+        """
+        Initialize AI player configuration
+
+        Args:
+            position: Board position (1-4)
+            difficulty: AI difficulty level
+            name: Display name (optional, default: "AI Player {position}")
+            color: Display color (optional, uses standard palette)
+
+        Raises:
+            ValueError: If position is not 1-4
+            ValueError: If difficulty is not valid
+        """
+
+    @property
+    def position(self) -> int:
+        """Get board position (1-4)"""
+
+    @property
+    def difficulty(self) -> Difficulty:
+        """Get AI difficulty level"""
+
+    @difficulty.setter
+    def difficulty(self, value: Difficulty):
+        """Set AI difficulty level"""
+
+    @property
+    def name(self) -> str:
+        """Get display name"""
+
+    @property
+    def color(self) -> str:
+        """Get display color"""
+
+    def create_player(self) -> 'AIPlayer':
+        """
+        Create AIPlayer instance from configuration
+
+        Returns:
+            Configured AIPlayer object
+
+        Raises:
+            InvalidStrategyError: If strategy creation fails
+        """
+```
+
+### Class: PlayerConfig (Union Type)
+
+```python
+from typing import Union
+
+PlayerConfig = Union['AIConfig', 'HumanPlayerConfig']
+
+class HumanPlayerConfig:
+    """Configuration for human player (for consistency)"""
+
+    def __init__(self, position: int, name: str = "Player"):
+        """
+        Initialize human player configuration
+
+        Args:
+            position: Board position (1-4)
+            name: Display name
+        """
+```
+
+## Mode Configurations
+
+### Single AI Mode
+
+**Use Case**: Human player practices against one AI
+
+**Player Layout**:
+```
+Position 1: Human (Bottom-left quadrant)
+Position 2: [Empty]
+Position 3: AI (Top-right quadrant)
+Position 4: [Empty]
+```
+
+**Turn Order**: Player 1 → Player 3 → Player 1 → Player 3...
+
+**Example Configuration**:
+```python
+mode = GameMode.single_ai(Difficulty.HARD)
+
+# Equivalent to:
+mode = GameMode(
+    mode_type=GameModeType.SINGLE_AI,
+    difficulty=Difficulty.HARD
+)
+
+# Results in:
+# human_player_position = 1
+# ai_players = [AIConfig(position=3, difficulty=Difficulty.HARD)]
+```
+
+### Three AI Mode
+
+**Use Case**: Full multiplayer experience with AI opponents
+
+**Player Layout**:
+```
+Position 1: Human (Bottom-left)
+Position 2: AI (Bottom-right)
+Position 3: AI (Top-right)
+Position 4: AI (Top-left)
+```
+
+**Turn Order**: Player 1 → Player 2 → Player 3 → Player 4 → Player 1...
+
+**Example Configuration**:
+```python
+mode = GameMode.three_ai(Difficulty.MEDIUM)
+
+# Results in:
+# human_player_position = 1
+# ai_players = [
+#     AIConfig(position=2, difficulty=Difficulty.MEDIUM),
+#     AIConfig(position=3, difficulty=Difficulty.MEDIUM),
+#     AIConfig(position=4, difficulty=Difficulty.MEDIUM)
+# ]
+```
+
+### Spectate Mode
+
+**Use Case**: Watch AI vs AI for entertainment or learning
+
+**Player Layout**:
+```
+Position 1: AI (Easy difficulty)
+Position 2: AI (Medium difficulty)
+Position 3: AI (Hard difficulty)
+Position 4: AI (Medium difficulty)
+```
+
+**Turn Order**: Player 1 → Player 2 → Player 3 → Player 4 → Player 1...
+
+**Example Configuration**:
+```python
+mode = GameMode.spectate_ai()
+
+# Results in:
+# human_player_position = None
+# ai_players = [
+#     AIConfig(position=1, difficulty=Difficulty.EASY),
+#     AIConfig(position=2, difficulty=Difficulty.MEDIUM),
+#     AIConfig(position=3, difficulty=Difficulty.HARD),
+#     AIConfig(position=4, difficulty=Difficulty.EASY)
+# ]
+```
+
+## Validation Rules
+
+### GameMode Validation
+
+```python
+def validate(self) -> bool:
+    """
+    Validate configuration rules
+
+    Rules:
+        1. Mode type must be valid
+        2. Single AI: exactly 1 human + 1 AI (2 total players)
+        3. Three AI: exactly 1 human + 3 AI (4 total players)
+        4. Spectate: exactly 4 AI (0 human)
+        5. All positions must be unique
+        6. All positions must be 1-4
+        7. Difficulty must be valid for all AI players
+
+    Returns:
+        True if valid
+
+    Raises:
+        ConfigurationError: If validation fails with details
+    """
+```
+
+### Invalid Configurations
+
+**Invalid Examples**:
+```python
+# Error: Two humans in single AI mode
+GameMode(GameModeType.SINGLE_AI,
+         custom_ai_configs=[
+             AIConfig(position=1, Difficulty.EASY),  # Human position 1
+             AIConfig(position=3, Difficulty.MEDIUM)  # AI position 3
+         ])
+
+# Error: Duplicate positions
+GameMode(GameModeType.THREE_AI,
+         custom_ai_configs=[
+             AIConfig(position=2, Difficulty.EASY),
+             AIConfig(position=2, Difficulty.HARD)  # Duplicate!
+         ])
+
+# Error: Invalid position
+AIConfig(position=5, Difficulty.MEDIUM)  # Position must be 1-4
+```
+
+## Usage Examples
+
+### Creating Standard Modes
+
+```python
+# Create single AI game with hard difficulty
+mode = GameMode.single_ai(Difficulty.HARD)
+assert mode.human_player_position == 1
+assert len(mode.ai_players) == 1
+assert mode.ai_players[0].position == 3
+
+# Create three AI game with easy difficulty
+mode = GameMode.three_ai(Difficulty.EASY)
+assert mode.human_player_position == 1
+assert len(mode.ai_players) == 3
+
+# Create spectator mode
+mode = GameMode.spectate_ai()
+assert mode.human_player_position is None
+assert len(mode.ai_players) == 4
+```
+
+### Querying Game State
+
+```python
+mode = GameMode.three_ai(Difficulty.MEDIUM)
+
+# Check if player is AI
+assert mode.is_ai_turn(1) == False  # Human
+assert mode.is_ai_turn(2) == True   # AI
+
+# Get next player
+assert mode.get_next_player(1) == 2
+assert mode.get_next_player(4) == 1
+
+# Get player config
+player_config = mode.get_player_config(2)
+assert isinstance(player_config, AIConfig)
+assert player_config.difficulty == Difficulty.MEDIUM
+```
+
+### Custom Configuration
+
+```python
+# Create custom mode with different AI difficulties
+custom_ais = [
+    AIConfig(position=2, Difficulty.EASY, name="Easy AI"),
+    AIConfig(position=3, Difficulty.HARD, name="Challenging AI"),
+    AIConfig(position=4, Difficulty.MEDIUM, name="Balanced AI")
+]
+
+mode = GameMode(
+    mode_type=GameModeType.THREE_AI,
+    difficulty=Difficulty.MEDIUM,
+    custom_ai_configs=custom_ais
+)
+```
+
+## Contract Compliance
+
+### Invariants
+- `mode_type` is always a valid GameModeType
+- All positions in `ai_players` are unique
+- `human_player_position` (if not None) is unique from all AI positions
+- All AI players have valid difficulty levels
+
+### Preconditions
+- Position values are between 1-4
+- Difficulty is a valid enum value
+- Mode type is a valid enum value
+
+### Postconditions
+- `validate()` returns True for all constructed modes (or raises error)
+- `is_ai_turn()` correctly identifies player types
+- `get_next_player()` cycles through valid positions only
+- Created AIPlayer instances match configuration
+
+### Performance Requirements
+- Configuration validation completes in < 10ms
+- Mode creation is O(1) operation
+- Query operations (is_ai_turn, get_next_player) are O(1)
+- Memory footprint minimal (< 1KB per GameMode instance)
