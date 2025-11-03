@@ -245,3 +245,127 @@ class TestAIPlayer:
             assert ai_player.strategy == strategy
             assert ai_player.difficulty == strategy.difficulty_name
             assert ai_player.timeout_seconds == strategy.timeout_seconds
+
+    def test_switch_strategy(self):
+        """Test switching AI player's strategy at runtime."""
+        from src.services.ai_strategy import AIStrategy
+
+        # Create player with initial strategy
+        initial_strategy = RandomStrategy()
+        ai_player = AIPlayer(1, initial_strategy, "blue")
+
+        assert ai_player.difficulty == "Easy"
+
+        # Switch to different strategy
+        new_strategy = CornerStrategy()
+        ai_player.switch_strategy(new_strategy)
+
+        # Verify strategy was switched
+        assert ai_player.strategy == new_strategy
+        assert ai_player.difficulty == "Medium"
+
+    def test_switch_strategy_validates_input(self):
+        """Test that switch_strategy validates input."""
+        strategy = RandomStrategy()
+        ai_player = AIPlayer(1, strategy, "blue")
+
+        # Try to switch to invalid strategy (not an AIStrategy)
+        with pytest.raises(ValueError, match="must implement AIStrategy interface"):
+            ai_player.switch_strategy("invalid")
+
+        with pytest.raises(ValueError, match="must implement AIStrategy interface"):
+            ai_player.switch_strategy(None)
+
+    def test_switch_to_difficulty(self):
+        """Test switching to difficulty level by string."""
+        from src.models.ai_config import Difficulty
+
+        # Create player with initial strategy
+        strategy = RandomStrategy()
+        ai_player = AIPlayer(1, strategy, "blue")
+
+        assert ai_player.difficulty == "Easy"
+
+        # Switch to Medium
+        ai_player.switch_to_difficulty("Medium")
+        assert ai_player.difficulty == "Medium"
+
+        # Switch to Hard
+        ai_player.switch_to_difficulty("Hard")
+        assert ai_player.difficulty == "Hard"
+
+        # Switch back to Easy
+        ai_player.switch_to_difficulty("Easy")
+        assert ai_player.difficulty == "Easy"
+
+    def test_switch_to_difficulty_with_enum(self):
+        """Test switching to difficulty level using Difficulty enum."""
+        from src.models.ai_config import Difficulty
+
+        strategy = RandomStrategy()
+        ai_player = AIPlayer(1, strategy, "blue")
+
+        # Switch using enum
+        ai_player.switch_to_difficulty(Difficulty.MEDIUM)
+        assert ai_player.difficulty == "Medium"
+
+        ai_player.switch_to_difficulty(Difficulty.HARD)
+        assert ai_player.difficulty == "Hard"
+
+    def test_switch_to_difficulty_invalid_string(self):
+        """Test that switch_to_difficulty rejects invalid difficulty strings."""
+        strategy = RandomStrategy()
+        ai_player = AIPlayer(1, strategy, "blue")
+
+        with pytest.raises(ValueError, match="Invalid difficulty"):
+            ai_player.switch_to_difficulty("Impossible")
+
+        with pytest.raises(ValueError, match="Unsupported difficulty"):
+            ai_player.switch_to_difficulty("NotARealDifficulty")
+
+    def test_strategy_switching_preserves_player_properties(self):
+        """Test that switching strategy preserves player properties."""
+        from src.models.ai_config import Difficulty
+
+        strategy = RandomStrategy()
+        ai_player = AIPlayer(1, strategy, "blue", "Test AI")
+        original_pieces = ai_player.pieces[:]
+
+        # Switch difficulty
+        ai_player.switch_to_difficulty(Difficulty.HARD)
+
+        # Verify player properties are preserved
+        assert ai_player.player_id == 1
+        assert ai_player.color == "blue"
+        assert ai_player.name == "Test AI"
+        assert ai_player.pieces == original_pieces
+        assert ai_player.score == 0
+        assert not ai_player.has_passed
+        assert not ai_player.is_calculating
+
+    def test_multiple_strategy_switches(self):
+        """Test multiple consecutive strategy switches."""
+        from src.models.ai_config import Difficulty
+
+        strategy = RandomStrategy()
+        ai_player = AIPlayer(1, strategy, "blue")
+
+        # Switch through all difficulties multiple times
+        difficulties = ["Easy", "Medium", "Hard", "Easy", "Hard", "Medium"]
+
+        for difficulty in difficulties:
+            ai_player.switch_to_difficulty(difficulty)
+            assert ai_player.difficulty == difficulty
+
+    def test_strategy_switching_updates_timeout(self):
+        """Test that switching strategy updates timeout."""
+        strategy = RandomStrategy()
+        ai_player = AIPlayer(1, strategy, "blue")
+
+        assert ai_player.timeout_seconds == 3
+
+        ai_player.switch_to_difficulty("Medium")
+        assert ai_player.timeout_seconds == 5
+
+        ai_player.switch_to_difficulty("Hard")
+        assert ai_player.timeout_seconds == 8

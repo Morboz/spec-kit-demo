@@ -31,3 +31,4 @@ Python 3.11+ (portable, rapid prototyping, good game libraries): Follow standard
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
+- 使用uv管理项目，使用uv进行pytest 单元测试

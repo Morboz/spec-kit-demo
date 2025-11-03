@@ -288,6 +288,54 @@ class AIPlayer:
 
         piece.place_at(row, col)
 
+    def switch_strategy(self, new_strategy: AIStrategy):
+        """
+        Switch the AI player's strategy at runtime.
+
+        Args:
+            new_strategy: New strategy to use
+
+        Raises:
+            ValueError: If strategy is not valid
+        """
+        if not isinstance(new_strategy, AIStrategy):
+            raise ValueError("Strategy must implement AIStrategy interface")
+
+        self.strategy = new_strategy
+
+    def switch_to_difficulty(self, difficulty: str):
+        """
+        Switch to a strategy based on difficulty level.
+
+        Args:
+            difficulty: Difficulty level ("Easy", "Medium", "Hard")
+
+        Raises:
+            ValueError: If difficulty is not supported
+        """
+        from src.models.ai_config import Difficulty as AIDifficulty
+
+        # Convert string to enum
+        if isinstance(difficulty, str):
+            try:
+                diff_enum = AIDifficulty(difficulty)
+            except ValueError:
+                raise ValueError(f"Invalid difficulty: {difficulty}. Must be Easy, Medium, or Hard")
+        else:
+            diff_enum = difficulty
+
+        # Create new strategy based on difficulty
+        from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+
+        if diff_enum == AIDifficulty.EASY:
+            self.strategy = RandomStrategy()
+        elif diff_enum == AIDifficulty.MEDIUM:
+            self.strategy = CornerStrategy()
+        elif diff_enum == AIDifficulty.HARD:
+            self.strategy = StrategicStrategy()
+        else:
+            raise ValueError(f"Unsupported difficulty: {diff_enum}")
+
     def __repr__(self):
         """String representation of AI player."""
         return f"AIPlayer(id={self.player_id}, name='{self.name}', difficulty='{self.difficulty}')"

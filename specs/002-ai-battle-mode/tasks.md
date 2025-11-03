@@ -139,30 +139,30 @@ This document contains implementation tasks for adding AI-powered gameplay modes
 
 ### Difficulty Configuration UI
 
-- [ ] T049 [P] [US3] Add difficulty selection to game mode selector in src/ui/game_mode_selector.py
-- [ ] T050 [P] [US3] Implement difficulty persistence across game sessions in src/models/game_mode.py
+- [x] T049 [P] [US3] Add difficulty selection to game mode selector in src/ui/game_mode_selector.py
+- [x] T050 [P] [US3] Implement difficulty persistence across game sessions in src/models/game_mode.py
 
 ### Strategy Switching
 
-- [ ] T051 [US3] Add strategy switching mechanism to AIPlayer in src/models/ai_player.py
-- [ ] T052 [US3] Implement difficulty-based strategy instantiation in src/models/ai_config.py
+- [x] T051 [US3] Add strategy switching mechanism to AIPlayer in src/models/ai_player.py
+- [x] T052 [US3] Implement difficulty-based strategy instantiation in src/models/ai_config.py
 
 ### Performance Optimization
 
-- [ ] T053 [US3] Optimize move generation for different difficulty levels in src/services/ai_strategy.py
-- [ ] T054 [US3] Implement caching for Easy strategy calculations in src/services/ai_strategy.py
+- [x] T053 [US3] Optimize move generation for different difficulty levels in src/services/ai_strategy.py
+- [x] T054 [US3] Implement caching for Easy strategy calculations in src/services/ai_strategy.py
 
 ### Difficulty Settings Tests
 
-- [ ] T055 [US3] Create tests for difficulty selection UI in tests/unit/test_game_mode_selector.py
-- [ ] T056 [US3] Create tests for strategy switching in tests/unit/test_ai_player.py
-- [ ] T057 [US3] Create tests verifying AI behavior differences by difficulty in tests/integration/test_difficulty.py
+- [x] T055 [US3] Create tests for difficulty selection UI in tests/unit/test_game_mode_selector.py
+- [x] T056 [US3] Create tests for strategy switching in tests/unit/test_ai_player.py
+- [x] T057 [US3] Create tests verifying AI behavior differences by difficulty in tests/integration/test_difficulty.py
 
 ### Validation & Polish
 
-- [ ] T058 [US3] Verify Easy AI makes simpler/lower-value moves than Hard AI
-- [ ] T059 [US3] Verify difficulty settings persist across game sessions
-- [ ] T060 [US3] Test all difficulty levels across all game modes (Single, Three, Spectate)
+- [x] T058 [US3] Verify Easy AI makes simpler/lower-value moves than Hard AI
+- [x] T059 [US3] Verify difficulty settings persist across game sessions
+- [x] T060 [US3] Test all difficulty levels across all game modes (Single, Three, Spectate)
 
 **US3 Completion Criteria**: Players can configure AI difficulty and observe corresponding behavior differences
 
@@ -334,23 +334,23 @@ Each user story phase includes:
 
 ## Current Progress
 
-**Completed Phases**: 4/7
+**Completed Phases**: 5/7
 - ✅ Phase 1 (Setup): 4/4 tasks complete
 - ✅ Phase 2 (Foundational): 12/12 tasks complete
 - ✅ Phase 3 (US1 - Single AI): 19/19 tasks complete
 - ✅ Phase 4 (US2 - Three AI): 13/13 tasks complete
+- ✅ Phase 5 (US3 - Difficulty): 12/12 tasks complete
 
 **In Progress**: None
-**Remaining Phases**: 3/7
-- ⏳ Phase 5 (US3 - Difficulty): 0/12 tasks
+**Remaining Phases**: 2/7
 - ⏳ Phase 6 (US4 - Spectate): 0/13 tasks
 - ⏳ Phase 7 (Polish): 0/21 tasks
 
-**Overall Progress**: 48/94 tasks (51.1%) complete
+**Overall Progress**: 60/94 tasks (63.8%) complete
 
-**Next Phase**: Phase 5 (User Story 3 - Difficulty Settings) 或 Phase 6 (User Story 4 - Spectate Mode)
+**Next Phase**: Phase 6 (User Story 4 - Spectate Mode)
 
-**Major Milestone Achieved**: Multi-AI gameplay fully implemented! Players can now compete against up to 3 AI opponents simultaneously with independent AI decision-making.
+**Major Milestone Achieved**: Difficulty settings fully implemented! Players can now configure AI difficulty (Easy/Medium/Hard) with persistent settings, strategy switching, and performance optimizations. Easy AI features caching for faster gameplay.
 
 ## File Paths Reference
 

@@ -6,7 +6,10 @@ and the Difficulty enum for AI difficulty levels.
 """
 
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+import json
+import os
+from pathlib import Path
 from src.models.ai_config import AIConfig, Difficulty
 
 
@@ -204,29 +207,33 @@ class GameMode:
         return len(positions) == 4 and self.human_player_position is None
 
     @classmethod
-    def single_ai(cls, difficulty: Difficulty = Difficulty.MEDIUM) -> "GameMode":
+    def single_ai(cls, difficulty: Optional[Difficulty] = None) -> "GameMode":
         """
         Create single AI mode configuration.
 
         Args:
-            difficulty: AI difficulty level
+            difficulty: AI difficulty level (None to use saved preference)
 
         Returns:
             GameMode configured for human vs 1 AI
         """
+        if difficulty is None:
+            difficulty = cls.get_difficulty_preference(GameModeType.SINGLE_AI)
         return cls(GameModeType.SINGLE_AI, difficulty)
 
     @classmethod
-    def three_ai(cls, difficulty: Difficulty = Difficulty.MEDIUM) -> "GameMode":
+    def three_ai(cls, difficulty: Optional[Difficulty] = None) -> "GameMode":
         """
         Create three AI mode configuration.
 
         Args:
-            difficulty: AI difficulty level
+            difficulty: AI difficulty level (None to use saved preference)
 
         Returns:
             GameMode configured for human vs 3 AI
         """
+        if difficulty is None:
+            difficulty = cls.get_difficulty_preference(GameModeType.THREE_AI)
         return cls(GameModeType.THREE_AI, difficulty)
 
     @classmethod
@@ -263,3 +270,90 @@ class GameMode:
     def __repr__(self):
         """String representation of game mode."""
         return f"GameMode(type={self.mode_type.value}, players={self.get_player_count()}, ai={self.get_ai_count()})"
+
+    # Difficulty Persistence Methods
+
+    @staticmethod
+    def _get_config_dir() -> Path:
+        """
+        Get the configuration directory for storing game settings.
+
+        Returns:
+            Path to config directory
+        """
+        config_dir = Path.home() / ".blokus"
+        config_dir.mkdir(exist_ok=True)
+        return config_dir
+
+    def save_difficulty_preference(self, mode_type: GameModeType, difficulty: Difficulty):
+        """
+        Save difficulty preference for a game mode.
+
+        Args:
+            mode_type: Game mode type
+            difficulty: Difficulty level to save
+        """
+        try:
+            config_file = self._get_config_dir() / "difficulty_preferences.json"
+
+            # Load existing preferences
+            preferences = self._load_difficulty_preferences()
+
+            # Update preference for this mode
+            preferences[mode_type.value] = difficulty.value
+
+            # Save to file
+            with open(config_file, 'w') as f:
+                json.dump(preferences, f, indent=2)
+        except Exception as e:
+            # Log error but don't crash
+            print(f"Warning: Failed to save difficulty preference: {e}")
+
+    @staticmethod
+    def _load_difficulty_preferences() -> Dict[str, str]:
+        """
+        Load difficulty preferences from file.
+
+        Returns:
+            Dictionary mapping mode types to difficulty levels
+        """
+        config_file = Path.home() / ".blokus" / "difficulty_preferences.json"
+
+        if not config_file.exists():
+            return {}
+
+        try:
+            with open(config_file, 'r') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
+    @classmethod
+    def get_difficulty_preference(cls, mode_type: GameModeType) -> Difficulty:
+        """
+        Get saved difficulty preference for a game mode.
+
+        Args:
+            mode_type: Game mode type
+
+        Returns:
+            Saved difficulty or MEDIUM as default
+        """
+        preferences = cls._load_difficulty_preferences()
+        difficulty_str = preferences.get(mode_type.value, Difficulty.MEDIUM.value)
+
+        try:
+            return Difficulty(difficulty_str)
+        except ValueError:
+            return Difficulty.MEDIUM
+
+    def clear_difficulty_preferences(self):
+        """
+        Clear all saved difficulty preferences.
+        """
+        try:
+            config_file = self._get_config_dir() / "difficulty_preferences.json"
+            if config_file.exists():
+                config_file.unlink()
+        except Exception as e:
+            print(f"Warning: Failed to clear difficulty preferences: {e}")

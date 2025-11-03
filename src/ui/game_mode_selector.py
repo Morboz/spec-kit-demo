@@ -29,7 +29,15 @@ class GameModeSelector:
 
         # Selection variables
         self.selected_mode_var = tk.StringVar(value="single_ai")
-        self.selected_difficulty_var = tk.StringVar(value="Medium")
+
+        # Load saved difficulty preference
+        try:
+            from src.models.game_mode import GameMode, GameModeType
+            saved_difficulty = GameMode.get_difficulty_preference(GameModeType.SINGLE_AI)
+            self.selected_difficulty_var = tk.StringVar(value=saved_difficulty.value)
+        except Exception:
+            # Fallback to default if loading fails
+            self.selected_difficulty_var = tk.StringVar(value="Medium")
 
     def show(self) -> Optional[Dict[str, Any]]:
         """
@@ -171,6 +179,22 @@ class GameModeSelector:
         """Handle start button click."""
         mode = self.selected_mode_var.get()
         difficulty = self.selected_difficulty_var.get()
+
+        # Save difficulty preference for non-spectate modes
+        if mode != "spectate":
+            try:
+                from src.models.game_mode import GameMode, GameModeType
+                from src.models.ai_config import Difficulty as AIDifficulty
+
+                # Convert string to Difficulty enum
+                diff_enum = AIDifficulty(difficulty)
+
+                # Save preference
+                game_mode = GameMode(GameModeType.SINGLE_AI, diff_enum)
+                game_mode.save_difficulty_preference(GameModeType.SINGLE_AI, diff_enum)
+                game_mode.save_difficulty_preference(GameModeType.THREE_AI, diff_enum)
+            except Exception as e:
+                print(f"Warning: Failed to save difficulty preference: {e}")
 
         # Create configuration
         if mode == "spectate":

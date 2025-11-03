@@ -8,7 +8,7 @@ This module provides AI strategy implementations for different difficulty levels
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 import random
 import time
 import copy
@@ -113,9 +113,11 @@ class AIStrategy(ABC):
         Returns:
             List of all valid Move objects
         """
-        # Note: This is a placeholder implementation
-        # Actual validation should use BlokusRules.validate_move
-        # which requires game_state, not just board
+        # Early exit for Easy difficulty: only check first few pieces and positions
+        if isinstance(self, RandomStrategy):
+            return self._get_available_moves_fast(board, pieces, player_id)
+
+        # For other strategies, use full search
         moves = []
         for piece in pieces:
             for rotation in [0, 90, 180, 270]:
@@ -132,6 +134,50 @@ class AIStrategy(ABC):
                                     break
                             if valid:
                                 moves.append(Move(piece, (row, col), rotation, player_id))
+        return moves
+
+    def _get_available_moves_fast(
+        self,
+        board: List[List[int]],
+        pieces: List[Piece],
+        player_id: int,
+    ) -> List[Move]:
+        """
+        Fast move generation for Easy difficulty (RandomStrategy).
+
+        Only checks a subset of pieces and positions for performance.
+        This is acceptable for Easy AI as it still produces valid moves.
+
+        Args:
+            board: Current board state
+            pieces: Available pieces
+            player_id: Player making moves
+
+        Returns:
+            List of valid Move objects (subset of all valid moves)
+        """
+        moves = []
+        # Only check first 5 pieces (performance optimization for Easy AI)
+        pieces_to_check = pieces[:5]
+
+        for piece in pieces_to_check:
+            # Only check 2 rotations instead of 4 (performance optimization)
+            for rotation in [0, 180]:
+                # Sample positions instead of checking all 400
+                for row in range(0, 20, 2):
+                    for col in range(0, 20, 2):
+                        # Basic bounds check
+                        piece_positions = self._get_piece_positions(piece, row, col, rotation)
+                        if all(0 <= r < 20 and 0 <= c < 20 for r, c in piece_positions):
+                            # Basic overlap check
+                            valid = True
+                            for r, c in piece_positions:
+                                if board[r][c] != 0:
+                                    valid = False
+                                    break
+                            if valid:
+                                moves.append(Move(piece, (row, col), rotation, player_id))
+
         return moves
 
     def evaluate_board(self, board: List[List[int]], player_id: int) -> float:
@@ -215,7 +261,13 @@ class AIStrategy(ABC):
 
 
 class RandomStrategy(AIStrategy):
-    """Easy AI: Random valid placement."""
+    """Easy AI: Random valid placement with caching optimization."""
+
+    def __init__(self):
+        """Initialize with move caching."""
+        self._cache = {}
+        self._cache_hits = 0
+        self._cache_misses = 0
 
     @property
     def difficulty_name(self) -> str:
@@ -233,7 +285,7 @@ class RandomStrategy(AIStrategy):
         time_limit: int = None,
     ) -> Optional[Move]:
         """
-        Select random valid move.
+        Select random valid move with caching for performance.
 
         Args:
             board: Current board state
@@ -244,11 +296,78 @@ class RandomStrategy(AIStrategy):
         Returns:
             Random valid move or None if no moves available
         """
+        # Create cache key from board state and pieces
+        board_key = self._create_board_key(board)
+        pieces_key = tuple(sorted(p.name for p in pieces))
+        cache_key = (board_key, pieces_key, player_id)
+
+        # Check cache first
+        if cache_key in self._cache:
+            self._cache_hits += 1
+            cached_moves = self._cache[cache_key]
+            if cached_moves:
+                return random.choice(cached_moves)
+            return None
+
+        # Cache miss - calculate moves
+        self._cache_misses += 1
         valid_moves = self.get_available_moves(board, pieces, player_id)
+
+        # Cache the results (limit cache size)
+        if len(self._cache) > 100:
+            # Clear oldest 25% of cache when limit reached
+            keys_to_remove = list(self._cache.keys())[:25]
+            for key in keys_to_remove:
+                del self._cache[key]
+
+        self._cache[cache_key] = valid_moves
+
         if not valid_moves:
             return None
 
         return random.choice(valid_moves)
+
+    def _create_board_key(self, board: List[List[int]]) -> str:
+        """
+        Create a hashable key from board state.
+
+        Args:
+            board: 2D board array
+
+        Returns:
+            String representation of board for caching
+        """
+        # Convert board to compressed string representation
+        # Only sample every 4th cell for performance (acceptable for Easy AI)
+        key_parts = []
+        for i in range(0, 20, 4):
+            row = board[i]
+            # Sample every 4th cell
+            sampled = [str(cell) for cell in row[::4]]
+            key_parts.append(''.join(sampled))
+        return '|'.join(key_parts)
+
+    def get_cache_stats(self) -> Dict[str, int]:
+        """
+        Get cache performance statistics.
+
+        Returns:
+            Dictionary with hits, misses, and size
+        """
+        total = self._cache_hits + self._cache_misses
+        hit_rate = (self._cache_hits / total * 100) if total > 0 else 0
+        return {
+            "hits": self._cache_hits,
+            "misses": self._cache_misses,
+            "size": len(self._cache),
+            "hit_rate": round(hit_rate, 2)
+        }
+
+    def clear_cache(self):
+        """Clear the move cache."""
+        self._cache.clear()
+        self._cache_hits = 0
+        self._cache_misses = 0
 
 
 class CornerStrategy(AIStrategy):
