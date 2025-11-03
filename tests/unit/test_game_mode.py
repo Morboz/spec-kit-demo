@@ -165,13 +165,9 @@ class TestGameMode:
 
     def test_invalid_configuration_raises_error(self):
         """Test that invalid configuration raises ValueError."""
-        # Try to create mode with invalid position
-        custom_ais = [
-            AIConfig(position=5, difficulty=Difficulty.MEDIUM)  # Invalid position
-        ]
-
+        # Try to create AIConfig with invalid position - should raise immediately
         with pytest.raises(ValueError, match="Position must be 1-4"):
-            GameMode(GameModeType.SINGLE_AI, Difficulty.MEDIUM, custom_ais)
+            AIConfig(position=5, difficulty=Difficulty.MEDIUM)  # Invalid position
 
     def test_duplicate_positions_raises_error(self):
         """Test that duplicate positions raise ValueError."""
@@ -180,9 +176,9 @@ class TestGameMode:
             AIConfig(position=2, difficulty=Difficulty.HARD),  # Duplicate!
         ]
 
-        # This should fail validation
-        mode = GameMode(GameModeType.THREE_AI, Difficulty.MEDIUM, custom_ais)
-        assert not mode.validate()
+        # This should fail validation and raise ValueError
+        with pytest.raises(ValueError, match="Invalid game mode configuration"):
+            GameMode(GameModeType.THREE_AI, Difficulty.MEDIUM, custom_ais)
 
     def test_difficulty_property(self):
         """Test difficulty property."""
@@ -228,7 +224,12 @@ class TestGameMode:
 
     def test_invalid_mode_type_raises_error(self):
         """Test that invalid mode type raises error."""
-        with pytest.raises(AttributeError):
-            # GameModeType is an enum, so this should work
-            mode = GameMode(GameModeType.SINGLE_AI)
-            assert mode.validate()
+        # Create a mode instance bypassing __init__ to test validation directly
+        mode = GameMode.__new__(GameMode)
+        mode.mode_type = "invalid"  # Not a GameModeType
+        mode.difficulty = Difficulty.MEDIUM
+        mode.human_player_position = 1
+        mode.ai_players = []
+        
+        # validate() should return False for invalid mode_type
+        assert not mode.validate()

@@ -69,6 +69,16 @@ class AIPlayer:
         """
         return self.strategy.difficulty_name
 
+    @property
+    def timeout_seconds(self) -> int:
+        """
+        Get AI timeout in seconds.
+
+        Returns:
+            Timeout limit from strategy
+        """
+        return self.strategy.timeout_seconds
+
     def calculate_move(
         self,
         board: List[List[int]],

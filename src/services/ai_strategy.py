@@ -177,6 +177,42 @@ class AIStrategy(ABC):
         positions = rotated_piece.get_absolute_positions(row, col)
         return positions
 
+    def _count_corner_connections(
+        self, board: List[List[int]], move: Move, player_id: int
+    ) -> int:
+        """
+        Count how many corners this move touches.
+
+        Args:
+            board: Current board state
+            move: Move to evaluate
+            player_id: Player ID
+
+        Returns:
+            Number of corner connections
+        """
+        if not move.position or not move.piece:
+            return 0
+
+        positions = self._get_piece_positions(move.piece, move.position[0], move.position[1], move.rotation)
+        corners = 0
+
+        for row, col in positions:
+            # Check corners around this position
+            adjacent_positions = [
+                (row - 1, col - 1),  # top-left
+                (row - 1, col + 1),  # top-right
+                (row + 1, col - 1),  # bottom-left
+                (row + 1, col + 1),  # bottom-right
+            ]
+
+            for adj_row, adj_col in adjacent_positions:
+                if 0 <= adj_row < 20 and 0 <= adj_col < 20:
+                    if board[adj_row][adj_col] == player_id:
+                        corners += 1
+
+        return corners
+
 
 class RandomStrategy(AIStrategy):
     """Easy AI: Random valid placement."""
@@ -289,42 +325,6 @@ class CornerStrategy(AIStrategy):
             score += 3
 
         return score
-
-    def _count_corner_connections(
-        self, board: List[List[int]], move: Move, player_id: int
-    ) -> int:
-        """
-        Count how many corners this move touches.
-
-        Args:
-            board: Current board state
-            move: Move to evaluate
-            player_id: Player ID
-
-        Returns:
-            Number of corner connections
-        """
-        if not move.position or not move.piece:
-            return 0
-
-        positions = self._get_piece_positions(move.piece, move.position[0], move.position[1], move.rotation)
-        corners = 0
-
-        for row, col in positions:
-            # Check corners around this position
-            adjacent_positions = [
-                (row - 1, col - 1),  # top-left
-                (row - 1, col + 1),  # top-right
-                (row + 1, col - 1),  # bottom-left
-                (row + 1, col + 1),  # bottom-right
-            ]
-
-            for adj_row, adj_col in adjacent_positions:
-                if 0 <= adj_row < 20 and 0 <= adj_col < 20:
-                    if board[adj_row][adj_col] == player_id:
-                        corners += 1
-
-        return corners
 
 
 class StrategicStrategy(AIStrategy):

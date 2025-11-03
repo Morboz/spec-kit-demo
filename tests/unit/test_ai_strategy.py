@@ -1,9 +1,7 @@
 """Unit tests for AI strategy components."""
 
 import pytest
-from abc import ABC
 from src.services.ai_strategy import AIStrategy
-from src.models.piece import Piece
 from src.config.pieces import get_piece
 
 
@@ -75,7 +73,7 @@ class TestAIStrategy:
 
     def test_cannot_instantiate_abstract_strategy(self):
         """Test that AIStrategy cannot be instantiated directly."""
-        with pytest.raises(TypeError, match="Cannot instantiate abstract class"):
+        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
             AIStrategy()
 
     def test_strategy_has_difficulty_name(self):

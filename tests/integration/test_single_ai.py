@@ -242,9 +242,21 @@ class TestSingleAIIntegrationFlow:
     @pytest.fixture
     def single_ai_game(self):
         """Create a Single AI game for testing."""
+        from src.models.player import Player
+        from src.models.board import Board
+        
         game_mode = GameMode.single_ai(Difficulty.MEDIUM)
-        game_setup = GameSetup()
-        game_state = game_setup.setup_game(num_players=2, player_names=["Human", "AI"])
+        
+        # Create game state with correct player positions for SINGLE_AI mode
+        # SINGLE_AI mode uses positions 1 (human) and 3 (AI)
+        board = Board()
+        players = [
+            Player(player_id=1, name="Human"),
+            Player(player_id=3, name="AI"),
+        ]
+        game_state = GameState(board=board, players=players)
+        game_state.start_game()
+        
         return game_mode, game_state
 
     def test_game_initialization(self, single_ai_game):

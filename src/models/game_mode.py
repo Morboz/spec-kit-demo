@@ -53,6 +53,9 @@ class GameMode:
         # Initialize based on mode type
         if custom_ai_configs:
             self.ai_players = custom_ai_configs
+            # Set human player position based on mode type when using custom configs
+            if self.mode_type != GameModeType.SPECTATE:
+                self._set_human_position_for_custom_config()
         else:
             self._initialize_default_config()
 
@@ -68,6 +71,15 @@ class GameMode:
             self._init_three_ai()
         elif self.mode_type == GameModeType.SPECTATE:
             self._init_spectate()
+
+    def _set_human_position_for_custom_config(self):
+        """Set human player position when using custom AI configs."""
+        # Find first available position not used by AI
+        ai_positions = {config.position for config in self.ai_players}
+        for pos in range(1, 5):
+            if pos not in ai_positions:
+                self.human_player_position = pos
+                break
 
     def _init_single_ai(self):
         """Initialize single AI mode configuration."""

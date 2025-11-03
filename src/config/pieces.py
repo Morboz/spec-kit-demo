@@ -7,7 +7,10 @@ Each piece is defined by its name and coordinates relative to an origin (0,0).
 All coordinates represent connected squares (orthogonally adjacent).
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.models.piece import Piece
 
 # Standard Blokus piece definitions (21 total)
 # Each piece is defined by its coordinates relative to the origin (0,0)
@@ -185,3 +188,36 @@ def validate_piece_coordinates(coordinates: List[Tuple[int, int]]) -> bool:
 
     # All coordinates must be reachable
     return len(visited) == len(coordinates)
+
+
+def get_piece(piece_name: str) -> "Piece":
+    """
+    Create and return a new Piece object.
+
+    Args:
+        piece_name: Name of the piece (e.g., "I1", "L4", "X5")
+
+    Returns:
+        A new Piece instance
+
+    Raises:
+        KeyError: If piece_name is not found in PIECE_DEFINITIONS
+    """
+    from src.models.piece import Piece
+    return Piece(piece_name)
+
+
+def get_full_piece_set() -> List["Piece"]:
+    """
+    Create and return a complete set of all 21 standard Blokus pieces.
+
+    Returns:
+        List of all 21 Piece instances
+
+    Example:
+        >>> pieces = get_full_piece_set()
+        >>> len(pieces)
+        21
+    """
+    from src.models.piece import Piece
+    return [Piece(name) for name in get_all_piece_names()]
