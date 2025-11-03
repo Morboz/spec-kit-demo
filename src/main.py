@@ -131,9 +131,6 @@ class BlokusApp:
                 self.root.quit()
                 return
 
-            # Create basic game config for AI mode
-            self.game_config = GameMode.create_game_config_for_mode(self.game_mode)
-
             # Setup the game with AI mode
             try:
                 self._setup_ai_game()
