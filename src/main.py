@@ -305,7 +305,10 @@ class BlokusApp:
                 player_id=ai_config.position,
                 strategy=strategy,
                 color=self.game_config.get_player_color(ai_config.position),
-                name=f"AI ({ai_config.difficulty.name})"
+                # Ensure AI names are unique and contain only allowed characters
+                # Allowed: letters, numbers, spaces, underscores, hyphens, apostrophes
+                # Use format like: "AI EASY P3" (no parentheses or '#')
+                name=f"AI {ai_config.difficulty.name} P{ai_config.position}"
             )
             ai_players.append(ai_player)
 
@@ -343,6 +346,10 @@ class BlokusApp:
         # Setup callbacks
         if current_player:
             self._setup_ai_callbacks()
+            
+            # If the first player is AI, trigger the first move
+            if self.game_mode and self.game_mode.is_ai_turn(current_player.player_id):
+                self.root.after(500, lambda: self._trigger_ai_move(current_player))
 
     def _setup_ai_callbacks(self) -> None:
         """Setup callbacks for AI game."""
@@ -390,13 +397,14 @@ class BlokusApp:
 
                 # Check if it's an AI turn and trigger AI move
                 if self.game_mode and self.game_mode.is_ai_turn(current_player.player_id):
-                    self._trigger_ai_move(current_player)
-
-            # Show success message
-            messagebox.showinfo(
-                "Piece Placed",
-                f"{piece_name} placed successfully! Turn passes to next player.",
-            )
+                    # Use after() to schedule AI move without blocking
+                    self.root.after(100, lambda: self._trigger_ai_move(current_player))
+                else:
+                    # Only show message for human players
+                    messagebox.showinfo(
+                        "Piece Placed",
+                        f"{piece_name} placed successfully! Turn passes to next player.",
+                    )
 
         # Set callback for placement errors
         def on_placement_error(error_msg: str):
@@ -415,41 +423,79 @@ class BlokusApp:
         Args:
             ai_player: AI player instance
         """
+        from src.game.rules import BlokusRules
+        
         # Show AI thinking indicator
         if self.current_player_indicator:
             self.current_player_indicator.show_ai_thinking()
 
-        # Calculate move
-        board_state = self.game_state.board.grid
-        pieces = [p for p in ai_player.pieces]
-
         try:
-            move = ai_player.calculate_move(
-                board=[[cell for cell in row.values()] for row in board_state.values()],
-                pieces=pieces
-            )
-
+            # Find a valid move using game rules
+            pieces = list(ai_player.pieces)
+            
+            # Shuffle pieces for randomness (Easy AI)
+            import random
+            random.shuffle(pieces)
+            
+            found_valid_move = False
+            
+            # Try each piece
+            for piece in pieces:
+                # Try different rotations (0, 90, 180, 270 degrees)
+                for rotation_count in range(4):
+                    # Create a rotated version of the piece for testing
+                    test_piece = piece
+                    for _ in range(rotation_count):
+                        test_piece = test_piece.rotate(90)
+                    
+                    # Get valid positions for this rotated piece
+                    valid_positions = BlokusRules.get_valid_moves(
+                        self.game_state, ai_player.player_id, test_piece
+                    )
+                    
+                    if valid_positions:
+                        # Pick a random valid position (Easy AI behavior)
+                        position = random.choice(valid_positions)
+                        
+                        # Select the ORIGINAL piece (not the rotated copy)
+                        piece_selected = self.placement_handler.select_piece(piece.name)
+                        if not piece_selected:
+                            print(f"AI failed to select piece: {piece.name}")
+                            continue
+                        
+                        # Apply the same rotations to the selected piece in placement_handler
+                        for _ in range(rotation_count):
+                            self.placement_handler.rotate_piece()
+                        
+                        # Attempt to place the piece
+                        success, error_msg = self.placement_handler.place_piece(
+                            position[0], position[1]
+                        )
+                        
+                        if success:
+                            found_valid_move = True
+                            break
+                        else:
+                            print(f"AI placement failed: {error_msg}")
+                            # Clear selection for next attempt
+                            self.placement_handler.clear_selection()
+                
+                if found_valid_move:
+                    break
+            
             # Hide thinking indicator
             if self.current_player_indicator:
                 self.current_player_indicator.hide_ai_thinking()
-
-            # Handle the move
-            if move and not move.is_pass:
-                # Attempt to place the piece
-                if move.position:
-                    success, error_msg = self.placement_handler.place_piece(
-                        move.position[0], move.position[1]
-                    )
-                    if not success:
-                        # AI move was invalid, pass turn
-                        print(f"AI move invalid: {error_msg}")
-                        self._pass_turn()
-            else:
-                # No valid move, pass turn
+            
+            # If no valid move found, pass turn
+            if not found_valid_move:
+                print(f"AI Player {ai_player.player_id} has no valid moves, passing turn")
                 self._pass_turn()
 
         except Exception as e:
             print(f"AI calculation error: {e}")
+            import traceback
+            traceback.print_exc()
             # Hide thinking indicator on error
             if self.current_player_indicator:
                 self.current_player_indicator.hide_ai_thinking()
@@ -470,7 +516,8 @@ class BlokusApp:
             # Check if next player is AI
             next_player = self.game_state.get_current_player()
             if next_player and self.game_mode and self.game_mode.is_ai_turn(next_player.player_id):
-                self._trigger_ai_move(next_player)
+                # Use after() to schedule AI move without blocking
+                self.root.after(100, lambda: self._trigger_ai_move(next_player))
 
     def _setup_callbacks(self) -> None:
         """Setup callbacks for placement handler."""

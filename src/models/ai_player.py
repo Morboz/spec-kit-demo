@@ -188,19 +188,65 @@ class AIPlayer:
         """
         return len(self.pieces) > 0
 
-    def remove_piece(self, piece: Piece):
-        """
-        Remove a piece from the player's inventory (after placing it).
+
+    # Compatibility methods to match Player interface
+    def get_all_pieces(self) -> List[Piece]:
+        """Return all Piece instances for this AI player."""
+        return list(self.pieces)
+
+    def get_unplaced_pieces(self) -> List[Piece]:
+        """Return pieces that have not been placed yet."""
+        return [p for p in self.pieces if not getattr(p, "is_placed", False)]
+
+    def get_placed_pieces(self) -> List[Piece]:
+        """Return pieces that have been placed."""
+        return [p for p in self.pieces if getattr(p, "is_placed", False)]
+
+    def get_remaining_piece_count(self) -> int:
+        """Return count of unplaced pieces (compat with Player)."""
+        return len(self.get_unplaced_pieces())
+
+    def get_remaining_squares(self) -> int:
+        """Return total squares remaining in unplaced pieces."""
+        return sum(getattr(p, "size", 0) for p in self.get_unplaced_pieces())
+
+    def get_color(self) -> str:
+        """Return color string for this player (compat with Player)."""
+        return self.color
+
+    def get_starting_corner(self) -> tuple:
+        """Return starting corner for this player's id."""
+        from src.config.pieces import get_starting_corner
+
+        return get_starting_corner(self.player_id)
+
+    def get_piece_names(self) -> List[str]:
+        """Return sorted list of piece names."""
+        return sorted(p.name for p in self.pieces)
+
+    def get_piece(self, piece_name: str) -> Optional[Piece]:
+        """Return a Piece by name, or None if not found (compat with Player)."""
+        return next((p for p in self.pieces if p.name == piece_name), None)
+
+    def remove_piece(self, piece):
+        """Remove a piece by Piece instance or by name.
 
         Args:
-            piece: Piece to remove
-
-        Raises:
-            ValueError: If piece not in inventory
+            piece: Piece instance or piece name string
         """
+        # If name provided, remove by matching name
+        if isinstance(piece, str):
+            to_remove = next((p for p in self.pieces if p.name == piece), None)
+            if not to_remove:
+                raise ValueError(f"Attempted to remove piece {piece} not in inventory")
+            self.pieces.remove(to_remove)
+            return to_remove
+
+        # Otherwise assume Piece instance
         if piece not in self.pieces:
-            raise ValueError(f"Attempted to remove piece {piece.name} not in inventory")
+            raise ValueError(f"Attempted to remove piece {getattr(piece, 'name', piece)} not in inventory")
         self.pieces.remove(piece)
+        return piece
 
     def get_elapsed_calculation_time(self) -> Optional[float]:
         """
@@ -221,6 +267,26 @@ class AIPlayer:
             Count of unplaced pieces
         """
         return len(self.pieces)
+
+    def place_piece(self, piece_name: str, row: int, col: int) -> None:
+        """
+        Mark a piece as placed at given position.
+
+        Args:
+            piece_name: Name of the piece
+            row: Row where piece was placed
+            col: Column where piece was placed
+
+        Raises:
+            ValueError: If piece is not found or already placed
+        """
+        piece = self.get_piece(piece_name)
+        if piece is None:
+            raise ValueError(f"AI Player does not have piece: {piece_name}")
+        if piece.is_placed:
+            raise ValueError(f"Piece {piece_name} is already placed")
+
+        piece.place_at(row, col)
 
     def __repr__(self):
         """String representation of AI player."""

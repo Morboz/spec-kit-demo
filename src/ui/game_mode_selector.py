@@ -46,7 +46,7 @@ class GameModeSelector:
         """Create and display the mode selection dialog."""
         self.dialog = tk.Toplevel(self.parent)
         self.dialog.title("Select Game Mode")
-        self.dialog.geometry("500x400")
+        self.dialog.geometry("500x500")
         self.dialog.resizable(False, False)
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
