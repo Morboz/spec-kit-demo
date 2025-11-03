@@ -68,6 +68,16 @@ class CurrentPlayerIndicator(ttk.Frame):
         )
         self.player_id_label.pack()
 
+        # AI thinking indicator
+        self.ai_thinking_var = tk.StringVar(value="")
+        self.ai_thinking_label = ttk.Label(
+            info_frame,
+            textvariable=self.ai_thinking_var,
+            font=("Arial", 10, "italic"),
+            foreground="orange",
+        )
+        self.ai_thinking_label.pack()
+
         # Separator
         separator = ttk.Separator(self, orient="horizontal")
         separator.pack(fill=tk.X, pady=10)
@@ -147,4 +157,22 @@ class CurrentPlayerIndicator(ttk.Frame):
         self.current_player = None
         self.player_name_var.set("No player")
         self.player_id_var.set("")
+        self.ai_thinking_var.set("")
         self.turn_number_var.set("1")
+
+    def show_ai_thinking(self) -> None:
+        """Show AI thinking indicator."""
+        self.ai_thinking_var.set("AI thinking...")
+
+    def hide_ai_thinking(self) -> None:
+        """Hide AI thinking indicator."""
+        self.ai_thinking_var.set("")
+
+    def is_ai_thinking(self) -> bool:
+        """
+        Check if AI thinking indicator is currently shown.
+
+        Returns:
+            True if thinking indicator is shown
+        """
+        return self.ai_thinking_var.get() != ""
