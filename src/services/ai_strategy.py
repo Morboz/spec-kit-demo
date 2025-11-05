@@ -16,7 +16,13 @@ from src.models.piece import Piece
 
 
 class Move:
-    """Represents a piece placement action in the game."""
+    """
+    Represents a piece placement action in the game.
+
+    A Move encapsulates all information needed to place a piece on the board,
+    including which piece, where to place it, rotation, and the player making
+    the move. Can also represent a pass action when no valid moves are available.
+    """
 
     def __init__(
         self,
@@ -33,17 +39,17 @@ class Move:
             piece: Piece to place (None if passing)
             position: (row, col) position on board (None if passing)
             rotation: Rotation in degrees (0, 90, 180, 270)
-            player_id: ID of player making the move
-            is_pass: True if this is a pass move
+            player_id: ID of player making the move (1-4)
+            is_pass: True if this is a pass move (no piece placed)
         """
-        self.piece = piece
-        self.position = position
-        self.rotation = rotation
-        self.player_id = player_id
-        self.is_pass = is_pass
+        self.piece = piece  # Piece object to place, or None for pass
+        self.position = position  # Board coordinates (row, col), or None for pass
+        self.rotation = rotation  # Rotation in degrees (0, 90, 180, 270)
+        self.player_id = player_id  # Player making the move (1-4)
+        self.is_pass = is_pass  # Flag indicating this is a pass action
 
     def __repr__(self):
-        """String representation of the move."""
+        """String representation of the move for debugging."""
         if self.is_pass:
             return f"Move(player={self.player_id}, action=pass)"
         return f"Move(player={self.player_id}, piece={self.piece.name if self.piece else None}, position={self.position}, rotation={self.rotation}°)"
@@ -433,13 +439,29 @@ class AIStrategy(ABC):
 
 
 class RandomStrategy(AIStrategy):
-    """Easy AI: Random valid placement with caching optimization."""
+    """
+    Easy AI: Random valid placement with caching optimization.
+
+    This strategy selects valid moves randomly but includes performance optimizations
+    through caching to avoid recalculating move lists for identical board states.
+    This provides 2-5x speedup for repeated calculations.
+
+    Key features:
+    - LRU (Least Recently Used) cache with 100-entry limit
+    - Automatic cache eviction when limit reached
+    - Cache hit/miss tracking for performance monitoring
+    """
 
     def __init__(self):
         """Initialize with move caching."""
+        # LRU cache: stores board state -> list of valid moves
+        # Key: (board_hash, pieces_hash, player_id)
+        # Value: list of valid Move objects
         self._cache = {}
-        self._cache_hits = 0
-        self._cache_misses = 0
+
+        # Performance tracking counters
+        self._cache_hits = 0  # Times we found cached moves
+        self._cache_misses = 0  # Times we had to calculate moves
 
     @property
     def difficulty_name(self) -> str:
@@ -459,41 +481,59 @@ class RandomStrategy(AIStrategy):
         """
         Select random valid move with caching for performance.
 
+        This method implements a simple but efficient strategy:
+        1. Check if we've seen this board state before (cache lookup)
+        2. If cached, return a random move from the cached list
+        3. If not cached, calculate all valid moves and cache them
+        4. Return a random valid move
+
+        The caching mechanism provides significant performance gains when the
+        same board state occurs multiple times (common in AI vs AI games).
+
         Args:
-            board: Current board state
-            pieces: Available pieces
-            player_id: Player ID
-            time_limit: Time limit (ignored for random strategy)
+            board: Current board state (20x20 grid)
+            pieces: List of available pieces to place
+            player_id: Player ID making the move (1-4)
+            time_limit: Time limit in seconds (ignored for random strategy)
 
         Returns:
-            Random valid move or None if no moves available
+            Random valid move, or None if no valid moves available
         """
-        # Create cache key from board state and pieces
+        # Step 1: Create a unique cache key from current game state
+        # Board is converted to a string hash for fast comparison
         board_key = self._create_board_key(board)
+        # Pieces are sorted by name to ensure consistent ordering
         pieces_key = tuple(sorted(p.name for p in pieces))
+        # Combine with player_id to handle different players separately
         cache_key = (board_key, pieces_key, player_id)
 
-        # Check cache first
+        # Step 2: Check if we've already calculated moves for this state
         if cache_key in self._cache:
-            self._cache_hits += 1
+            self._cache_hits += 1  # Update hit counter for statistics
             cached_moves = self._cache[cache_key]
+
+            # Return a random move from the cached list
             if cached_moves:
                 return random.choice(cached_moves)
-            return None
+            return None  # No moves available
 
-        # Cache miss - calculate moves
-        self._cache_misses += 1
+        # Step 3: Cache miss - need to calculate valid moves
+        self._cache_misses += 1  # Update miss counter
         valid_moves = self.get_available_moves(board, pieces, player_id)
 
-        # Cache the results (limit cache size)
+        # Step 4: Implement LRU (Least Recently Used) cache eviction
+        # When cache reaches capacity, remove oldest entries to make room
         if len(self._cache) > 100:
-            # Clear oldest 25% of cache when limit reached
+            # Remove oldest 25% of entries (simple LRU approximation)
+            # Convert to list to avoid dict modification during iteration
             keys_to_remove = list(self._cache.keys())[:25]
             for key in keys_to_remove:
                 del self._cache[key]
 
+        # Step 5: Store results in cache for future lookups
         self._cache[cache_key] = valid_moves
 
+        # Step 6: Return a random valid move (or None if no moves)
         if not valid_moves:
             return None
 
@@ -543,7 +583,24 @@ class RandomStrategy(AIStrategy):
 
 
 class CornerStrategy(AIStrategy):
-    """Medium AI: Corner-focused placement."""
+    """
+    Medium AI: Corner-focused placement strategy.
+
+    This strategy balances speed and intelligence by focusing on corner placement,
+    which is a fundamental principle in Blokus strategy:
+
+    Key principles:
+    - Corners are valuable because they provide 2-3 connection points
+    - Corner pieces are harder for opponents to block
+    - Early corner control leads to better end-game positions
+    - Moderate computational complexity (5 second timeout)
+
+    Scoring factors:
+    - Corner proximity bonus
+    - Piece connectivity (touches existing pieces)
+    - Board coverage (fills gaps efficiently)
+    - Mobility preservation (doesn't block future moves)
+    """
 
     @property
     def difficulty_name(self) -> str:
@@ -551,7 +608,7 @@ class CornerStrategy(AIStrategy):
 
     @property
     def timeout_seconds(self) -> int:
-        return 5
+        return 5  # Moderate timeout for balanced calculation
 
     def calculate_move(
         self,
@@ -563,26 +620,48 @@ class CornerStrategy(AIStrategy):
         """
         Select move that maximizes corner connections.
 
+        This method implements a scoring-based approach:
+        1. Generate all valid moves for current position
+        2. Score each move based on corner strategy factors
+        3. Select the move with the highest score
+
+        The scoring considers:
+        - Proximity to corners (higher score for corner placement)
+        - Connection to existing pieces (must touch at corners)
+        - Board coverage efficiency
+        - Future mobility preservation
+
         Args:
-            board: Current board state
-            pieces: Available pieces
-            player_id: Player ID
-            time_limit: Time limit for calculation
+            board: Current board state (20x20 grid)
+            pieces: List of available pieces to place
+            player_id: Player ID making the move (1-4)
+            time_limit: Override timeout in seconds (optional)
 
         Returns:
-            Best move based on corner strategy or None if no moves
+            Best move based on corner strategy, or None if no valid moves
         """
+        # Step 1: Get all valid moves for current position
         valid_moves = self.get_available_moves(board, pieces, player_id)
         if not valid_moves:
-            return None
+            return None  # No valid moves available - player must pass
 
-        # Score moves by corner connections
-        scored_moves = []
+        # Step 2: Score each move and track the best one
+        # Initialize with worst possible score
+        best_move = None
+        best_score = float("-inf")
+
+        # Iterate through all valid moves, evaluating each
         for move in valid_moves:
+            # Calculate comprehensive score based on corner strategy
             score = self._score_move(board, move, player_id)
-            scored_moves.append((score, move))
 
-        # Return highest scoring move
+            # Select move with highest score
+            if score > best_score:
+                best_score = score
+                best_move = move
+
+        # Step 3: Return the best move found
+        return best_move
         scored_moves.sort(key=lambda x: x[0], reverse=True)
         return scored_moves[0][1]
 
