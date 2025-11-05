@@ -14,6 +14,7 @@ from src.game.turn_manager import TurnManager
 from src.models.game_state import GameState, GamePhase
 from src.models.player import Player
 from src.models.ai_player import AIPlayer
+from src.models.game_mode import GameModeType
 from src.services.ai_strategy import Move
 
 
@@ -130,6 +131,7 @@ class TurnController(TurnManager):
         Behavior:
             - If AI player: Automatically trigger AI calculation
             - If human player: Enable UI input, wait for move
+            - In spectator mode: All turns are AI turns
 
         Contract:
             - Must be called after game initialization
@@ -142,7 +144,8 @@ class TurnController(TurnManager):
         # Emit turn started event
         self._emit_event("TURN_STARTED", self.current_player, self.current_state)
 
-        if self.is_ai_turn:
+        # In spectator mode, all turns are AI-controlled
+        if self.game_mode.mode_type == GameModeType.SPECTATE or self.is_ai_turn:
             self.current_state = TurnState.AI_CALCULATING
             self.trigger_ai_turn()
         else:
@@ -267,11 +270,13 @@ class TurnController(TurnManager):
             - Validates game is not over
             - Identifies next active player
             - Calls start_turn() for next player
+            - In spectator mode: Automatically continues to next turn
 
         Contract:
             - Can be called after move is placed or passed
             - Skips inactive positions (empty quadrants)
             - Detects game end condition (all players passed)
+            - Automatically schedules next turn in spectator mode
 
         Raises:
             InvalidStateError: If move not yet processed
@@ -282,14 +287,20 @@ class TurnController(TurnManager):
         # TODO: Check if game is over
         # if self.check_game_over():
         #     self.current_state = TurnState.GAME_OVER
+        #     self._emit_event("GAME_OVER", self.current_player, self.current_state)
         #     return
 
         # Advance to next player
-        # next_player = self.get_next_player()
-        # self.current_player = next_player
+        next_player = self.get_next_player(self.current_player)
+        self.current_player = next_player
 
-        # Reset for next turn
-        self.current_state = TurnState.HUMAN_TURN  # or AI_CALCULATING
+        # In spectator mode, automatically continue to next turn
+        if self.game_mode.mode_type == GameModeType.SPECTATE:
+            # Small delay to make gameplay observable
+            self.after(500, lambda: self.start_turn())
+        else:
+            # For human modes, wait for human input
+            self.current_state = TurnState.HUMAN_TURN
 
     def pass_turn(self):
         """

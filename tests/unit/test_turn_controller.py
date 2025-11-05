@@ -278,5 +278,214 @@ class TestTurnControllerTurnProgression:
         assert controller.get_next_player() == 3
 
 
+class TestSpectatorModeAutomatedFlow:
+    """Test automated game flow in spectator mode."""
+
+    def test_spectate_mode_all_ai_turns(self):
+        """Test that all turns are AI-controlled in spectator mode."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=1)
+
+        # All players should be AI-controlled
+        for player_id in [1, 2, 3, 4]:
+            controller.current_player = player_id
+            assert controller.is_ai_turn is True
+
+    def test_spectate_mode_start_turn_ai(self):
+        """Test starting turns in spectator mode always triggers AI."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=1)
+
+        # Start turn for player 1 (AI)
+        controller.start_turn()
+
+        # Should transition to AI calculating state
+        assert controller.current_state == TurnState.AI_CALCULATING
+        assert controller.is_ai_turn is True
+
+    def test_spectate_mode_turn_progression(self):
+        """Test turn progression in spectator mode."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=1)
+
+        # All turns should follow AI sequence
+        # 1 -> 2 -> 3 -> 4 -> 1
+        expected_sequence = [1, 2, 3, 4, 1]
+        current = 1
+
+        for expected in expected_sequence:
+            assert current == expected
+            if expected != 4:
+                current = controller.get_next_player(current)
+
+    @pytest.mark.parametrize("starting_player", [1, 2, 3, 4])
+    def test_spectate_mode_from_different_starting_players(self, starting_player):
+        """Test spectator mode works from any starting player."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=starting_player)
+
+        # Should always detect AI turn
+        assert controller.is_ai_turn is True
+
+        # Should be able to get next player
+        next_player = controller.get_next_player(starting_player)
+        assert 1 <= next_player <= 4
+        assert next_player != starting_player  # Should move to different player
+
+    def test_spectate_mode_no_human_input(self):
+        """Test that spectator mode has no human input states."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=1)
+
+        # Start a turn
+        controller.start_turn()
+
+        # Should never be in human turn state for any player
+        for player_id in [1, 2, 3, 4]:
+            controller.current_player = player_id
+            controller.start_turn()
+            assert controller.current_state != TurnState.HUMAN_TURN
+
+    def test_spectate_mode_automated_end_turn(self):
+        """Test that end_turn advances automatically in spectator mode."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=1)
+
+        # Mock the after method to simulate automatic progression
+        progression_calls = []
+        original_after = controller.after
+
+        def mock_after(delay, callback):
+            progression_calls.append((delay, callback))
+            # Don't actually schedule, just record
+
+        controller.after = mock_after
+
+        # Set up for end_turn
+        controller.current_state = TurnState.TRANSITION_AUTO
+        controller.current_player = 1
+
+        # Call end_turn
+        controller.end_turn()
+
+        # Should have scheduled next turn
+        assert len(progression_calls) == 1
+        delay, callback = progression_calls[0]
+        assert delay == 500  # 500ms delay
+        assert callable(callback)
+
+    def test_spectate_mode_state_transitions(self):
+        """Test proper state transitions in spectator mode."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=1)
+
+        # Capture events
+        events = []
+        controller.add_turn_listener(lambda e: events.append(e))
+
+        # Start turn - should trigger AI calculation
+        controller.start_turn()
+        assert controller.current_state == TurnState.AI_CALCULATING
+
+        # Simulate move handling
+        controller.handle_ai_move(None)  # Simulating a pass/move
+        assert controller.current_state == TurnState.AI_MAKING_MOVE
+
+        # End turn - should transition
+        controller.end_turn()
+        assert controller.current_state == TurnState.TRANSITION_AUTO
+
+    def test_spectate_mode_turn_history_events(self):
+        """Test that spectator mode generates correct event history."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=1)
+
+        # Track events
+        events = []
+        controller.add_turn_listener(lambda e: events.append(e))
+
+        # Start first turn
+        controller.start_turn()
+
+        # Should have TURN_STARTED event
+        turn_events = [e for e in events if e.event_type == "TURN_STARTED"]
+        assert len(turn_events) >= 1
+
+        # Should have AI_CALCULATION_STARTED event
+        ai_events = [e for e in events if e.event_type == "AI_CALCULATION_STARTED"]
+        assert len(ai_events) >= 1
+
+    def test_spectate_mode_consecutive_turns(self):
+        """Test consecutive automated turns in spectator mode."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=1)
+
+        # Track player progression
+        players_seen = []
+        original_get_next = controller.get_next_player
+
+        def track_next_player(current):
+            result = original_get_next(current)
+            players_seen.append((current, result))
+            return result
+
+        controller.get_next_player = track_next_player
+
+        # Mock after to prevent actual scheduling
+        controller.after = lambda delay, callback: None
+
+        # Simulate a few turns
+        for _ in range(4):
+            controller.start_turn()
+            controller.end_turn()
+
+        # Should have seen proper progression
+        assert len(players_seen) == 4
+
+        # Verify progression pattern (each turn advances to next player)
+        for current, next_player in players_seen:
+            assert next_player == ((current % 4) + 1)
+
+    def test_spectate_mode_different_from_human_modes(self):
+        """Test that spectator mode behaves differently from human modes."""
+        # Create controllers for different modes
+        single_ai = GameMode.single_ai(Difficulty.MEDIUM)
+        spectate = GameMode.spectate_ai()
+
+        controller_single = TurnController(single_ai, initial_player=1)
+        controller_spectate = TurnController(spectate, initial_player=1)
+
+        # In Single AI mode, player 1 is human
+        assert controller_single.is_ai_turn is False
+
+        # In Spectate mode, player 1 is AI
+        assert controller_spectate.is_ai_turn is True
+
+        # Both should be able to get next player
+        assert controller_single.get_next_player(1) == 3  # Skips to AI player
+        assert controller_spectate.get_next_player(1) == 2  # Goes to next player
+
+    def test_spectate_mode_turn_state_consistency(self):
+        """Test that turn states remain consistent in spectator mode."""
+        game_mode = GameMode.spectate_ai()
+        controller = TurnController(game_mode, initial_player=1)
+
+        # Initial state
+        assert controller.current_state == TurnState.HUMAN_TURN
+        assert controller.is_ai_turn is True
+
+        # After starting turn
+        controller.start_turn()
+        assert controller.current_state == TurnState.AI_CALCULATING
+
+        # After handling move
+        controller.handle_ai_move(None)
+        assert controller.current_state == TurnState.AI_MAKING_MOVE
+
+        # After ending turn (before auto-advance)
+        controller.end_turn()
+        assert controller.current_state == TurnState.TRANSITION_AUTO
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
