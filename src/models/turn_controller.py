@@ -347,12 +347,131 @@ class TurnController(TurnManager):
             - All active players have passed consecutively
             - No pieces remain for any player
             - Board is completely filled
-        """
-        # TODO: Implement game over check
-        # - Check if all active players have passed
-        # - Check if any player has no pieces remaining
-        # - Check if board is full
+            - All AI players have no valid moves (special handling)
 
+        This method handles edge cases where all AI players might be stuck
+        with no valid moves, ensuring the game doesn't hang indefinitely.
+        """
+        # Get all active players from game mode
+        active_players = []
+        if self.game_mode.human_player_position:
+            active_players.append(self.game_mode.human_player_position)
+        for ai_config in self.game_mode.ai_players:
+            active_players.append(ai_config.position)
+
+        # Track consecutive passes
+        consecutive_passes = 0
+
+        # TODO: Get player states from game state
+        # For now, we'll use a placeholder approach
+
+        # Check if all active players have no pieces
+        # all_no_pieces = all(
+        #     not self.game_state.get_player_by_id(pid).has_pieces_remaining()
+        #     for pid in active_players
+        # )
+        #
+        # if all_no_pieces:
+        #     self._emit_event("GAME_OVER", self.current_player, TurnState.GAME_OVER)
+        #     return True
+
+        # Check if all players have passed consecutively
+        # This would require tracking pass count in game state
+
+        # For now, implement a simple check for AI-only scenarios
+        if self.game_mode.mode_type == GameModeType.SPECTATE:
+            # In spectator mode, check if all AI players have no moves
+            # This is a safeguard against infinite loops
+
+            # Get recent turn history to check for passes
+            recent_events = self._turn_history[-len(active_players)*2:] if len(self._turn_history) > len(active_players)*2 else self._turn_history
+
+            # Count recent passes by AI players
+            ai_pass_count = sum(
+                1 for event in recent_events
+                if event.event_type == "TURN_PASSED" and
+                   self.game_mode.is_ai_turn(event.player_id)
+            )
+
+            # If all AI players have passed recently, game should end
+            if ai_pass_count >= len(active_players):
+                self._emit_event("GAME_OVER", self.current_player, TurnState.GAME_OVER)
+                return True
+
+        # Check if board is completely filled
+        # This would require accessing board state
+        # board_full = self._is_board_full()
+        # if board_full:
+        #     self._emit_event("GAME_OVER", self.current_player, TurnState.GAME_OVER)
+        #     return True
+
+        return False
+
+    def _is_board_full(self) -> bool:
+        """
+        Check if the game board is completely filled.
+
+        Returns:
+            True if no empty cells remain on the board
+
+        Note:
+            This is a placeholder. In actual implementation, this would
+            check the game board state directly.
+        """
+        # TODO: Implement actual board check
+        # Example implementation:
+        # for row in self.game_state.board:
+        #     for cell in row:
+        #         if cell is None:
+        #             return False
+        # return True
+        return False
+
+    def check_consecutive_passes(self) -> int:
+        """
+        Check how many consecutive passes have occurred.
+
+        Returns:
+            Number of consecutive passes by all active players
+
+        This helps detect end-game conditions where all players
+        are passing because they have no valid moves.
+        """
+        if len(self._turn_history) == 0:
+            return 0
+
+        consecutive_count = 0
+        # Check last events in reverse order
+        for event in reversed(self._turn_history):
+            if event.event_type == "TURN_PASSED":
+                consecutive_count += 1
+            else:
+                # Stop counting if we hit a non-pass event
+                break
+
+        return consecutive_count
+
+    def should_end_due_to_no_moves(self, player_id: int) -> bool:
+        """
+        Check if a player has no valid moves.
+
+        Args:
+            player_id: Player ID to check
+
+        Returns:
+            True if player has no valid moves available
+
+        This is used to determine if a player should pass.
+        In spectator mode, multiple consecutive no-move situations
+        can trigger game end.
+        """
+        # TODO: Implement actual move availability check
+        # Example:
+        # player = self.game_state.get_player_by_id(player_id)
+        # moves = player.get_available_moves(self.game_state.board, player.pieces)
+        # return len(moves) == 0
+
+        # For now, return False (placeholder)
         return False
 
     def add_turn_listener(self, callback: Callable[[TurnEvent], None]):

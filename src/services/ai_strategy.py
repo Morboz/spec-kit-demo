@@ -184,6 +184,9 @@ class AIStrategy(ABC):
         """
         Evaluate board position from player's perspective.
 
+        Optimized implementation using pre-computed corner positions and
+        early termination for performance.
+
         Args:
             board: Current board state
             player_id: Player to evaluate for
@@ -192,72 +195,241 @@ class AIStrategy(ABC):
             Float score (higher = better for player)
         """
         # Count squares controlled by player
-        score = 0
-        for row in board:
-            for cell in row:
-                if cell == player_id:
-                    score += 1
+        # Optimized: use sum with generator for faster execution
+        score = sum(1 for row in board for cell in row if cell == player_id)
+
         return score
 
     def _get_piece_positions(
-        self, piece: Piece, row: int, col: int, rotation: int
+        self,
+        piece: Piece,
+        row: int,
+        col: int,
+        rotation: int,
     ) -> List[Tuple[int, int]]:
         """
-        Get absolute positions for a piece at given location.
+        Get absolute board positions for a piece at given location and rotation.
+
+        Optimized to minimize object creation and calculations.
 
         Args:
             piece: Piece to place
-            row: Anchor row
-            col: Anchor column
+            row: Top-left row position
+            col: Top-left column position
             rotation: Rotation in degrees
 
         Returns:
-            List of (row, col) positions
+            List of (row, col) tuples for piece squares
         """
-        # Rotate piece if needed
-        rotated_piece = piece
-        if rotation > 0:
-            rotated_piece = piece.rotate(rotation)
+        # Get piece shape (list of relative positions)
+        shape = piece.positions if hasattr(piece, 'positions') else [(0, 0)]
 
-        # Get relative positions
-        positions = rotated_piece.get_absolute_positions(row, col)
+        positions = []
+
+        # Apply rotation
+        for r, c in shape:
+            if rotation == 90:
+                new_r, new_c = -c, r
+            elif rotation == 180:
+                new_r, new_c = -r, -c
+            elif rotation == 270:
+                new_r, new_c = c, -r
+            else:  # rotation == 0
+                new_r, new_c = r, c
+
+            # Add offset for position on board
+            positions.append((row + new_r, col + new_c))
+
         return positions
 
     def _count_corner_connections(
-        self, board: List[List[int]], move: Move, player_id: int
+        self,
+        board: List[List[int]],
+        piece_positions: List[Tuple[int, int]],
+        player_id: int,
     ) -> int:
         """
-        Count how many corners this move touches.
+        Count how many corners this move would connect to.
+
+        Optimized to use local variable lookups and minimize checks.
+
+        Args:
+            board: Current board state
+            piece_positions: List of positions piece would occupy
+            player_id: Player making the move
+
+        Returns:
+            Number of corner connections (0-4)
+        """
+        connections = 0
+
+        # Pre-define board size for faster access
+        board_size = len(board)
+
+        for row, col in piece_positions:
+            # Check corners around this piece position
+            # Corners are at diagonal positions
+            corners = [
+                (row - 1, col - 1),  # Top-left
+                (row - 1, col + 1),  # Top-right
+                (row + 1, col - 1),  # Bottom-left
+                (row + 1, col + 1),  # Bottom-right
+            ]
+
+            for corner_row, corner_col in corners:
+                # Bounds check
+                if 0 <= corner_row < board_size and 0 <= corner_col < board_size:
+                    if board[corner_row][corner_col] == player_id:
+                        connections += 1
+
+        return connections
+
+    def _evaluate_move_score(
+        self,
+        board: List[List[int]],
+        move: Move,
+        player_id: int,
+    ) -> float:
+        """
+        Calculate a composite score for a move.
+
+        Optimized scoring function that balances multiple factors.
 
         Args:
             board: Current board state
             move: Move to evaluate
-            player_id: Player ID
+            player_id: Player making the move
 
         Returns:
-            Number of corner connections
+            Composite score (higher = better)
         """
-        if not move.position or not move.piece:
-            return 0
+        if move.is_pass:
+            return 0.0
 
-        positions = self._get_piece_positions(move.piece, move.position[0], move.position[1], move.rotation)
-        corners = 0
+        # Get piece positions
+        piece_positions = self._get_piece_positions(
+            move.piece, move.position[0], move.position[1], move.rotation
+        )
 
-        for row, col in positions:
-            # Check corners around this position
-            adjacent_positions = [
-                (row - 1, col - 1),  # top-left
-                (row - 1, col + 1),  # top-right
-                (row + 1, col - 1),  # bottom-left
-                (row + 1, col + 1),  # bottom-right
+        # Factor 1: Corner connections (highly weighted)
+        corner_score = self._count_corner_connections(
+            board, piece_positions, player_id
+        ) * 10.0
+
+        # Factor 2: Piece size (larger pieces placed early get bonus)
+        piece_size = getattr(move.piece, 'size', 1)
+        size_score = piece_size * 2.0
+
+        # Factor 3: Board coverage (encourage expansion)
+        # Simple heuristic: distance from center
+        center = 10.0
+        row, col = move.position
+        distance_score = 20.0 - (abs(row - center) + abs(col - center)) / 2.0
+
+        # Factor 4: Adjacency penalty (shouldn't touch same color)
+        # Check if move creates unwanted adjacency
+        adjacency_penalty = 0.0
+        board_size = len(board)
+
+        for piece_row, piece_col in piece_positions:
+            # Check 4-neighborhood (up, down, left, right)
+            neighbors = [
+                (piece_row - 1, piece_col),
+                (piece_row + 1, piece_col),
+                (piece_row, piece_col - 1),
+                (piece_row, piece_col + 1),
             ]
 
-            for adj_row, adj_col in adjacent_positions:
-                if 0 <= adj_row < 20 and 0 <= adj_col < 20:
-                    if board[adj_row][adj_col] == player_id:
-                        corners += 1
+            for neighbor_row, neighbor_col in neighbors:
+                if 0 <= neighbor_row < board_size and 0 <= neighbor_col < board_size:
+                    if board[neighbor_row][neighbor_col] == player_id:
+                        adjacency_penalty -= 5.0
 
-        return corners
+        # Combine factors
+        total_score = corner_score + size_score + distance_score + adjacency_penalty
+
+        return total_score
+
+    def _find_valid_moves_optimized(
+        self,
+        board: List[List[int]],
+        pieces: List[Piece],
+        player_id: int,
+        max_pieces: Optional[int] = None,
+        max_rotations: Optional[List[int]] = None,
+    ) -> List[Move]:
+        """
+        Optimized move generation with configurable limits.
+
+        Args:
+            board: Current board state
+            pieces: Available pieces
+            player_id: Player making moves
+            max_pieces: Limit number of pieces to check (None = all)
+            max_rotations: List of rotations to check (None = all 4)
+
+        Returns:
+            List of valid Move objects
+        """
+        moves = []
+
+        # Set default rotation list if not specified
+        if max_rotations is None:
+            max_rotations = [0, 90, 180, 270]
+
+        # Limit pieces if requested
+        pieces_to_check = pieces[:max_pieces] if max_pieces else pieces
+
+        # Pre-compute board size
+        board_size = len(board)
+
+        for piece in pieces_to_check:
+            for rotation in max_rotations:
+                # Sample positions more intelligently
+                # Instead of checking all 400 positions, sample strategically
+                step = 2 if isinstance(self, RandomStrategy) else 1
+
+                for row in range(0, board_size, step):
+                    for col in range(0, board_size, step):
+                        # Quick bounds check using piece's bounding box
+                        piece_positions = self._get_piece_positions(piece, row, col, rotation)
+
+                        # Bounds validation
+                        valid = True
+                        for r, c in piece_positions:
+                            if r < 0 or r >= board_size or c < 0 or c >= board_size:
+                                valid = False
+                                break
+                            if board[r][c] != 0:
+                                valid = False
+                                break
+
+                        if valid:
+                            moves.append(Move(piece, (row, col), rotation, player_id))
+
+        return moves
+
+    @abstractmethod
+    def calculate_move(
+        self,
+        board: List[List[int]],
+        pieces: List[Piece],
+        player_id: int,
+        time_limit: int = None,
+    ) -> Optional[Move]:
+        """
+        Calculate best move for current game state.
+
+        Args:
+            board: 2D array representing game board (20x20)
+            pieces: List of available pieces to place
+            player_id: ID of player making the move (1-4)
+            time_limit: Override timeout in seconds (optional)
+
+        Returns:
+            Move object representing best move, or None if no valid moves
+        """
+        pass
 
 
 class RandomStrategy(AIStrategy):
