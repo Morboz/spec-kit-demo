@@ -5,7 +5,7 @@ This module defines the AIPlayer class which represents an AI-controlled
 player in the Blokus game with configurable strategy.
 """
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 import time
 import logging
 from src.services.ai_strategy import AIStrategy, Move
@@ -37,6 +37,7 @@ class AIPlayer:
         pieces: List of remaining pieces to place
         score: Current game score
         has_passed: Whether player passed on current turn
+        is_active: Whether player is still active in the game
         is_calculating: Whether player is currently calculating a move
     """
 
@@ -69,6 +70,7 @@ class AIPlayer:
         self.pieces = get_full_piece_set()
         self.score = 0
         self.has_passed = False
+        self.is_active = True  # Compatibility with Player class
         self.is_calculating = False
         self._calculation_start_time = None
 
@@ -306,6 +308,14 @@ class AIPlayer:
         """
         self.has_passed = False
 
+    def set_active(self):
+        """Mark the player as active (compatibility with Player class)."""
+        self.is_active = True
+
+    def set_inactive(self):
+        """Mark the player as inactive (compatibility with Player class)."""
+        self.is_active = False
+
     def has_pieces_remaining(self) -> bool:
         """
         Check if player has any pieces remaining.
@@ -346,6 +356,18 @@ class AIPlayer:
         from src.config.pieces import get_starting_corner
 
         return get_starting_corner(self.player_id)
+
+    def get_score(self) -> int:
+        """Return current score (compatibility with Player class)."""
+        return self.score
+
+    def add_points(self, points: int) -> None:
+        """Add points to the player's score (compatibility with Player class)."""
+        self.score += points
+
+    def subtract_points(self, points: int) -> None:
+        """Subtract points from the player's score (compatibility with Player class)."""
+        self.score -= points
 
     def get_piece_names(self) -> List[str]:
         """Return sorted list of piece names."""

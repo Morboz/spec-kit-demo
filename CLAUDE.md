@@ -30,5 +30,5 @@ Python 3.11+ (portable, rapid prototyping, good game libraries): Follow standard
 - 001-blokus-multiplayer: Added Python 3.11+ (portable, rapid prototyping, good game libraries) + tkinter (standard library, no external dependencies, sufficient for 2D board game)
 
 <!-- MANUAL ADDITIONS START -->
-<!-- MANUAL ADDITIONS END -->
 - 使用uv管理项目，使用uv进行pytest 单元测试
+<!-- MANUAL ADDITIONS END -->

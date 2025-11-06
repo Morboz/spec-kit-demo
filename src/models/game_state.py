@@ -107,10 +107,7 @@ class GameState:
         # If we've looped back to player 0, increment round number
         if self.current_player_index == 0:
             self.round_number += 1
-
-            # Reset pass states for new round
-            for player in self.players:
-                player.reset_pass()
+            # Note: Do NOT reset pass states here, as we need to detect when all players have passed
 
     def previous_player(self) -> None:
         """Go back to the previous player's turn."""

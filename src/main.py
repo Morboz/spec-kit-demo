@@ -395,6 +395,11 @@ class BlokusApp:
                 if self.piece_selector and current_player:
                     self.piece_selector.set_player(current_player)
 
+                # Check if game should end (all players have passed or no moves left)
+                if self.game_state.should_end_game():
+                    self._end_game()
+                    return
+
                 # Check if it's an AI turn and trigger AI move
                 if self.game_mode and self.game_mode.is_ai_turn(current_player.player_id):
                     # Use after() to schedule AI move without blocking
@@ -406,10 +411,11 @@ class BlokusApp:
                         f"{piece_name} placed successfully! Turn passes to next player.",
                     )
 
-        # Set callback for placement errors
+        # Set callback for placement errors - AI mode: just log, don't show popup
         def on_placement_error(error_msg: str):
-            """Handle placement error."""
-            messagebox.showerror("Invalid Move", error_msg)
+            """Handle placement error - just log for AI, don't show popup."""
+            # For AI mode, just print to console instead of showing error popup
+            print(f"AI placement error: {error_msg}")
 
         # Configure callbacks
         self.placement_handler.set_callbacks(
@@ -507,6 +513,12 @@ class BlokusApp:
         current_player = self.game_state.get_current_player()
         if current_player:
             current_player.pass_turn()
+            
+            # Check if all players have passed (game should end)
+            if self.game_state.should_end_game():
+                self._end_game()
+                return
+            
             # Advance to next player
             self.game_state.next_turn()
             # Update UI
@@ -562,6 +574,11 @@ class BlokusApp:
             # Update piece selector with new current player
             if self.piece_selector and current_player:
                 self.piece_selector.set_player(current_player)
+
+            # Check if game should end
+            if self.game_state.should_end_game():
+                self._end_game()
+                return
 
             # Show success message
             messagebox.showinfo(
@@ -622,15 +639,9 @@ class BlokusApp:
             self.current_player_indicator
         )
 
-        # Center of top panel - Restart button
-        if self.restart_button:
-            restart_frame = ttk.Frame(top_panel)
-            restart_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
-            restart_button_widget = self.restart_button.create_button(
-                text="New Game (Ctrl+N)",
-                tooltip="Start a new game with current or different settings"
-            )
-            restart_button_widget.pack(expand=True)
+        # Center of top panel - Restart button (create temporary frame, will initialize button later)
+        restart_frame = ttk.Frame(top_panel)
+        restart_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
 
         # Right side of top panel - Scoreboard
         scoreboard_frame = ttk.Frame(top_panel)
@@ -748,14 +759,19 @@ class BlokusApp:
         close_btn = ttk.Button(status_frame, text="Quit (Ctrl+Q)", command=self._quit_game)
         close_btn.pack(side=tk.RIGHT)
 
-        # Setup restart button
+        # Setup restart button and add to the restart frame created earlier
         self.restart_button = RestartButton(
-            status_frame,
+            restart_frame,
             self.game_state,
             self.game_state.board,
             on_restart=self._on_restart_game,
             preserve_stats=True,
         )
+        restart_button_widget = self.restart_button.create_button(
+            text="New Game (Ctrl+N)",
+            tooltip="Start a new game with current or different settings"
+        )
+        restart_button_widget.pack(expand=True)
 
         # Perform initial state sync
         if self.state_synchronizer:
@@ -970,6 +986,96 @@ class BlokusApp:
                     piece=selected_piece,
                     player_id=current_player.player_id
                 )
+
+    def _end_game(self) -> None:
+        """End the game and display results."""
+        # Transition to game over state
+        self.game_state.end_game()
+        
+        # Calculate final scores using the ScoringSystem
+        from src.game.scoring import ScoringSystem
+        final_scores = ScoringSystem.calculate_final_scores(self.game_state)
+        
+        # Update each player's score
+        for player in self.game_state.players:
+            player.score = final_scores[player.player_id]
+        
+        # Show game results
+        self._show_game_results()
+
+    def _show_game_results(self) -> None:
+        """Display game over dialog with final scores and winner(s)."""
+        if not self.game_state or not self.game_state.is_game_over():
+            return
+
+        # Get winners
+        winners = self.game_state.get_winners()
+        
+        # Build results message with better formatting
+        results_msg = "╔" + "═" * 48 + "╗\n"
+        results_msg += "║" + " " * 16 + "游戏结束" + " " * 16 + "║\n"
+        results_msg += "╚" + "═" * 48 + "╝\n\n"
+        
+        results_msg += "📊 最终得分排名:\n"
+        results_msg += "─" * 50 + "\n"
+        
+        # Sort players by score (descending)
+        sorted_players = sorted(
+            self.game_state.players, 
+            key=lambda p: p.score, 
+            reverse=True
+        )
+        
+        for i, player in enumerate(sorted_players, 1):
+            remaining_squares = player.get_remaining_squares()
+            placed_squares = sum(piece.size for piece in player.get_placed_pieces())
+            
+            # Add medal emoji for top 3
+            medal = ""
+            if i == 1:
+                medal = "🥇 "
+            elif i == 2:
+                medal = "🥈 "
+            elif i == 3:
+                medal = "🥉 "
+            
+            results_msg += f"{medal}{i}. {player.name}:\n"
+            results_msg += f"   得分: {player.score} 分\n"
+            results_msg += f"   已放置: {placed_squares} 个方块\n"
+            results_msg += f"   剩余: {remaining_squares} 个方块\n"
+            results_msg += "─" * 50 + "\n"
+        
+        results_msg += "\n"
+        
+        # Display winner(s)
+        if len(winners) == 1:
+            results_msg += f"🏆 获胜者: {winners[0].name}!\n"
+            results_msg += f"恭喜获得 {winners[0].score} 分!"
+        elif len(winners) > 1:
+            winner_names = ", ".join([w.name for w in winners])
+            results_msg += f"🏆 平局!\n"
+            results_msg += f"获胜者: {winner_names}\n"
+            results_msg += f"得分: {winners[0].score} 分"
+        
+        # Show results in message box with larger window
+        messagebox.showinfo("🎮 游戏结束", results_msg)
+        
+        # Ask if user wants to play again
+        play_again = messagebox.askyesno(
+            "再来一局?",
+            "是否开始新游戏?",
+            icon="question"
+        )
+        
+        if play_again:
+            # Close current game window if exists
+            if self.game_window:
+                self.game_window.destroy()
+                self.game_window = None
+            # Restart the game
+            self._show_setup()
+        else:
+            self.root.quit()
 
 
 
