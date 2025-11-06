@@ -31,11 +31,15 @@ class TestOverlapDetection:
         # Place first piece
         piece1 = player.get_piece("I2")
         board.place_piece(piece1, 5, 5, 1)
+        piece1.place_at(5, 5)
 
-        # When: Second piece placed in empty space
+        # When: Second piece placed with diagonal contact at (7, 6)
+        # L4 piece: [(0, 0), (0, 1), (0, 2), (1, 2)]
+        # At (7, 6): positions are (7, 6), (7, 7), (7, 8), (8, 8)
+        # Diagonal contact with I2 at (5, 5): (8, 8) touches (7, 7) diagonally ✓
         piece2 = player.get_piece("L4")
         result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 10, 10
+            game_state, player.player_id, piece2, 7, 6
         )
 
         # Then: Valid
@@ -88,6 +92,7 @@ class TestOverlapDetection:
         # Player 1 places piece
         piece1 = player1.get_piece("I2")
         board.place_piece(piece1, 10, 10, 1)
+        piece1.place_at(10, 10)
 
         # When: Player 2 tries to overlap
         piece2 = player2.get_piece("L4")
@@ -116,6 +121,7 @@ class TestOverlapDetection:
         # Place X5 piece at (5, 5)
         piece1 = player.get_piece("X5")
         board.place_piece(piece1, 5, 5, 1)
+        piece1.place_at(5, 5)
 
         # When: I2 piece tries to overlap at one square
         piece2 = player.get_piece("I2")
@@ -143,11 +149,15 @@ class TestOverlapDetection:
         # Place first piece at (5, 5)
         piece1 = player.get_piece("I2")
         board.place_piece(piece1, 5, 5, 1)
+        piece1.place_at(5, 5)
 
-        # When: Second piece placed at (5, 7) (adjacent, no overlap)
+        # When: Second piece placed with diagonal contact at (7, 6)
+        # V3 piece: [(0, 0), (1, 0), (1, 1)]
+        # At (7, 6): positions are (7, 6), (8, 6), (8, 7)
+        # Diagonal contact with I2 at (5, 5): (8, 7) touches (7, 6) diagonally ✓
         piece2 = player.get_piece("V3")
         result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 5, 7
+            game_state, player.player_id, piece2, 7, 6
         )
 
         # Then: Valid (adjacent but not overlapping)
@@ -170,11 +180,15 @@ class TestOverlapDetection:
         # Place first piece at (5, 5)
         piece1 = player.get_piece("I2")
         board.place_piece(piece1, 5, 5, 1)
+        piece1.place_at(5, 5)
 
-        # When: Second piece at (6, 6) (diagonal)
+        # When: Second piece with diagonal contact at (7, 6)
+        # L4 piece: [(0, 0), (0, 1), (0, 2), (1, 2)]
+        # At (7, 6): positions are (7, 6), (7, 7), (7, 8), (8, 8)
+        # Diagonal contact with I2 at (5, 5): (8, 8) touches (7, 7) diagonally ✓
         piece2 = player.get_piece("L4")
         result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 6, 6
+            game_state, player.player_id, piece2, 7, 6
         )
 
         # Then: Valid (diagonal, not overlapping)
@@ -196,6 +210,7 @@ class TestOverlapDetection:
 
         piece1 = player.get_piece("I2")
         board.place_piece(piece1, 10, 10, 1)
+        piece1.place_at(10, 10)
 
         # When: Overlap at (10, 10)
         piece2 = player.get_piece("V3")
@@ -224,6 +239,7 @@ class TestOverlapDetection:
         # Place L4 piece
         piece1 = player.get_piece("L4")
         board.place_piece(piece1, 10, 10, 1)
+        piece1.place_at(10, 10)
 
         # When: New L4 piece overlaps at multiple points
         piece2 = player.get_piece("L4")
@@ -251,11 +267,15 @@ class TestOverlapDetection:
         # Place first piece
         piece1 = player.get_piece("I2")
         board.place_piece(piece1, 5, 5, 1)
+        piece1.place_at(5, 5)
 
-        # When: Second piece touches at corner (6, 6)
+        # When: Second piece touches at corner with diagonal contact (7, 6)
+        # V3 piece: [(0, 0), (1, 0), (1, 1)]
+        # At (7, 6): positions are (7, 6), (8, 6), (8, 7)
+        # Diagonal contact with I2 at (5, 5): (8, 7) touches (7, 6) diagonally ✓
         piece2 = player.get_piece("V3")
         result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 6, 6
+            game_state, player.player_id, piece2, 7, 6
         )
 
         # Then: Valid (corner touch, not overlap)
@@ -278,6 +298,7 @@ class TestOverlapDetection:
         # Place X5
         piece1 = player.get_piece("X5")
         board.place_piece(piece1, 10, 10, 1)
+        piece1.place_at(10, 10)
 
         # When: L4 piece tries to overlap
         piece2 = player.get_piece("L4")
@@ -304,22 +325,25 @@ class TestOverlapDetection:
         game_state.add_player(player1)
         game_state.add_player(player2)
 
-        # Place pieces
+        # Place pieces with diagonal contact
         p1_piece = player1.get_piece("I2")
         board.place_piece(p1_piece, 5, 5, 1)
+        p1_piece.place_at(5, 5)
 
+        # Player 2 piece with diagonal contact to player 1
         p2_piece = player2.get_piece("V3")
-        board.place_piece(p2_piece, 10, 10, 2)
+        board.place_piece(p2_piece, 7, 6, 2)
+        p2_piece.place_at(7, 6)
 
         # When: Check occupied positions
         occupied = board.get_occupied_positions()
 
-        # Then: Both positions are occupied
-        assert (5, 5) in occupied
-        assert (5, 6) in occupied
-        assert (10, 10) in occupied
-        assert (11, 10) in occupied
-        assert (12, 10) in occupied
+        # Then: All positions are occupied
+        assert (5, 5) in occupied  # I2 first square
+        assert (6, 5) in occupied  # I2 second square (vertical)
+        assert (7, 6) in occupied  # V3 first square
+        assert (8, 6) in occupied  # V3 second square
+        assert (8, 7) in occupied  # V3 third square
 
     def test_overlap_prevents_piece_placement(self):
         """Contract: Overlap prevents piece from being placed.
@@ -338,6 +362,7 @@ class TestOverlapDetection:
         # Place first piece
         piece1 = player.get_piece("I2")
         board.place_piece(piece1, 5, 5, 1)
+        piece1.place_at(5, 5)
 
         initial_occupied = len(board.get_occupied_positions())
 
@@ -368,6 +393,7 @@ class TestOverlapDetection:
         # Place I5 piece
         piece1 = player.get_piece("I5")
         board.place_piece(piece1, 5, 5, 1)
+        piece1.place_at(5, 5)
 
         # When: Small piece tries to overlap
         piece2 = player.get_piece("I1")
@@ -395,6 +421,7 @@ class TestOverlapDetection:
         # Place piece
         piece1 = player.get_piece("I2")
         board.place_piece(piece1, 5, 5, 1)
+        piece1.place_at(5, 5)
 
         # When: Rotated piece overlaps
         piece2 = player.get_piece("L4").rotate(90)

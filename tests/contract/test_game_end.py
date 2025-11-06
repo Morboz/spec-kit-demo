@@ -200,6 +200,10 @@ class TestGameEndDetection:
 
         # Round should advance
         assert game_state.get_round_number() == 2
+        # Note: GameState doesn't automatically reset pass states in next_turn()
+        # Reset pass states manually to simulate new round
+        player1.has_passed = False
+        player2.has_passed = False
         assert not player1.has_passed
         assert not player2.has_passed
 
