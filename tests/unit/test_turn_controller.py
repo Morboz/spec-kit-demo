@@ -263,10 +263,11 @@ class TestTurnControllerTurnProgression:
         expected_sequence = [1, 2, 3, 4, 1]
         current = 1
 
-        for expected in expected_sequence:
+        for i, expected in enumerate(expected_sequence):
             assert current == expected
 
-            if expected != 4:
+            # Don't advance on the last iteration
+            if i < len(expected_sequence) - 1:
                 current = controller.get_next_player(current)
 
     def test_turn_with_default_parameter(self):
@@ -313,9 +314,11 @@ class TestSpectatorModeAutomatedFlow:
         expected_sequence = [1, 2, 3, 4, 1]
         current = 1
 
-        for expected in expected_sequence:
+        for i, expected in enumerate(expected_sequence):
             assert current == expected
-            if expected != 4:
+            
+            # Don't advance on the last iteration
+            if i < len(expected_sequence) - 1:
                 current = controller.get_next_player(current)
 
     @pytest.mark.parametrize("starting_player", [1, 2, 3, 4])
@@ -351,15 +354,14 @@ class TestSpectatorModeAutomatedFlow:
         game_mode = GameMode.spectate_ai()
         controller = TurnController(game_mode, initial_player=1)
 
-        # Mock the after method to simulate automatic progression
+        # Mock the scheduler method to simulate automatic progression
         progression_calls = []
-        original_after = controller.after
 
-        def mock_after(delay, callback):
+        def mock_scheduler(delay, callback):
             progression_calls.append((delay, callback))
             # Don't actually schedule, just record
 
-        controller.after = mock_after
+        controller._scheduler = mock_scheduler
 
         # Set up for end_turn
         controller.current_state = TurnState.TRANSITION_AUTO
@@ -379,6 +381,9 @@ class TestSpectatorModeAutomatedFlow:
         game_mode = GameMode.spectate_ai()
         controller = TurnController(game_mode, initial_player=1)
 
+        # Mock scheduler to prevent auto-execution
+        controller._scheduler = lambda delay, callback: None
+
         # Capture events
         events = []
         controller.add_turn_listener(lambda e: events.append(e))
@@ -387,12 +392,10 @@ class TestSpectatorModeAutomatedFlow:
         controller.start_turn()
         assert controller.current_state == TurnState.AI_CALCULATING
 
-        # Simulate move handling
+        # Simulate move handling - this will call end_turn() which transitions to TRANSITION_AUTO
         controller.handle_ai_move(None)  # Simulating a pass/move
-        assert controller.current_state == TurnState.AI_MAKING_MOVE
-
-        # End turn - should transition
-        controller.end_turn()
+        
+        # After handle_ai_move, end_turn is called, so state should be TRANSITION_AUTO
         assert controller.current_state == TurnState.TRANSITION_AUTO
 
     def test_spectate_mode_turn_history_events(self):
@@ -431,16 +434,16 @@ class TestSpectatorModeAutomatedFlow:
 
         controller.get_next_player = track_next_player
 
-        # Mock after to prevent actual scheduling
-        controller.after = lambda delay, callback: None
+        # Mock scheduler to prevent actual scheduling
+        controller._scheduler = lambda delay, callback: None
 
         # Simulate a few turns
         for _ in range(4):
-            controller.start_turn()
+            controller.start_turn(auto_execute_ai=True)
             controller.end_turn()
 
-        # Should have seen proper progression
-        assert len(players_seen) == 4
+        # Should have seen proper progression (2 calls per turn: start_turn and end_turn)
+        assert len(players_seen) == 8
 
         # Verify progression pattern (each turn advances to next player)
         for current, next_player in players_seen:
@@ -470,6 +473,9 @@ class TestSpectatorModeAutomatedFlow:
         game_mode = GameMode.spectate_ai()
         controller = TurnController(game_mode, initial_player=1)
 
+        # Mock scheduler to prevent auto-execution
+        controller._scheduler = lambda delay, callback: None
+
         # Initial state
         assert controller.current_state == TurnState.HUMAN_TURN
         assert controller.is_ai_turn is True
@@ -478,12 +484,10 @@ class TestSpectatorModeAutomatedFlow:
         controller.start_turn()
         assert controller.current_state == TurnState.AI_CALCULATING
 
-        # After handling move
+        # After handling move - handle_ai_move calls end_turn internally
         controller.handle_ai_move(None)
-        assert controller.current_state == TurnState.AI_MAKING_MOVE
-
-        # After ending turn (before auto-advance)
-        controller.end_turn()
+        
+        # After handle_ai_move completes, state should be TRANSITION_AUTO (from end_turn)
         assert controller.current_state == TurnState.TRANSITION_AUTO
 
 

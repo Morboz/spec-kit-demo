@@ -241,7 +241,7 @@ class AIStrategy(ABC):
             List of (row, col) tuples for piece squares
         """
         # Get piece shape (list of relative positions)
-        shape = piece.positions if hasattr(piece, 'positions') else [(0, 0)]
+        shape = piece.coordinates if hasattr(piece, 'coordinates') else [(0, 0)]
 
         positions = []
 

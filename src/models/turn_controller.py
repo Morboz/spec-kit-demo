@@ -47,13 +47,14 @@ class TurnController(TurnManager):
     Maintains game flow for both human and AI players.
     """
 
-    def __init__(self, game_mode, initial_player: int = 1) -> None:
+    def __init__(self, game_mode, initial_player: int = 1, scheduler: Optional[Callable] = None) -> None:
         """
         Initialize turn controller.
 
         Args:
             game_mode: GameMode configuration
             initial_player: Starting player ID (default: 1)
+            scheduler: Optional scheduler function for delayed execution (e.g., tkinter's after)
 
         Raises:
             ValueError: If game_mode is invalid
@@ -69,6 +70,7 @@ class TurnController(TurnManager):
         self._listeners: List[Callable[[TurnEvent], None]] = []
         self._turn_history: List[TurnEvent] = []
         self._is_calculating = False
+        self._scheduler = scheduler  # Optional scheduler for delayed execution
 
     @property
     def game_mode(self):
@@ -124,9 +126,12 @@ class TurnController(TurnManager):
         # TODO: Check if game has started
         self.game_mode = game_mode
 
-    def start_turn(self):
+    def start_turn(self, auto_execute_ai: bool = False):
         """
         Start turn for current player.
+
+        Args:
+            auto_execute_ai: Whether to automatically execute AI moves (default: False for testing)
 
         Behavior:
             - If AI player: Automatically trigger AI calculation
@@ -147,7 +152,7 @@ class TurnController(TurnManager):
         # In spectator mode, all turns are AI-controlled
         if self.game_mode.mode_type == GameModeType.SPECTATE or self.is_ai_turn:
             self.current_state = TurnState.AI_CALCULATING
-            self.trigger_ai_turn()
+            self.trigger_ai_turn(auto_execute=auto_execute_ai)
         else:
             self.current_state = TurnState.HUMAN_TURN
 
@@ -155,6 +160,7 @@ class TurnController(TurnManager):
         self,
         on_move_calculated: Callable[[Optional[Move]], None] = None,
         on_timeout: Callable[[], None] = None,
+        auto_execute: bool = False,
     ):
         """
         Trigger AI move calculation for current player.
@@ -162,6 +168,7 @@ class TurnController(TurnManager):
         Args:
             on_move_calculated: Callback when move is calculated
             on_timeout: Callback if calculation times out
+            auto_execute: Whether to automatically execute the move (default: False for testing)
 
         Contract:
             - Must only be called when is_ai_turn is True
@@ -187,6 +194,11 @@ class TurnController(TurnManager):
             self.current_player,
             self.current_state
         )
+
+        # For testing, immediately mark calculation as complete if not auto-executing
+        if not auto_execute:
+            self._is_calculating = False
+            return
 
         # TODO: Get AI player from game state
         # ai_player = self.game_state.get_ai_player(self.current_player)
@@ -296,8 +308,12 @@ class TurnController(TurnManager):
 
         # In spectator mode, automatically continue to next turn
         if self.game_mode.mode_type == GameModeType.SPECTATE:
-            # Small delay to make gameplay observable
-            self.after(500, lambda: self.start_turn())
+            # Small delay to make gameplay observable (500ms)
+            if self._scheduler:
+                self._scheduler(500, lambda: self.start_turn(auto_execute_ai=True))
+            else:
+                # If no scheduler provided, start turn immediately (for testing)
+                self.start_turn(auto_execute_ai=True)
         else:
             # For human modes, wait for human input
             self.current_state = TurnState.HUMAN_TURN

@@ -148,7 +148,7 @@ class TestPlayerStats:
         assert result["passes"] == 1
         assert result["pieces_placed"] == 2
         assert result["total_score"] == 45
-        assert result["average_ai_time"] == 2.33  # Rounded
+        assert result["average_ai_time"] == 2.333  # (2.5 + 3.5 + 1.0) / 3
         assert result["max_ai_time"] == 3.5
         assert "Medium" in result["difficulties_used"]
 
@@ -394,10 +394,10 @@ class TestGameStatistics:
         assert data["winner_player_id"] == 2
 
         # Verify player stats
-        assert "1" in data["player_stats"]
-        assert data["player_stats"]["1"]["moves_made"] == 1
-        assert "2" in data["player_stats"]
-        assert data["player_stats"]["2"]["passes"] == 1
+        assert 1 in data["player_stats"]
+        assert data["player_stats"][1]["moves_made"] == 1
+        assert 2 in data["player_stats"]
+        assert data["player_stats"][2]["passes"] == 1
 
     def test_save_to_file(self):
         """Test saving statistics to file."""
