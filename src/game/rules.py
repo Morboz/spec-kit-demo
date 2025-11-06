@@ -230,11 +230,13 @@ class BlokusRules:
             ]
 
             for neighbor_row, neighbor_col in diagonal_neighbors:
-                if (neighbor_row, neighbor_col) in player_positions:
-                    # Found corner-to-corner contact with own piece
-                    return ValidationResult(
-                        True, "Piece has corner-to-corner contact with own piece"
-                    )
+                # Verify the diagonal neighbor is within board bounds
+                if board.is_position_valid(neighbor_row, neighbor_col):
+                    if (neighbor_row, neighbor_col) in player_positions:
+                        # Found corner-to-corner contact with own piece
+                        return ValidationResult(
+                            True, "Piece has corner-to-corner contact with own piece"
+                        )
 
         return ValidationResult(
             False,
@@ -261,7 +263,9 @@ class BlokusRules:
         positions: List[Tuple[int, int]], player: Player, game_state: GameState
     ) -> ValidationResult:
         """
-        Check that first move is in player's starting corner.
+        Check that first move occupies player's starting corner.
+
+        The piece must have at least one square occupying the exact corner position.
 
         Args:
             positions: List of (row, col) positions for the piece
@@ -273,16 +277,15 @@ class BlokusRules:
         """
         corner_row, corner_col = player.get_starting_corner()
 
-        # At least one square of the piece must be in the corner
-        for row, col in positions:
-            if row == corner_row and col == corner_col:
-                return ValidationResult(
-                    True, "First move correctly placed in starting corner"
-                )
+        # The piece MUST occupy the corner square
+        if (corner_row, corner_col) not in positions:
+            return ValidationResult(
+                False,
+                f"First move must occupy the starting corner ({corner_row}, {corner_col})",
+            )
 
         return ValidationResult(
-            False,
-            f"First move must include corner position ({corner_row}, {corner_col})",
+            True, "First move correctly placed in starting corner"
         )
 
     @staticmethod

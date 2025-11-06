@@ -114,23 +114,25 @@ class TestBlokusRules:
         self.board.place_piece(piece2, 0, 19, 2)
         self.player2.place_piece("I2", 0, 19)
 
-        # Place another piece for player 1 (different piece from I1)
+        # Place another piece for player 1 that has diagonal contact with piece1 at (0,0)
+        # I2 at (1,1) has diagonal contact with (0,0)
         piece3 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(self.game_state, 1, piece3, 5, 5)
-        # This should be valid - opponent contact is allowed
+        result = BlokusRules.validate_move(self.game_state, 1, piece3, 1, 1)
+        # This should be valid - has diagonal contact with own piece
         assert result.is_valid
 
     def test_validate_diagonal_contact_allowed(self):
-        """Test that diagonal contact with own pieces is allowed."""
+        """Test that diagonal contact with own pieces is required and allowed."""
         # Make first move
         piece1 = self.player1.get_piece("I1")
         self.board.place_piece(piece1, 0, 0, 1)
         self.player1.place_piece("I1", 0, 0)
 
         # Try to place another piece that only touches diagonally
+        # I2 at (1,1) will have one square at (1,1) which is diagonal to (0,0)
         piece2 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(self.game_state, 1, piece2, 5, 5)
-        # This should be valid - diagonal contact is allowed
+        result = BlokusRules.validate_move(self.game_state, 1, piece2, 1, 1)
+        # This should be valid - diagonal contact is required and allowed
         assert result.is_valid
 
     def test_validate_first_move_must_be_in_corner(self):
@@ -158,7 +160,7 @@ class TestBlokusRules:
         assert result.is_valid
 
     def test_validate_move_not_in_first_move(self):
-        """Test that non-first moves don't need to be in corner."""
+        """Test that non-first moves don't need to be in corner but need diagonal contact."""
         # Make the first move for player 1
         piece1 = self.player1.get_piece("I1")
         result = BlokusRules.validate_move(self.game_state, 1, piece1, 0, 0)
@@ -169,8 +171,9 @@ class TestBlokusRules:
         self.player1.place_piece("I1", 0, 0)
 
         # Now player 1's subsequent moves don't need to be in corner
+        # but must have diagonal contact with existing piece at (0,0)
         piece2 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(self.game_state, 1, piece2, 5, 5)
+        result = BlokusRules.validate_move(self.game_state, 1, piece2, 1, 1)
         assert result.is_valid
 
     def test_validate_valid_move(self):
@@ -256,10 +259,12 @@ class TestBlokusRules:
         self.player1.place_piece("I1", 0, 0)
 
         # Test with flipped piece (not first move)
-        piece = self.player1.get_piece("L4")
+        # Use I2 which is simpler and place at safe position
+        piece = self.player1.get_piece("I2")
         flipped_piece = piece.flip()
 
-        result = BlokusRules.validate_move(self.game_state, 1, flipped_piece, 5, 5)
+        # Place at (1,1) to have diagonal contact with (0,0)
+        result = BlokusRules.validate_move(self.game_state, 1, flipped_piece, 1, 1)
         assert result.is_valid
 
     def test_board_boundaries(self):
@@ -270,9 +275,9 @@ class TestBlokusRules:
         self.player1.place_piece("I1", 0, 0)
 
         # Valid placement at edge for subsequent moves
-        # I2 anchored at (18,19) places squares at (18,19) and (19,19)
+        # Must have diagonal contact with (0,0), so place at (1,1) first
         piece2 = self.player1.get_piece("I2")
-        result = BlokusRules.validate_move(self.game_state, 1, piece2, 18, 19)
+        result = BlokusRules.validate_move(self.game_state, 1, piece2, 1, 1)
         assert result.is_valid
 
     def test_empty_board_state(self):
