@@ -37,6 +37,15 @@ class TestGamePerformance:
         game_mode = GameMode.single_ai(Difficulty.EASY)
         game_state = GameState()
 
+        # Add players for Single AI (Player 1 human, Player 3 AI)
+        from src.models.player import Player
+        from src.services.ai_strategy import RandomStrategy
+        human = Player(1, "Human")
+        game_state.add_player(human)
+        ai = AIPlayer(3, RandomStrategy(), "#FF0000", "AI")
+        game_state.add_player(ai)
+        game_state.start_game()
+
         start_time = time.time()
         start_memory = psutil.Process(os.getpid()).memory_info().rss
 
@@ -51,7 +60,7 @@ class TestGamePerformance:
             current_player = game_state.get_current_player()
 
             # Simulate AI thinking time
-            if game_mode.is_ai_turn(current_player):
+            if game_mode.is_ai_turn(current_player.player_id):
                 ai_start = time.time()
 
                 # Simulate AI move calculation
@@ -62,7 +71,7 @@ class TestGamePerformance:
 
             # Simulate turn advancement
             move_start = time.time()
-            game_state.advance_turn()
+            game_state.next_turn()
             move_end = time.time()
 
             move_times.append(move_end - move_start)
@@ -94,6 +103,15 @@ class TestGamePerformance:
         game_mode = GameMode.single_ai(Difficulty.HARD)
         game_state = GameState()
 
+        # Add players for Single AI (Player 1 human, Player 3 AI)
+        from src.models.player import Player
+        from src.services.ai_strategy import RandomStrategy
+        human = Player(1, "Human")
+        game_state.add_player(human)
+        ai = AIPlayer(3, RandomStrategy(), "#FF0000", "AI")
+        game_state.add_player(ai)
+        game_state.start_game()
+
         start_time = time.time()
 
         move_times = []
@@ -104,7 +122,7 @@ class TestGamePerformance:
         for turn in range(max_turns):
             current_player = game_state.get_current_player()
 
-            if game_mode.is_ai_turn(current_player):
+            if game_mode.is_ai_turn(current_player.player_id):
                 ai_start = time.time()
 
                 # Simulate longer calculation for Hard AI
@@ -114,7 +132,7 @@ class TestGamePerformance:
                 ai_calculation_times.append(ai_end - ai_start)
 
             move_start = time.time()
-            game_state.advance_turn()
+            game_state.next_turn()
             move_end = time.time()
 
             move_times.append(move_end - move_start)
@@ -157,7 +175,7 @@ class TestGamePerformance:
                 ai_end = time.time()
                 ai_times_by_player[current_player].append(ai_end - ai_start)
 
-            game_state.advance_turn()
+            game_state.next_turn()
 
         end_time = time.time()
 
@@ -184,6 +202,14 @@ class TestGamePerformance:
         game_mode = GameMode.spectate_ai()
         game_state = GameState()
 
+        # Add players for Spectate (All 4 AI)
+        from src.models.player import Player
+        from src.services.ai_strategy import RandomStrategy
+        for pos in [1, 2, 3, 4]:
+            ai = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI {pos}")
+            game_state.add_player(ai)
+        game_state.start_game()
+
         start_time = time.time()
 
         ai_times = []
@@ -195,7 +221,7 @@ class TestGamePerformance:
             current_player = game_state.get_current_player()
 
             # All players are AI in spectate mode
-            assert game_mode.is_ai_turn(current_player) is True
+            assert game_mode.is_ai_turn(current_player.player_id) is True
 
             ai_start = time.time()
 
@@ -206,7 +232,7 @@ class TestGamePerformance:
             ai_times.append(ai_end - ai_start)
 
             turn_start = time.time()
-            game_state.advance_turn()
+            game_state.next_turn()
             turn_end = time.time()
 
             turn_intervals.append(turn_end - turn_start)
@@ -282,7 +308,7 @@ class TestGamePerformance:
                 # Simulate AI work
                 time.sleep(0.05)
 
-            game_state.advance_turn()
+            game_state.next_turn()
 
             # Sample memory every 10 turns
             if turn % 10 == 0:
@@ -367,7 +393,7 @@ class TestGamePerformance:
                 # Simulate human move
                 time.sleep(0.05)  # 50ms (simulated)
 
-            game_state.advance_turn()
+            game_state.next_turn()
             turns_completed += 1
 
         end_time = time.time()
@@ -428,7 +454,7 @@ class TestGamePerformance:
             start_time = time.time()
 
             for turn in range(length):
-                game_state.advance_turn()
+                game_state.next_turn()
 
                 # Simulate AI work (constant per move)
                 time.sleep(0.05)
