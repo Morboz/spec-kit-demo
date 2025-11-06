@@ -29,6 +29,7 @@ from src.ui.keyboard_shortcuts import GameKeyboardHandler
 from src.ui.restart_button import RestartButton, GameRestartDialog
 from src.ui.board_renderer import OptimizedBoardRenderer
 from src.ui.placement_preview import PlacementPreview
+from src.ui.skip_turn_button import SkipTurnButton
 from src.config.game_config import GameConfig, create_config_from_preset
 from src.game.error_handler import setup_error_handling, get_error_handler
 from src.models.ai_config import AIConfig, Difficulty
@@ -73,6 +74,7 @@ class BlokusApp:
         self.scoreboard: Optional[Scoreboard] = None
         self.piece_inventory: Optional[PieceInventory] = None
         self.placement_preview: Optional[PlacementPreview] = None
+        self.skip_turn_button: Optional[SkipTurnButton] = None
 
         # Phase 10 additions
         self.keyboard_handler: Optional[GameKeyboardHandler] = None
@@ -411,9 +413,17 @@ class BlokusApp:
                 if self.state_synchronizer:
                     self.state_synchronizer.notify_turn_change()
 
+                # Update skip turn button state
+                if self.skip_turn_button:
+                    self.skip_turn_button.update_from_game_state()
+
                 # Update piece selector with new current player
                 if self.piece_selector and current_player:
                     self.piece_selector.set_player(current_player)
+
+                # Update piece inventory tab to show current player's pieces
+                if self.piece_inventory and current_player:
+                    self.piece_inventory.select_player_tab(current_player.player_id)
 
                 # Force UI update after player change
                 if self.root:
@@ -553,14 +563,31 @@ class BlokusApp:
             self._render_board()
             if self.state_synchronizer:
                 self.state_synchronizer.notify_turn_change()
+            # Update piece inventory tab to show current player's pieces
+            next_player = self.game_state.get_current_player()
+            if next_player and self.piece_inventory:
+                self.piece_inventory.select_player_tab(next_player.player_id)
+            # Update piece selector to show next player's pieces
+            if next_player and self.piece_selector:
+                self.piece_selector.set_player(next_player)
+            # Update skip turn button state
+            if self.skip_turn_button:
+                self.skip_turn_button.update_from_game_state()
             # Force UI update
             if self.root:
                 self.root.update_idletasks()
             # Check if next player is AI
-            next_player = self.game_state.get_current_player()
             if next_player and self.game_mode and self.game_mode.is_ai_turn(next_player.player_id):
                 # Use after() to schedule AI move with sufficient delay
                 self.root.after(500, lambda: self._trigger_ai_move(next_player))
+
+    def _on_skip_turn_clicked(self) -> None:
+        """Handle skip turn button click."""
+        self._pass_turn()
+
+        # Update skip turn button state
+        if self.skip_turn_button:
+            self.skip_turn_button.update_from_game_state()
 
     def _setup_callbacks(self) -> None:
         """Setup callbacks for placement handler."""
@@ -601,6 +628,14 @@ class BlokusApp:
                 # Notify turn change
                 if self.state_synchronizer:
                     self.state_synchronizer.notify_turn_change()
+
+                # Update skip turn button state
+                if self.skip_turn_button:
+                    self.skip_turn_button.update_from_game_state()
+
+            # Update piece inventory tab to show current player's pieces
+            if self.piece_inventory and current_player:
+                self.piece_inventory.select_player_tab(current_player.player_id)
 
             # Update piece selector with new current player
             if self.piece_selector and current_player:
@@ -706,6 +741,13 @@ class BlokusApp:
         )
         self.piece_display.pack(fill=tk.X)
 
+        # Pass turn button
+        self.skip_turn_button = SkipTurnButton(
+            middle_left_panel,
+            on_skip_turn=self._on_skip_turn_clicked
+        )
+        self.skip_turn_button.pack(fill=tk.X, pady=(10, 0))
+
         # Create middle-right panel (piece inventory)
         middle_right_panel = ttk.Frame(main_frame, width=300)
         middle_right_panel.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0))
@@ -807,6 +849,10 @@ class BlokusApp:
         # Perform initial state sync
         if self.state_synchronizer:
             self.state_synchronizer.full_update()
+
+        # Setup skip turn button with game state
+        if self.skip_turn_button:
+            self.skip_turn_button.set_game_state(self.game_state)
 
         # Initialize placement preview for visual feedback
         cell_size = self.game_config.cell_size if self.game_config else 30
