@@ -424,77 +424,50 @@ class BlokusApp:
 
     def _trigger_ai_move(self, ai_player):
         """
-        Trigger AI move calculation and execution.
+        Trigger AI move calculation and execution using calculate_move().
 
         Args:
             ai_player: AI player instance
         """
-        from src.game.rules import BlokusRules
-        
         # Show AI thinking indicator
         if self.current_player_indicator:
             self.current_player_indicator.show_ai_thinking()
 
         try:
-            # Find a valid move using game rules
+            # Get board state and pieces
+            board_state = self.game_state.board.grid
             pieces = list(ai_player.pieces)
-            
-            # Shuffle pieces for randomness (Easy AI)
-            import random
-            random.shuffle(pieces)
-            
-            found_valid_move = False
-            
-            # Try each piece
-            for piece in pieces:
-                # Try different rotations (0, 90, 180, 270 degrees)
-                for rotation_count in range(4):
-                    # Create a rotated version of the piece for testing
-                    test_piece = piece
-                    for _ in range(rotation_count):
-                        test_piece = test_piece.rotate(90)
-                    
-                    # Get valid positions for this rotated piece
-                    valid_positions = BlokusRules.get_valid_moves(
-                        self.game_state, ai_player.player_id, test_piece
-                    )
-                    
-                    if valid_positions:
-                        # Pick a random valid position (Easy AI behavior)
-                        position = random.choice(valid_positions)
-                        
-                        # Select the ORIGINAL piece (not the rotated copy)
-                        piece_selected = self.placement_handler.select_piece(piece.name)
-                        if not piece_selected:
-                            print(f"AI failed to select piece: {piece.name}")
-                            continue
-                        
-                        # Apply the same rotations to the selected piece in placement_handler
-                        for _ in range(rotation_count):
-                            self.placement_handler.rotate_piece()
-                        
-                        # Attempt to place the piece
-                        success, error_msg = self.placement_handler.place_piece(
-                            position[0], position[1]
-                        )
-                        
-                        if success:
-                            found_valid_move = True
-                            break
-                        else:
-                            print(f"AI placement failed: {error_msg}")
-                            # Clear selection for next attempt
-                            self.placement_handler.clear_selection()
-                
-                if found_valid_move:
-                    break
-            
-            # Hide thinking indicator
-            if self.current_player_indicator:
-                self.current_player_indicator.hide_ai_thinking()
-            
-            # If no valid move found, pass turn
-            if not found_valid_move:
+
+            # NEW: Use calculate_move() instead of manual logic
+            move = ai_player.calculate_move(board_state, pieces)
+
+            if move and not move.is_pass:
+                # Select the piece
+                piece_selected = self.placement_handler.select_piece(move.piece.name)
+                if not piece_selected:
+                    print(f"AI failed to select piece: {move.piece.name}")
+                    self._pass_turn()
+                    return
+
+                # Apply flip (if needed)
+                if move.flip:
+                    self.placement_handler.flip_piece()
+
+                # Apply rotation (if needed)
+                rotation_count = move.rotation // 90
+                for _ in range(rotation_count):
+                    self.placement_handler.rotate_piece()
+
+                # Place the piece
+                success, error_msg = self.placement_handler.place_piece(
+                    move.position[0], move.position[1]
+                )
+
+                if not success:
+                    print(f"AI placement failed: {error_msg}")
+                    self._pass_turn()
+            else:
+                # No valid moves or pass action
                 print(f"AI Player {ai_player.player_id} has no valid moves, passing turn")
                 self._pass_turn()
 
@@ -502,11 +475,12 @@ class BlokusApp:
             print(f"AI calculation error: {e}")
             import traceback
             traceback.print_exc()
-            # Hide thinking indicator on error
-            if self.current_player_indicator:
-                self.current_player_indicator.hide_ai_thinking()
             # Pass turn on error
             self._pass_turn()
+        finally:
+            # Hide thinking indicator
+            if self.current_player_indicator:
+                self.current_player_indicator.hide_ai_thinking()
 
     def _pass_turn(self):
         """Pass the current player's turn."""

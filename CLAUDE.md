@@ -5,6 +5,7 @@ Auto-generated from all feature plans. Last updated: 2025-10-30
 ## Active Technologies
 - Python 3.11+ + tkinter (standard library), pytest (testing) (001-fix-piece-placement)
 - N/A (in-memory game state, no persistence required) (001-fix-piece-placement)
+- In-memory game state (no persistence required) (003-fix-ai-player)
 
 - Python 3.11+ (portable, rapid prototyping, good game libraries) + tkinter (standard library, no external dependencies, sufficient for 2D board game) (001-blokus-multiplayer)
 
@@ -24,11 +25,10 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+ (portable, rapid prototyping, good game libraries): Follow standard conventions
 
 ## Recent Changes
+- 003-fix-ai-player: Added Python 3.11+ + tkinter (standard library), pytest (testing)
 - 002-ai-battle-mode: Added Python 3.11+ + tkinter (standard library)
 - 001-fix-piece-placement: Added Python 3.11+ + tkinter (standard library), pytest (testing)
 
-- 001-blokus-multiplayer: Added Python 3.11+ (portable, rapid prototyping, good game libraries) + tkinter (standard library, no external dependencies, sufficient for 2D board game)
 
 <!-- MANUAL ADDITIONS START -->
-- 使用uv管理项目，使用uv进行pytest 单元测试
 <!-- MANUAL ADDITIONS END -->
