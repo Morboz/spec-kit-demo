@@ -240,13 +240,27 @@ class TestAIPerformance:
         elapsed = ai_player.get_elapsed_calculation_time()
         assert elapsed is None
 
+        # Monkey-patch to add delay and check time during calculation
+        original_calculate = ai_player.strategy.calculate_move
+        times_during_calculation = []
+
+        def patched_calculate_move(board, pieces, player_id, time_limit=None):
+            # Check time at start
+            elapsed = ai_player.get_elapsed_calculation_time()
+            if elapsed is not None:
+                times_during_calculation.append(elapsed)
+            return original_calculate(board, pieces, player_id, time_limit)
+
+        ai_player.strategy.calculate_move = patched_calculate_move
+
         # Calculate move
         move = ai_player.calculate_move(board, pieces)
 
-        # After calculation
-        elapsed = ai_player.get_elapsed_calculation_time()
-        assert elapsed is not None
-        assert elapsed >= 0.0
+        # Time tracking should have worked
+        # Note: After calculation finishes, is_calculating is False, so get_elapsed_calculation_time returns None
+        # But we tracked it during the calculation via the patch
+        assert len(times_during_calculation) > 0, "Should have tracked time during calculation"
+        assert all(t >= 0 for t in times_during_calculation), "All tracked times should be non-negative"
 
     def test_concurrent_calculation_performance(self):
         """Test multiple AI players can calculate concurrently."""

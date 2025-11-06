@@ -23,8 +23,8 @@ def test_get_piece_positions_without_flip():
     
     class MockPiece:
         name = "I1"
-        positions = [(0, 0), (0, 1), (0, 2)]  # I-piece shape
-    
+        coordinates = [(0, 0), (0, 1), (0, 2)]  # I-piece shape
+
     piece = MockPiece()
     
     # Test without flip (backward compatibility)
@@ -60,8 +60,8 @@ def test_get_piece_positions_with_flip_false():
     
     class MockPiece:
         name = "L1"
-        positions = [(0, 0), (1, 0), (1, 1)]  # L-shaped piece
-    
+        coordinates = [(0, 0), (1, 0), (1, 1)]  # L-shaped piece
+
     piece = MockPiece()
     
     # Test with flip=False explicitly
@@ -100,8 +100,8 @@ def test_get_piece_positions_with_flip_true():
         name = "L1"
         # Original L-shape: (0,0), (1,0), (1,1)
         # After flip: (0,0), (1,0), (1,-1)
-        positions = [(0, 0), (1, 0), (1, 1)]
-    
+        coordinates = [(0, 0), (1, 0), (1, 1)]
+
     piece = MockPiece()
     
     # Test with flip=True
@@ -141,8 +141,8 @@ def test_get_piece_positions_flip_then_rotate():
     
     class MockPiece:
         name = "L1"
-        positions = [(0, 0), (1, 0), (1, 1)]
-    
+        coordinates = [(0, 0), (1, 0), (1, 1)]
+
     piece = MockPiece()
     
     # Test flip + 90 degree rotation
@@ -185,8 +185,8 @@ def test_get_piece_positions_flip_all_rotations():
     
     class MockPiece:
         name = "Square"
-        positions = [(0, 0), (0, 1), (1, 0), (1, 1)]
-    
+        coordinates = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
     piece = MockPiece()
     
     # Test with flip and all rotations
@@ -226,8 +226,8 @@ def test_get_piece_positions_flip_with_simple_piece():
     
     class MockPiece:
         name = "I2"
-        positions = [(0, 0), (0, 1)]
-    
+        coordinates = [(0, 0), (0, 1)]
+
     piece = MockPiece()
     
     # Without flip
