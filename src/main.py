@@ -14,7 +14,7 @@ Phase 10: Complete application with:
 
 import tkinter as tk
 from tkinter import messagebox, ttk
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from src.ui.setup_window import SetupWindow
 from src.ui.game_mode_selector import show_game_mode_selector, GameModeSelector
 from src.game.game_setup import GameSetup
@@ -40,7 +40,7 @@ from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicSt
 class BlokusApp:
     """Main application class for Blokus game."""
 
-    def __init__(self) -> None:
+    def __init__(self, auto_spectate: bool = False) -> None:
         """Initialize the application."""
         # Setup error handling first
         setup_error_handling(log_file="blokus_errors.log")
@@ -81,6 +81,9 @@ class BlokusApp:
         # Performance metrics
         self.performance_metrics: Dict[str, Any] = {}
 
+        # If True, skip interactive setup and start Spectate AI mode
+        self.auto_spectate = auto_spectate
+
     def run(self) -> None:
         """Run the application main loop."""
         # Show setup dialog
@@ -104,6 +107,19 @@ class BlokusApp:
 
     def _show_setup(self) -> None:
         """Show the game setup dialog."""
+        # If auto_spectate flag is set, skip all interactive dialogs and
+        # start a Spectate (AI vs AI) game immediately. This is useful for
+        # automated debugging or CI runs where GUI prompts block execution.
+        if getattr(self, "auto_spectate", False):
+            try:
+                # Create spectate game mode and setup game
+                self.game_mode = GameMode.spectate_ai()
+                self._setup_ai_game()
+            except Exception as e:
+                error_handler = get_error_handler()
+                error_handler.handle_error(e, show_user_message=True)
+                self.root.quit()
+            return
         # First, ask if user wants AI battle mode
         use_ai_mode = messagebox.askyesno(
             "Blokus Game Setup",
@@ -381,6 +397,10 @@ class BlokusApp:
                     self.placement_handler.current_player.player_id
                 )
 
+            # Force UI update after all updates
+            if self.root:
+                self.root.update_idletasks()
+
             # Update current player
             current_player = self.game_state.get_current_player()
             if current_player:
@@ -395,6 +415,10 @@ class BlokusApp:
                 if self.piece_selector and current_player:
                     self.piece_selector.set_player(current_player)
 
+                # Force UI update after player change
+                if self.root:
+                    self.root.update_idletasks()
+
                 # Check if game should end (all players have passed or no moves left)
                 if self.game_state.should_end_game():
                     self._end_game()
@@ -402,8 +426,10 @@ class BlokusApp:
 
                 # Check if it's an AI turn and trigger AI move
                 if self.game_mode and self.game_mode.is_ai_turn(current_player.player_id):
-                    # Use after() to schedule AI move without blocking
-                    self.root.after(100, lambda: self._trigger_ai_move(current_player))
+                    # Force UI update before scheduling next AI move
+                    self.root.update_idletasks()
+                    # Use after() to schedule AI move with sufficient delay for rendering
+                    self.root.after(500, lambda: self._trigger_ai_move(current_player))
                 else:
                     # Only show message for human players
                     messagebox.showinfo(
@@ -422,6 +448,18 @@ class BlokusApp:
             on_piece_placed=on_piece_placed, on_placement_error=on_placement_error
         )
 
+    def _convert_board_to_2d_array(self) -> List[List[int]]:
+        """
+        Convert board.grid dict to 2D array format expected by AI strategies.
+        
+        Returns:
+            20x20 2D list where board[row][col] = player_id (0 if empty)
+        """
+        board_2d = [[0 for _ in range(20)] for _ in range(20)]
+        for (row, col), player_id in self.game_state.board.grid.items():
+            board_2d[row][col] = player_id
+        return board_2d
+
     def _trigger_ai_move(self, ai_player):
         """
         Trigger AI move calculation and execution using calculate_move().
@@ -429,17 +467,26 @@ class BlokusApp:
         Args:
             ai_player: AI player instance
         """
+        # Force UI update before AI calculation
+        if self.root:
+            self.root.update_idletasks()
+        
         # Show AI thinking indicator
         if self.current_player_indicator:
             self.current_player_indicator.show_ai_thinking()
+            # Force UI update to show thinking indicator
+            if self.root:
+                self.root.update_idletasks()
 
         try:
-            # Get board state and pieces
-            board_state = self.game_state.board.grid
+            # Convert board dict to 2D array format for AI strategy
+            board_state = self._convert_board_to_2d_array()
             pieces = list(ai_player.pieces)
 
-            # NEW: Use calculate_move() instead of manual logic
-            move = ai_player.calculate_move(board_state, pieces)
+            # Pass game_state to AI for rule validation
+            move = ai_player.calculate_move_with_game_state(
+                board_state, pieces, self.game_state
+            )
 
             if move and not move.is_pass:
                 # Select the piece
@@ -466,6 +513,10 @@ class BlokusApp:
                 if not success:
                     print(f"AI placement failed: {error_msg}")
                     self._pass_turn()
+                else:
+                    # Force UI update after successful placement
+                    if self.root:
+                        self.root.update_idletasks()
             else:
                 # No valid moves or pass action
                 print(f"AI Player {ai_player.player_id} has no valid moves, passing turn")
@@ -481,6 +532,9 @@ class BlokusApp:
             # Hide thinking indicator
             if self.current_player_indicator:
                 self.current_player_indicator.hide_ai_thinking()
+                # Force UI update to hide thinking indicator
+                if self.root:
+                    self.root.update_idletasks()
 
     def _pass_turn(self):
         """Pass the current player's turn."""
@@ -499,11 +553,14 @@ class BlokusApp:
             self._render_board()
             if self.state_synchronizer:
                 self.state_synchronizer.notify_turn_change()
+            # Force UI update
+            if self.root:
+                self.root.update_idletasks()
             # Check if next player is AI
             next_player = self.game_state.get_current_player()
             if next_player and self.game_mode and self.game_mode.is_ai_turn(next_player.player_id):
-                # Use after() to schedule AI move without blocking
-                self.root.after(100, lambda: self._trigger_ai_move(next_player))
+                # Use after() to schedule AI move with sufficient delay
+                self.root.after(500, lambda: self._trigger_ai_move(next_player))
 
     def _setup_callbacks(self) -> None:
         """Setup callbacks for placement handler."""
@@ -792,6 +849,10 @@ class BlokusApp:
 
         # Store metrics
         self.performance_metrics["board_render"] = metrics
+        
+        # Force UI update after board render
+        if self.root:
+            self.root.update_idletasks()
 
     def _setup_board_click_handling(self):
         """Setup click handling for piece placement on the board."""
@@ -1027,7 +1088,7 @@ class BlokusApp:
             results_msg += f"恭喜获得 {winners[0].score} 分!"
         elif len(winners) > 1:
             winner_names = ", ".join([w.name for w in winners])
-            results_msg += f"🏆 平局!\n"
+            results_msg += "🏆 平局!\n"
             results_msg += f"获胜者: {winner_names}\n"
             results_msg += f"得分: {winners[0].score} 分"
         
@@ -1055,7 +1116,17 @@ class BlokusApp:
 
 def main() -> None:
     """Main entry point."""
-    app = BlokusApp()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Blokus game launcher")
+    parser.add_argument(
+        "--spectate",
+        action="store_true",
+        help="Skip interactive setup and immediately run Spectate (AI vs AI) mode",
+    )
+    args = parser.parse_args()
+
+    app = BlokusApp(auto_spectate=args.spectate)
     app.run()
 
 

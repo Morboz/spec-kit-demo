@@ -680,8 +680,6 @@ class CornerStrategy(AIStrategy):
 
         # Step 3: Return the best move found
         return best_move
-        scored_moves.sort(key=lambda x: x[0], reverse=True)
-        return scored_moves[0][1]
 
     def _score_move(self, board: List[List[int]], move: Move, player_id: int) -> float:
         """
@@ -698,8 +696,13 @@ class CornerStrategy(AIStrategy):
         if move.is_pass or not move.piece or not move.position:
             return 0
 
+        # Get piece positions for this move
+        piece_positions = self._get_piece_positions(
+            move.piece, move.position[0], move.position[1], move.rotation, move.flip
+        )
+
         # Count corner connections
-        corners_touched = self._count_corner_connections(board, move, player_id)
+        corners_touched = self._count_corner_connections(board, piece_positions, player_id)
 
         # Base score from corner connections
         score = corners_touched * 10
@@ -802,7 +805,8 @@ class StrategicStrategy(AIStrategy):
             return
 
         positions = self._get_piece_positions(
-            move.piece, move.position[0], move.position[1], move.rotation
+            move.piece, move.position[0], move.position[1], move.rotation,
+            getattr(move, 'flip', False)
         )
         for row, col in positions:
             board[row][col] = move.player_id
@@ -823,8 +827,14 @@ class StrategicStrategy(AIStrategy):
         """
         score = 0
 
+        # Get piece positions for this move
+        piece_positions = self._get_piece_positions(
+            move.piece, move.position[0], move.position[1], move.rotation, 
+            getattr(move, 'flip', False)
+        )
+
         # Count corners established
-        corners = self._count_corner_connections(board, move, player_id)
+        corners = self._count_corner_connections(board, piece_positions, player_id)
         score += corners * 15
 
         # Count area control
