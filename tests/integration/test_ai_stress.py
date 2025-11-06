@@ -17,6 +17,7 @@ from src.models.game_mode import GameMode, GameModeType
 from src.models.ai_config import Difficulty
 from src.models.ai_player import AIPlayer
 from src.models.game_state import GameState
+from src.models.player import Player
 from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
 
 
@@ -45,17 +46,25 @@ class TestAIStress:
                 # Create game
                 game_mode = GameMode.single_ai(Difficulty.MEDIUM)
                 game_state = GameState()
-                game_state.initialize(2)
+
+                # Add players for Single AI mode (Player 1 human, Player 3 AI)
+                human_player = Player(1, "Human")
+                game_state.add_player(human_player)
+
+                ai_player = AIPlayer(3, RandomStrategy(), "#FF0000", "AI Player")
+                game_state.add_player(ai_player)
+
+                game_state.start_game()
 
                 # Simulate game turns
                 for turn in range(stress_config['turns_per_game']):
                     current_player = game_state.get_current_player()
 
                     # Simulate AI work
-                    if game_mode.is_ai_turn(current_player):
+                    if game_mode.is_ai_turn(current_player.player_id):
                         time.sleep(0.05)  # 50ms for Medium AI
 
-                    game_state.advance_turn()
+                    game_state.next_turn()
 
                 end_time = time.time()
                 duration = end_time - start_time
@@ -112,12 +121,33 @@ class TestAIStress:
                 game_mode = GameMode.spectate_ai()
 
             game_state = GameState()
-            game_state.initialize(4 if game_mode.get_ai_count() > 1 else 2)
+
+            # Add players based on game mode
+            if game_mode.mode_type == GameModeType.SINGLE_AI:
+                # Player 1 human, Player 3 AI
+                human_player = Player(1, "Human")
+                game_state.add_player(human_player)
+                ai_player = AIPlayer(3, RandomStrategy(), "#FF0000", "AI Player")
+                game_state.add_player(ai_player)
+            elif game_mode.mode_type == GameModeType.THREE_AI:
+                # Player 1 human, Players 2,3,4 AI
+                human_player = Player(1, "Human")
+                game_state.add_player(human_player)
+                for pos in [2, 3, 4]:
+                    ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                    game_state.add_player(ai_player)
+            else:  # SPECTATE
+                # All 4 AI players
+                for pos in [1, 2, 3, 4]:
+                    ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                    game_state.add_player(ai_player)
+
+            game_state.start_game()
 
             for turn in range(stress_config['turns_per_game']):
                 current_player = game_state.get_current_player()
 
-                if game_mode.is_ai_turn(current_player):
+                if game_mode.is_ai_turn(current_player.player_id):
                     ai_start = time.time()
                     # Difficulty-adjusted simulation
                     if difficulty == Difficulty.EASY:
@@ -129,7 +159,7 @@ class TestAIStress:
                     ai_end = time.time()
                     ai_times.append(ai_end - ai_start)
 
-                game_state.advance_turn()
+                game_state.next_turn()
 
             end_time = time.time()
 
@@ -194,15 +224,36 @@ class TestAIStress:
                     game_mode = GameMode.spectate_ai()
 
                 game_state = GameState()
-                game_state.initialize(4 if game_mode.get_ai_count() > 1 else 2)
+
+                # Add players based on game mode
+                if game_mode.mode_type == GameModeType.SINGLE_AI:
+                    # Player 1 human, Player 3 AI
+                    human_player = Player(1, "Human")
+                    game_state.add_player(human_player)
+                    ai_player = AIPlayer(3, RandomStrategy(), "#FF0000", "AI Player")
+                    game_state.add_player(ai_player)
+                elif game_mode.mode_type == GameModeType.THREE_AI:
+                    # Player 1 human, Players 2,3,4 AI
+                    human_player = Player(1, "Human")
+                    game_state.add_player(human_player)
+                    for pos in [2, 3, 4]:
+                        ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                        game_state.add_player(ai_player)
+                else:  # SPECTATE
+                    # All 4 AI players
+                    for pos in [1, 2, 3, 4]:
+                        ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                        game_state.add_player(ai_player)
+
+                game_state.start_game()
 
                 for turn in range(turns_per_game):
                     current_player = game_state.get_current_player()
 
-                    if game_mode.is_ai_turn(current_player):
+                    if game_mode.is_ai_turn(current_player.player_id):
                         time.sleep(0.02)  # Minimal delay for stress test
 
-                    game_state.advance_turn()
+                    game_state.next_turn()
 
                 end_time = time.time()
                 results.put((game_id, end_time - start_time, True))
@@ -275,9 +326,30 @@ class TestAIStress:
             # Simulate brief gameplay
             for game in games:
                 game_state = GameState()
-                game_state.initialize(4 if game.get_ai_count() > 1 else 2)
+
+                # Add players based on game mode
+                if game.mode_type == GameModeType.SINGLE_AI:
+                    # Player 1 human, Player 3 AI
+                    human_player = Player(1, "Human")
+                    game_state.add_player(human_player)
+                    ai_player = AIPlayer(3, RandomStrategy(), "#FF0000", "AI Player")
+                    game_state.add_player(ai_player)
+                elif game.mode_type == GameModeType.THREE_AI:
+                    # Player 1 human, Players 2,3,4 AI
+                    human_player = Player(1, "Human")
+                    game_state.add_player(human_player)
+                    for pos in [2, 3, 4]:
+                        ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                        game_state.add_player(ai_player)
+                else:  # SPECTATE
+                    # All 4 AI players
+                    for pos in [1, 2, 3, 4]:
+                        ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                        game_state.add_player(ai_player)
+
+                game_state.start_game()
                 for _ in range(3):
-                    game_state.advance_turn()
+                    game_state.next_turn()
 
             # Destroy games
             destroy_start = time.time()
@@ -326,7 +398,15 @@ class TestAIStress:
 
             # Simulate gameplay
             game_state = GameState()
-            game_state.initialize(4)
+
+            # Add players for Three AI mode (Player 1 human, Players 2,3,4 AI)
+            human_player = Player(1, "Human")
+            game_state.add_player(human_player)
+            for pos in [2, 3, 4]:
+                ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                game_state.add_player(ai_player)
+
+            game_state.start_game()
 
             # Create local data structures
             local_data = []
@@ -335,9 +415,9 @@ class TestAIStress:
 
             # Simulate turns
             for turn in range(10):
-                if game_mode.is_ai_turn(game_state.get_current_player()):
+                if game_mode.is_ai_turn(game_state.get_current_player().player_id):
                     time.sleep(0.03)
-                game_state.advance_turn()
+                game_state.next_turn()
 
             mid_memory = process.memory_info().rss
 
@@ -385,12 +465,12 @@ class TestAIStress:
             """Run game with isolated AI calculations."""
             # Create game with specific AI
             game_mode = GameMode.three_ai(Difficulty.MEDIUM)
-            ai_players = game_mode.ai_players
+            ai_configs = game_mode.ai_players
 
             # Each AI tracks its own calculations
             ai_calculations = {}
 
-            for ai in ai_players:
+            for ai_config in ai_configs:
                 # Simulate multiple calculations
                 calc_times = []
                 for _ in range(5):
@@ -400,7 +480,7 @@ class TestAIStress:
                     end = time.time()
                     calc_times.append(end - start)
 
-                ai_calculations[ai.player_id] = {
+                ai_calculations[ai_config.position] = {
                     'times': calc_times,
                     'avg': sum(calc_times) / len(calc_times),
                     'min': min(calc_times),
@@ -437,14 +517,14 @@ class TestAIStress:
         max_concurrent = 3
 
         start_time = time.time()
-        games_completed = 0
+        games_completed = {'count': 0}
         errors = []
 
         while (time.time() - start_time) < duration_seconds:
             def run_quick_game():
                 try:
-                    game_id = games_completed
-                    games_completed += 1
+                    game_id = games_completed['count']
+                    games_completed['count'] += 1
 
                     # Random mode selection
                     if game_id % 3 == 0:
@@ -455,13 +535,34 @@ class TestAIStress:
                         game_mode = GameMode.spectate_ai()
 
                     game_state = GameState()
-                    game_state.initialize(4 if game_mode.get_ai_count() > 1 else 2)
+
+                    # Add players based on game mode
+                    if game_mode.mode_type == GameModeType.SINGLE_AI:
+                        # Player 1 human, Player 3 AI
+                        human_player = Player(1, "Human")
+                        game_state.add_player(human_player)
+                        ai_player = AIPlayer(3, RandomStrategy(), "#FF0000", "AI Player")
+                        game_state.add_player(ai_player)
+                    elif game_mode.mode_type == GameModeType.THREE_AI:
+                        # Player 1 human, Players 2,3,4 AI
+                        human_player = Player(1, "Human")
+                        game_state.add_player(human_player)
+                        for pos in [2, 3, 4]:
+                            ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                            game_state.add_player(ai_player)
+                    else:  # SPECTATE
+                        # All 4 AI players
+                        for pos in [1, 2, 3, 4]:
+                            ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                            game_state.add_player(ai_player)
+
+                    game_state.start_game()
 
                     # Quick gameplay
                     for _ in range(5):
-                        if game_mode.is_ai_turn(game_state.get_current_player()):
+                        if game_mode.is_ai_turn(game_state.get_current_player().player_id):
                             time.sleep(0.02)
-                        game_state.advance_turn()
+                        game_state.next_turn()
 
                     return True
 
@@ -480,13 +581,13 @@ class TestAIStress:
 
         # Verify system stability
         assert len(errors) == 0, f"Errors during prolonged load: {errors}"
-        assert games_completed > 0, "No games completed"
+        assert games_completed['count'] > 0, "No games completed"
 
         print(f"Prolonged Load Stability Test:")
         print(f"  Duration: {actual_duration:.2f}s")
-        print(f"  Games completed: {games_completed}")
-        print(f"  Games/second: {games_completed/actual_duration:.1f}")
+        print(f"  Games completed: {games_completed['count']}")
+        print(f"  Games/second: {games_completed['count']/actual_duration:.1f}")
         print(f"  Errors: {len(errors)}")
 
         # Should maintain reasonable throughput
-        assert (games_completed / actual_duration) > 1.0, "Throughput too low"
+        assert (games_completed['count'] / actual_duration) > 1.0, "Throughput too low"

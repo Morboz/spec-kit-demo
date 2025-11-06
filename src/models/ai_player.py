@@ -250,6 +250,105 @@ class AIPlayer:
                 f"AI Player {self.player_id}: Calculation finished (total time={final_elapsed:.2f}s)"
             )
 
+    def calculate_move_with_game_state(
+        self,
+        board: List[List[int]],
+        pieces: List[Piece],
+        game_state,
+        time_limit: int = None,
+    ) -> Optional[Move]:
+        """
+        Calculate best move with game state for rule validation.
+
+        Args:
+            board: 2D array representing game board (20x20)
+            pieces: List of available pieces to place
+            game_state: Game state for rule validation
+            time_limit: Maximum calculation time in seconds (optional)
+
+        Returns:
+            Move object with piece, position, and rotation, or None if no valid moves
+        """
+        from src.game.rules import BlokusRules
+        
+        self.is_calculating = True
+        self._calculation_start_time = time.time()
+
+        effective_limit = time_limit or self.timeout_seconds
+        ai_logger.debug(
+            f"AI Player {self.player_id} calculating with game state validation"
+        )
+
+        try:
+            # Get valid moves using proper rule validation
+            valid_moves = []
+            
+            for piece in pieces:
+                if piece.is_placed:
+                    continue
+                    
+                # Try all rotations and flips
+                for flip in [False, True]:
+                    # Create flipped version if needed
+                    working_piece = piece.flip() if flip else piece
+                    
+                    for rotation in [0, 90, 180, 270]:
+                        # Create rotated version
+                        if rotation == 0:
+                            test_piece = working_piece
+                        else:
+                            test_piece = working_piece.rotate(rotation)
+                        
+                        # Try positions on board
+                        for row in range(20):
+                            for col in range(20):
+                                # Validate using game rules
+                                result = BlokusRules.validate_move(
+                                    game_state, self.player_id, test_piece, row, col
+                                )
+                                
+                                if result.is_valid:
+                                    valid_moves.append(
+                                        Move(piece, (row, col), rotation, self.player_id, flip=flip)
+                                    )
+            
+            if not valid_moves:
+                ai_logger.info(f"AI Player {self.player_id}: No valid moves with rule validation")
+                elapsed = time.time() - self._calculation_start_time
+                self._record_calculation_time(elapsed, timed_out=False, used_fallback=False)
+                self._pass_count += 1
+                return None
+            
+            ai_logger.debug(f"AI Player {self.player_id}: Found {len(valid_moves)} rule-valid moves")
+            
+            # Use strategy to pick best move from valid ones
+            # For now, use simple scoring from strategy
+            best_move = None
+            best_score = float("-inf")
+            
+            for move in valid_moves:
+                score = self.strategy._evaluate_move_score(board, move, self.player_id)
+                if score > best_score:
+                    best_score = score
+                    best_move = move
+            
+            elapsed = time.time() - self._calculation_start_time
+            self._record_calculation_time(elapsed, timed_out=False, used_fallback=False)
+            self._move_count += 1
+            
+            return best_move
+            
+        except Exception as e:
+            elapsed = time.time() - self._calculation_start_time
+            ai_logger.error(
+                f"AI Player {self.player_id}: Calculation error: {e}",
+                exc_info=True
+            )
+            self._record_calculation_time(elapsed, timed_out=False, used_fallback=True)
+            return None
+        finally:
+            self.is_calculating = False
+
     def is_ai_turn(self) -> bool:
         """
         Check if it's this AI player's turn.

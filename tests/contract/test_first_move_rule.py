@@ -161,8 +161,8 @@ class TestFirstMoveCornerRule:
         """Contract: Second move does not need to be in corner.
 
         Given: Player who has already placed one piece
-        When: Second move is made (anywhere valid)
-        Then: Corner rule does not apply
+        When: Second move is made with diagonal contact to first piece
+        Then: Corner rule does not apply, but corner-to-corner contact is required
         """
         # Given: Player who has placed a piece
         board = Board()
@@ -176,13 +176,15 @@ class TestFirstMoveCornerRule:
         board.place_piece(first_piece, 0, 0, 1)
         first_piece.place_at(0, 0)
 
-        # When: Second piece is placed away from corner
+        # When: Second piece is placed with diagonal contact to first piece
+        # I2 at (0,0) covers (0,0) and (1,0)
+        # L4 at (2,1) will have diagonal contact at (1,1)
         second_piece = player.get_piece("L4")
         result = BlokusRules.validate_move(
-            game_state, player.player_id, second_piece, 5, 5
+            game_state, player.player_id, second_piece, 2, 1
         )
 
-        # Then: Valid (corner rule doesn't apply)
+        # Then: Valid (corner rule doesn't apply, diagonal contact is valid)
         assert result.is_valid is True
 
     def test_piece_extending_from_corner_is_valid(self):

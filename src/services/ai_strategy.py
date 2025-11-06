@@ -31,6 +31,7 @@ class Move:
         rotation: int,
         player_id: int,
         is_pass: bool = False,
+        flip: bool = False,
     ):
         """
         Initialize a move.
@@ -41,18 +42,22 @@ class Move:
             rotation: Rotation in degrees (0, 90, 180, 270)
             player_id: ID of player making the move (1-4)
             is_pass: True if this is a pass move (no piece placed)
+            flip: True if piece should be horizontally flipped (default: False)
         """
         self.piece = piece  # Piece object to place, or None for pass
         self.position = position  # Board coordinates (row, col), or None for pass
         self.rotation = rotation  # Rotation in degrees (0, 90, 180, 270)
         self.player_id = player_id  # Player making the move (1-4)
         self.is_pass = is_pass  # Flag indicating this is a pass action
+        self.flip = flip  # Flag indicating this is a horizontal flip
 
     def __repr__(self):
         """String representation of the move for debugging."""
         if self.is_pass:
             return f"Move(player={self.player_id}, action=pass)"
-        return f"Move(player={self.player_id}, piece={self.piece.name if self.piece else None}, position={self.position}, rotation={self.rotation}°)"
+        return (f"Move(player={self.player_id}, piece={self.piece.name if self.piece else None}, "
+                f"position={self.position}, rotation={self.rotation}°"
+                f"{', flipped' if self.flip else ''})")
 
 
 class AIStrategy(ABC):
@@ -111,6 +116,8 @@ class AIStrategy(ABC):
         """
         Generate all valid moves for given state (base implementation).
 
+        Includes both flipped and non-flipped orientations.
+
         Args:
             board: Current board state
             pieces: Available pieces
@@ -126,20 +133,21 @@ class AIStrategy(ABC):
         # For other strategies, use full search
         moves = []
         for piece in pieces:
-            for rotation in [0, 90, 180, 270]:
-                for row in range(20):
-                    for col in range(20):
-                        # Basic bounds check
-                        piece_positions = self._get_piece_positions(piece, row, col, rotation)
-                        if all(0 <= r < 20 and 0 <= c < 20 for r, c in piece_positions):
-                            # Basic overlap check
-                            valid = True
-                            for r, c in piece_positions:
-                                if board[r][c] != 0:
-                                    valid = False
-                                    break
-                            if valid:
-                                moves.append(Move(piece, (row, col), rotation, player_id))
+            for flip in [False, True]:  # Try both flipped and non-flipped
+                for rotation in [0, 90, 180, 270]:
+                    for row in range(20):
+                        for col in range(20):
+                            # Basic bounds check
+                            piece_positions = self._get_piece_positions(piece, row, col, rotation, flip)
+                            if all(0 <= r < 20 and 0 <= c < 20 for r, c in piece_positions):
+                                # Basic overlap check
+                                valid = True
+                                for r, c in piece_positions:
+                                    if board[r][c] != 0:
+                                        valid = False
+                                        break
+                                if valid:
+                                    moves.append(Move(piece, (row, col), rotation, player_id, flip=flip))
         return moves
 
     def _get_available_moves_fast(
@@ -153,6 +161,7 @@ class AIStrategy(ABC):
 
         Only checks a subset of pieces and positions for performance.
         This is acceptable for Easy AI as it still produces valid moves.
+        Includes flipped orientations for completeness.
 
         Args:
             board: Current board state
@@ -167,22 +176,24 @@ class AIStrategy(ABC):
         pieces_to_check = pieces[:5]
 
         for piece in pieces_to_check:
-            # Only check 2 rotations instead of 4 (performance optimization)
-            for rotation in [0, 180]:
-                # Sample positions instead of checking all 400
-                for row in range(0, 20, 2):
-                    for col in range(0, 20, 2):
-                        # Basic bounds check
-                        piece_positions = self._get_piece_positions(piece, row, col, rotation)
-                        if all(0 <= r < 20 and 0 <= c < 20 for r, c in piece_positions):
-                            # Basic overlap check
-                            valid = True
-                            for r, c in piece_positions:
-                                if board[r][c] != 0:
-                                    valid = False
-                                    break
-                            if valid:
-                                moves.append(Move(piece, (row, col), rotation, player_id))
+            # Try both flipped and non-flipped orientations
+            for flip in [False, True]:
+                # Only check 2 rotations instead of 4 (performance optimization)
+                for rotation in [0, 180]:
+                    # Sample positions instead of checking all 400
+                    for row in range(0, 20, 2):
+                        for col in range(0, 20, 2):
+                            # Basic bounds check
+                            piece_positions = self._get_piece_positions(piece, row, col, rotation, flip)
+                            if all(0 <= r < 20 and 0 <= c < 20 for r, c in piece_positions):
+                                # Basic overlap check
+                                valid = True
+                                for r, c in piece_positions:
+                                    if board[r][c] != 0:
+                                        valid = False
+                                        break
+                                if valid:
+                                    moves.append(Move(piece, (row, col), rotation, player_id, flip=flip))
 
         return moves
 
@@ -212,9 +223,10 @@ class AIStrategy(ABC):
         row: int,
         col: int,
         rotation: int,
+        flip: bool = False,
     ) -> List[Tuple[int, int]]:
         """
-        Get absolute board positions for a piece at given location and rotation.
+        Get absolute board positions for a piece at given location with rotation and flip.
 
         Optimized to minimize object creation and calculations.
 
@@ -222,18 +234,24 @@ class AIStrategy(ABC):
             piece: Piece to place
             row: Top-left row position
             col: Top-left column position
-            rotation: Rotation in degrees
+            rotation: Rotation in degrees (0, 90, 180, 270)
+            flip: If True, apply horizontal flip before rotation (default: False)
 
         Returns:
             List of (row, col) tuples for piece squares
         """
         # Get piece shape (list of relative positions)
-        shape = piece.positions if hasattr(piece, 'positions') else [(0, 0)]
+        shape = piece.coordinates if hasattr(piece, 'coordinates') else [(0, 0)]
 
         positions = []
 
-        # Apply rotation
+        # Apply transformations in order: flip then rotation
         for r, c in shape:
+            # Step 1: Apply flip first (if requested)
+            if flip:
+                c = -c  # Horizontal flip: (r, c) → (r, -c)
+
+            # Step 2: Apply rotation
             if rotation == 90:
                 new_r, new_c = -c, r
             elif rotation == 180:
@@ -243,7 +261,7 @@ class AIStrategy(ABC):
             else:  # rotation == 0
                 new_r, new_c = r, c
 
-            # Add offset for position on board
+            # Step 3: Add offset for position on board
             positions.append((row + new_r, col + new_c))
 
         return positions
@@ -662,8 +680,6 @@ class CornerStrategy(AIStrategy):
 
         # Step 3: Return the best move found
         return best_move
-        scored_moves.sort(key=lambda x: x[0], reverse=True)
-        return scored_moves[0][1]
 
     def _score_move(self, board: List[List[int]], move: Move, player_id: int) -> float:
         """
@@ -680,8 +696,13 @@ class CornerStrategy(AIStrategy):
         if move.is_pass or not move.piece or not move.position:
             return 0
 
+        # Get piece positions for this move
+        piece_positions = self._get_piece_positions(
+            move.piece, move.position[0], move.position[1], move.rotation, move.flip
+        )
+
         # Count corner connections
-        corners_touched = self._count_corner_connections(board, move, player_id)
+        corners_touched = self._count_corner_connections(board, piece_positions, player_id)
 
         # Base score from corner connections
         score = corners_touched * 10
@@ -784,7 +805,8 @@ class StrategicStrategy(AIStrategy):
             return
 
         positions = self._get_piece_positions(
-            move.piece, move.position[0], move.position[1], move.rotation
+            move.piece, move.position[0], move.position[1], move.rotation,
+            getattr(move, 'flip', False)
         )
         for row, col in positions:
             board[row][col] = move.player_id
@@ -805,8 +827,14 @@ class StrategicStrategy(AIStrategy):
         """
         score = 0
 
+        # Get piece positions for this move
+        piece_positions = self._get_piece_positions(
+            move.piece, move.position[0], move.position[1], move.rotation, 
+            getattr(move, 'flip', False)
+        )
+
         # Count corners established
-        corners = self._count_corner_connections(board, move, player_id)
+        corners = self._count_corner_connections(board, piece_positions, player_id)
         score += corners * 15
 
         # Count area control

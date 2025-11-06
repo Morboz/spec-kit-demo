@@ -320,7 +320,7 @@ class TestAIPlayer:
         with pytest.raises(ValueError, match="Invalid difficulty"):
             ai_player.switch_to_difficulty("Impossible")
 
-        with pytest.raises(ValueError, match="Unsupported difficulty"):
+        with pytest.raises(ValueError, match="Invalid difficulty"):
             ai_player.switch_to_difficulty("NotARealDifficulty")
 
     def test_strategy_switching_preserves_player_properties(self):

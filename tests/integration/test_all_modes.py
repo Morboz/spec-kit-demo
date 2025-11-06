@@ -14,6 +14,7 @@ from src.models.game_mode import GameMode, GameModeType
 from src.models.ai_config import Difficulty
 from src.models.ai_player import AIPlayer
 from src.models.game_state import GameState, GamePhase
+from src.models.player import Player
 from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
 
 
@@ -118,32 +119,53 @@ class TestAllGameModes:
         """Test that game states don't interfere between different modes."""
         # Create separate game states for each mode
         state1 = GameState()
-        state1.initialize(2)  # Single AI
+        # Add players for Single AI (Player 1 human, Player 3 AI)
+        human1 = Player(1, "Human")
+        state1.add_player(human1)
+        ai1 = AIPlayer(3, RandomStrategy(), "#FF0000", "AI")
+        state1.add_player(ai1)
+        state1.start_game()
 
         state2 = GameState()
-        state2.initialize(4)  # Three AI
+        # Add players for Three AI (Player 1 human, Players 2,3,4 AI)
+        human2 = Player(1, "Human")
+        state2.add_player(human2)
+        for pos in [2, 3, 4]:
+            ai2 = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI {pos}")
+            state2.add_player(ai2)
+        state2.start_game()
 
         state3 = GameState()
-        state3.initialize(4)  # Spectate
+        # Add players for Spectate (All 4 AI)
+        for pos in [1, 2, 3, 4]:
+            ai3 = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI {pos}")
+            state3.add_player(ai3)
+        state3.start_game()
 
         # Verify initial states are independent
-        assert state1.get_current_player() == 1
-        assert state2.get_current_player() == 1
-        assert state3.get_current_player() == 1
+        assert state1.get_current_player().player_id == 1
+        assert state2.get_current_player().player_id == 1
+        assert state3.get_current_player().player_id == 1
 
         # Modify state1
-        state1.advance_turn()
-        assert state1.get_current_player() == 2
+        state1.next_turn()
+        assert state1.get_current_player().player_id == 3
 
         # Verify state2 and state3 remain unchanged
-        assert state2.get_current_player() == 1
-        assert state3.get_current_player() == 1
+        assert state2.get_current_player().player_id == 1
+        assert state3.get_current_player().player_id == 1
 
     def test_complete_single_ai_game_flow(self):
         """Test a complete game flow in Single AI mode (abbreviated)."""
         game_mode = GameMode.single_ai(Difficulty.EASY)
         game_state = GameState()
-        game_state.initialize(2)
+
+        # Add players for Single AI (Player 1 human, Player 3 AI)
+        human = Player(1, "Human")
+        game_state.add_player(human)
+        ai = AIPlayer(3, RandomStrategy(), "#FF0000", "AI")
+        game_state.add_player(ai)
+        game_state.start_game()
 
         # Simulate a few turns
         turns_to_simulate = 5
@@ -151,26 +173,33 @@ class TestAllGameModes:
         for turn in range(turns_to_simulate):
             current_player = game_state.get_current_player()
 
-            if game_mode.is_ai_turn(current_player):
+            if game_mode.is_ai_turn(current_player.player_id):
                 # Simulate AI move
-                assert current_player in [2, 3, 4]  # AI players are 2, 3, 4
+                assert current_player.player_id in [2, 3, 4]  # AI players are 2, 3, 4
                 # In Single AI, only player 3 is active
                 if game_mode.mode_type == GameModeType.SINGLE_AI:
-                    assert current_player == 3
+                    assert current_player.player_id == 3
             else:
                 # Human player turn
-                assert current_player == 1
+                assert current_player.player_id == 1
 
-            game_state.advance_turn()
+            game_state.next_turn()
 
         # Verify game progressed
-        assert game_state.get_turn_count() >= turns_to_simulate
+        assert game_state.get_round_number() >= 1
 
     def test_complete_three_ai_game_flow(self):
         """Test a complete game flow in Three AI mode (abbreviated)."""
         game_mode = GameMode.three_ai(Difficulty.MEDIUM)
         game_state = GameState()
-        game_state.initialize(4)
+
+        # Add players for Three AI (Player 1 human, Players 2,3,4 AI)
+        human = Player(1, "Human")
+        game_state.add_player(human)
+        for pos in [2, 3, 4]:
+            ai = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI {pos}")
+            game_state.add_player(ai)
+        game_state.start_game()
 
         # Simulate a few turns cycling through all players
         turns_to_simulate = 8
@@ -179,23 +208,28 @@ class TestAllGameModes:
             current_player = game_state.get_current_player()
 
             # In Three AI mode, players 1 (human), 2, 3, 4 (AI) are all active
-            assert current_player in [1, 2, 3, 4]
+            assert current_player.player_id in [1, 2, 3, 4]
 
-            if current_player == 1:
-                assert not game_mode.is_ai_turn(current_player)
+            if current_player.player_id == 1:
+                assert not game_mode.is_ai_turn(current_player.player_id)
             else:
-                assert game_mode.is_ai_turn(current_player)
+                assert game_mode.is_ai_turn(current_player.player_id)
 
-            game_state.advance_turn()
+            game_state.next_turn()
 
         # Verify all players got turns
-        assert game_state.get_turn_count() >= turns_to_simulate
+        assert game_state.get_round_number() >= 1
 
     def test_spectate_mode_fully_autonomous(self):
         """Test that Spectate mode runs without human input."""
         game_mode = GameMode.spectate_ai()
         game_state = GameState()
-        game_state.initialize(4)
+
+        # Add players for Spectate (All 4 AI)
+        for pos in [1, 2, 3, 4]:
+            ai = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI {pos}")
+            game_state.add_player(ai)
+        game_state.start_game()
 
         # In spectate mode, all players should be AI
         for player_id in [1, 2, 3, 4]:
@@ -208,12 +242,12 @@ class TestAllGameModes:
             current_player = game_state.get_current_player()
 
             # All turns should be AI-controlled
-            assert game_mode.is_ai_turn(current_player) is True
+            assert game_mode.is_ai_turn(current_player.player_id) is True
 
-            game_state.advance_turn()
+            game_state.next_turn()
 
         # Verify autonomous progression
-        assert game_state.get_turn_count() >= turns_to_simulate
+        assert game_state.get_round_number() >= 1
 
     def test_difficulty_persistence_across_modes(self):
         """Test that difficulty settings persist when switching modes."""
