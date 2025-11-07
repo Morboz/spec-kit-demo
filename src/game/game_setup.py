@@ -41,10 +41,22 @@ class GameSetup:
         # Create board
         self.board = Board()
 
+        # Player colors matching board_renderer
+        player_colors = {
+            1: "#4A90E2",  # Blue
+            2: "#E24A4A",  # Red
+            3: "#4AE26E",  # Green
+            4: "#E2B54A",  # Yellow
+        }
+
         # Create players
         self.players = []
         for i in range(num_players):
-            player = Player(player_id=i + 1, name=player_names[i])
+            player = Player(
+                player_id=i + 1,
+                name=player_names[i],
+                color=player_colors[i + 1]
+            )
             self.players.append(player)
 
         # Create game state

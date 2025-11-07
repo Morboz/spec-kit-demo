@@ -1,0 +1,366 @@
+# AIStrategy Contract
+
+**Purpose**: Define interface for AI move calculation strategies
+
+## Interface Specification
+
+### Abstract Base Class: AIStrategy
+
+```python
+from abc import ABC, abstractmethod
+from typing import List, Optional
+
+class AIStrategy(ABC):
+    """Abstract base class for AI move calculation strategies"""
+
+    @property
+    @abstractmethod
+    def difficulty_name(self) -> str:
+        """
+        Get difficulty level name
+
+        Returns:
+            One of: "Easy", "Medium", "Hard"
+        """
+
+    @property
+    @abstractmethod
+    def timeout_seconds(self) -> int:
+        """
+        Get maximum calculation time in seconds
+
+        Returns:
+            Maximum time limit for move calculation
+            Easy: 3 seconds
+            Medium: 5 seconds
+            Hard: 8 seconds
+        """
+
+    @abstractmethod
+    def calculate_move(self,
+                      board: List[List[int]],
+                      pieces: List['BlokusPiece'],
+                      player_id: int,
+                      time_limit: int = None) -> Optional['Move']:
+        """
+        Calculate best move for current game state
+
+        Args:
+            board: 2D array representing game board (20x20)
+            pieces: List of available pieces to place
+            player_id: ID of player making the move (1-4)
+            time_limit: Override timeout in seconds (optional)
+
+        Returns:
+            Move object representing best move, or None if no valid moves
+
+        Contract:
+            - Must complete within timeout (self.timeout_seconds or time_limit)
+            - Must return None if no valid moves exist
+            - Returned move must be valid according to Blokus rules
+            - Thread-safe for concurrent evaluation
+            - Must not modify input board or pieces
+        """
+
+    @abstractmethod
+    def get_available_moves(self,
+                           board: List[List[int]],
+                           pieces: List['BlokusPiece'],
+                           player_id: int) -> List['Move']:
+        """
+        Generate all valid moves for given state
+
+        Args:
+            board: Current board state
+            pieces: Available pieces
+            player_id: Player making moves
+
+        Returns:
+            List of all valid Move objects
+
+        Contract:
+            - Each move must be valid according to Blokus rules
+            - Returns empty list if no valid moves
+            - Does not consider strategy - just rule validation
+        """
+
+    @abstractmethod
+    def evaluate_board(self,
+                      board: List[List[int]],
+                      player_id: int) -> float:
+        """
+        Evaluate board position from player's perspective
+
+        Args:
+            board: Current board state
+            player_id: Player to evaluate for
+
+        Returns:
+            Float score (higher = better for player)
+
+        Contract:
+            - Consistent evaluation for same board state
+            - Higher score indicates better position
+            - Considers all players on board
+            - No side effects (pure function)
+        """
+```
+
+## Concrete Implementations
+
+### RandomStrategy (Easy Difficulty)
+
+```python
+class RandomStrategy(AIStrategy):
+    """Random valid placement - simplest AI strategy"""
+
+    @property
+    def difficulty_name(self) -> str:
+        return "Easy"
+
+    @property
+    def timeout_seconds(self) -> int:
+        return 3
+
+    def calculate_move(self, board, pieces, player_id, time_limit=None):
+        """
+        Select random valid move
+
+        Algorithm:
+            1. Get all valid moves
+            2. If empty, return None
+            3. Select random move from list
+            4. Return move
+        """
+        valid_moves = self.get_available_moves(board, pieces, player_id)
+        return random.choice(valid_moves) if valid_moves else None
+
+    def evaluate_board(self, board, player_id):
+        """
+        Simple evaluation: count controlled squares
+
+        Returns:
+            Number of squares controlled by player_id
+        """
+        return sum(1 for row in board for cell in row if cell == player_id)
+```
+
+### CornerStrategy (Medium Difficulty)
+
+```python
+class CornerStrategy(AIStrategy):
+    """Corner-focused placement - prioritizes corner connections"""
+
+    @property
+    def difficulty_name(self) -> str:
+        return "Medium"
+
+    @property
+    def timeout_seconds(self) -> int:
+        return 5
+
+    def calculate_move(self, board, pieces, player_id, time_limit=None):
+        """
+        Select move that maximizes corner connections
+
+        Algorithm:
+            1. Get all valid moves
+            2. If empty, return None
+            3. Score each move:
+               - +10 for connecting to 2+ corners
+               - +5 for connecting to 1 corner
+               - +3 for connecting to edge
+               - +piece_size for larger pieces
+            4. Select move with highest score
+            5. Return move
+        """
+        valid_moves = self.get_available_moves(board, pieces, player_id)
+        if not valid_moves:
+            return None
+
+        scored_moves = []
+        for move in valid_moves:
+            score = self._score_move(board, move, player_id)
+            scored_moves.append((score, move))
+
+        scored_moves.sort(key=lambda x: x[0], reverse=True)
+        return scored_moves[0][1]
+
+    def _score_move(self, board, move, player_id) -> float:
+        """Score a single move based on corner strategy"""
+        # Count corner connections
+        corners_touched = self._count_corner_connections(board, move, player_id)
+
+        # Base score from corner connections
+        score = corners_touched * 10
+
+        # Bonus for larger pieces
+        score += move.piece.size * 2
+
+        return score
+
+    def _count_corner_connections(self, board, move, player_id) -> int:
+        """Count how many corners this move touches"""
+        # Implementation: check all corners of placed piece
+        # Count connections to existing player pieces
+        pass
+```
+
+### StrategicStrategy (Hard Difficulty)
+
+```python
+class StrategicStrategy(AIStrategy):
+    """Multi-factor evaluation with lookahead"""
+
+    @property
+    def difficulty_name(self) -> str:
+        return "Hard"
+
+    @property
+    def timeout_seconds(self) -> int:
+        return 8
+
+    def calculate_move(self, board, pieces, player_id, time_limit=None):
+        """
+        Calculate move using lookahead and evaluation
+
+        Algorithm:
+            1. If endgame (few pieces left):
+               - Direct evaluation search
+            2. Otherwise:
+               - Lookahead 2-3 moves
+               - Alpha-beta pruning
+               - Evaluate leaf nodes
+            3. Return best move found within timeout
+        """
+        valid_moves = self.get_available_moves(board, pieces, player_id)
+        if not valid_moves:
+            return None
+
+        timeout = time_limit or self.timeout_seconds
+        start_time = time.time()
+
+        best_move = None
+        best_score = float('-inf')
+
+        for move in valid_moves:
+            # Check timeout
+            if time.time() - start_time >= timeout:
+                break
+
+            # Evaluate move
+            score = self._evaluate_with_lookahead(board, move, player_id, timeout)
+
+            if score > best_score:
+                best_score = score
+                best_move = move
+
+        return best_move
+
+    def _evaluate_with_lookahead(self, board, move, player_id, timeout):
+        """
+        Evaluate move using multi-move lookahead
+
+        Returns:
+            Evaluated score for this move
+        """
+        # Simulate move on board copy
+        simulated_board = copy.deepcopy(board)
+        self._apply_move_to_board(simulated_board, move)
+
+        # Recursive evaluation with alpha-beta pruning
+        return self._minimax(simulated_board,
+                           depth=2,
+                           player_id=player_id,
+                           timeout=timeout)
+```
+
+## Evaluation Metrics
+
+### Board Evaluation Factors
+
+```python
+def evaluate_board_factors(self, board, player_id) -> Dict[str, float]:
+    """
+    Calculate evaluation metrics
+
+    Returns:
+        Dictionary of factor scores
+    """
+    return {
+        'area_control': self._count_area(board, player_id),
+        'corner_connections': self._count_corners(board, player_id),
+        'mobility': self._count_moves_available(board, player_id),
+        'territory_advantage': self._calculate_territory_diff(board, player_id),
+        'endgame_potential': self._endgame_score(board, player_id)
+    }
+
+def _calculate_weighted_score(self, factors, game_phase):
+    """
+    Calculate weighted score based on game phase
+
+    Args:
+        factors: Dictionary of factor scores
+        game_phase: "opening", "midgame", or "endgame"
+
+    Returns:
+        Weighted total score
+    """
+    weights = {
+        'opening': {
+            'area_control': 0.2,
+            'corner_connections': 0.4,
+            'mobility': 0.3,
+            'territory_advantage': 0.1
+        },
+        'midgame': {
+            'area_control': 0.35,
+            'corner_connections': 0.25,
+            'mobility': 0.2,
+            'territory_advantage': 0.2
+        },
+        'endgame': {
+            'area_control': 0.4,
+            'corner_connections': 0.2,
+            'mobility': 0.1,
+            'territory_advantage': 0.3
+        }
+    }
+
+    total = sum(factors[key] * weights[game_phase][key]
+                for key in factors)
+    return total
+```
+
+## Contract Compliance
+
+### Invariants
+- Strategy implementations are stateless (no instance variables affecting calculations)
+- `difficulty_name` is always one of: Easy, Medium, Hard
+- `timeout_seconds` is always positive
+- `calculate_move()` never modifies input parameters
+
+### Preconditions
+- `board` is valid 20x20 game board
+- `pieces` contains only valid BlokusPiece objects
+- `player_id` is between 1-4
+- `time_limit` (if provided) is positive
+
+### Postconditions
+- `calculate_move()` returns None if and only if no valid moves exist
+- Returned moves are valid according to Blokus rules
+- All strategy methods are pure functions (no side effects)
+- `evaluate_board()` returns consistent values for identical inputs
+
+### Performance Requirements
+- Easy strategy completes in < 1 second (average)
+- Medium strategy completes in < 3 seconds (average)
+- Hard strategy completes in < 8 seconds (worst case)
+- Strategies must respect timeout even under load
+- Thread-safe for concurrent evaluation
+
+### Thread Safety
+- All methods must be thread-safe
+- Strategies may be shared between multiple AI players
+- No shared mutable state within strategy instances
+- Evaluation functions are pure (no side effects)

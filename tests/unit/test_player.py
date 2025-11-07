@@ -150,12 +150,12 @@ class TestPlayer:
     def test_remaining_squares(self):
         """Test counting remaining squares."""
         player = Player(1, "Alice")
-        # All 21 pieces total 88 squares
-        assert player.get_remaining_squares() == 88
+        # All 21 pieces total 89 squares (1+2+6+20+60 = 1*1 + 1*2 + 2*3 + 5*4 + 12*5)
+        assert player.get_remaining_squares() == 89
 
         # Place an I1 (1 square)
         player.place_piece("I1", 0, 0)
-        assert player.get_remaining_squares() == 87
+        assert player.get_remaining_squares() == 88
 
     def test_has_pieces_remaining(self):
         """Test checking if player has remaining pieces."""

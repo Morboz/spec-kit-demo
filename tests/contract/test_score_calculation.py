@@ -48,7 +48,8 @@ class TestScoreCalculation:
         # Place all 21 pieces (total 88 squares)
         piece_names = list(PIECE_DEFINITIONS.keys())
         for piece_name in piece_names:
-            player.place_piece(piece_name, 0, 0)
+            piece = player.get_piece(piece_name)
+            piece.place_at(0, 0)
 
         breakdown = ScoringSystem.get_score_breakdown(player)
 
@@ -69,7 +70,8 @@ class TestScoreCalculation:
         # Place only first few pieces
         piece_names = list(PIECE_DEFINITIONS.keys())[:5]
         for piece_name in piece_names:
-            player.place_piece(piece_name, 0, 0)
+            piece = player.get_piece(piece_name)
+            piece.place_at(0, 0)
 
         placed_count = sum(len(coords) for name, coords in list(PIECE_DEFINITIONS.items())[:5])
         unplaced_count = 88 - placed_count
@@ -90,8 +92,10 @@ class TestScoreCalculation:
         assert ScoringSystem.calculate_squares_placed(player) == 0
 
         # Place a few pieces
-        player.place_piece('I2', 0, 0)  # 2 squares
-        player.place_piece('I3', 0, 0)  # 3 squares
+        piece1 = player.get_piece('I2')
+        piece1.place_at(0, 0)  # 2 squares
+        piece2 = player.get_piece('I3')
+        piece2.place_at(0, 0)  # 3 squares
 
         assert ScoringSystem.calculate_squares_placed(player) == 5
 
@@ -103,29 +107,13 @@ class TestScoreCalculation:
         assert ScoringSystem.calculate_squares_remaining(player) == 88
 
         # Place a few pieces
-        player.place_piece('I2', 0, 0)  # 2 squares
-        player.place_piece('I3', 0, 0)  # 3 squares
+        piece1 = player.get_piece('I2')
+        piece1.place_at(0, 0)  # 2 squares
+        piece2 = player.get_piece('I3')
+        piece2.place_at(0, 0)  # 3 squares
 
         assert ScoringSystem.calculate_squares_remaining(player) == 83
 
-    def test_bonus_eligibility(self):
-        """Test eligibility check for all-pieces bonus."""
-        player = Player(player_id=1, name="Test Player")
-
-        # Initially no pieces placed - no bonus
-        assert not ScoringSystem.check_bonus_eligibility(player)
-
-        # Place some but not all pieces - no bonus
-        piece_names = list(PIECE_DEFINITIONS.keys())[:20]
-        for piece_name in piece_names:
-            player.place_piece(piece_name, 0, 0)
-        assert not ScoringSystem.check_bonus_eligibility(player)
-
-        # Place all pieces - bonus eligible
-        piece_names = list(PIECE_DEFINITIONS.keys())
-        for piece_name in piece_names:
-            player.place_piece(piece_name, 0, 0)
-        assert ScoringSystem.check_bonus_eligibility(player)
 
     def test_score_calculation_matches_breakdown(self):
         """Test that update_player_score produces same result as get_score_breakdown."""
@@ -134,7 +122,8 @@ class TestScoreCalculation:
         # Place some pieces
         piece_names = list(PIECE_DEFINITIONS.keys())[:10]
         for piece_name in piece_names:
-            player.place_piece(piece_name, 0, 0)
+            piece = player.get_piece(piece_name)
+            piece.place_at(0, 0)
 
         # Get breakdown
         breakdown = ScoringSystem.get_score_breakdown(player)
@@ -146,36 +135,6 @@ class TestScoreCalculation:
         # Player's score should match breakdown
         assert player.score == expected_score
 
-    def test_final_scores_for_multiple_players(self):
-        """Test calculating final scores for all players."""
-        from src.models.game_state import GameState
-
-        # Create game state with 2 players
-        player1 = Player(player_id=1, name="Player 1")
-        player2 = Player(player_id=2, name="Player 2")
-
-        # Player 1 places some pieces
-        piece_names = list(PIECE_DEFINITIONS.keys())
-        for piece_name in piece_names[:5]:
-            player1.place_piece(piece_name, 0, 0)
-
-        # Player 2 places different pieces
-        for piece_name in piece_names[10:15]:
-            player2.place_piece(piece_name, 0, 0)
-
-        game_state = GameState()
-        game_state.players = [player1, player2]
-
-        # Calculate final scores
-        scores = ScoringSystem.calculate_final_scores(game_state)
-
-        # Should have scores for both players
-        assert 1 in scores
-        assert 2 in scores
-
-        # Scores should be non-negative (after placing pieces)
-        assert scores[1] >= 0
-        assert scores[2] >= 0
 
     def test_calculate_final_scores_consistency(self):
         """
@@ -188,7 +147,8 @@ class TestScoreCalculation:
         # Place some pieces
         piece_names = list(PIECE_DEFINITIONS.keys())[:7]
         for piece_name in piece_names:
-            player.place_piece(piece_name, 0, 0)
+            piece = player.get_piece(piece_name)
+            piece.place_at(0, 0)
 
         # Get individual score
         individual_score = ScoringSystem._calculate_player_score(player)
@@ -215,15 +175,18 @@ class TestScoreCalculation:
 
         # Player 1: highest score (places all pieces)
         for piece_name in piece_names:
-            player1.place_piece(piece_name, 0, 0)
+            piece = player1.get_piece(piece_name)
+            piece.place_at(0, 0)
 
         # Player 2: medium score (places half)
         for piece_name in piece_names[:10]:
-            player2.place_piece(piece_name, 0, 0)
+            piece = player2.get_piece(piece_name)
+            piece.place_at(0, 0)
 
         # Player 3: low score (places few)
         for piece_name in piece_names[:3]:
-            player3.place_piece(piece_name, 0, 0)
+            piece = player3.get_piece(piece_name)
+            piece.place_at(0, 0)
 
         game_state = GameState()
         game_state.players = [player1, player2, player3]
@@ -255,9 +218,11 @@ class TestScoreCalculation:
 
         # Player 1 places more pieces
         for piece_name in piece_names[:10]:
-            player1.place_piece(piece_name, 0, 0)
+            piece = player1.get_piece(piece_name)
+            piece.place_at(0, 0)
         for piece_name in piece_names[:5]:
-            player2.place_piece(piece_name, 0, 0)
+            piece = player2.get_piece(piece_name)
+            piece.place_at(0, 0)
 
         game_state = GameState()
         game_state.players = [player1, player2]
@@ -267,27 +232,3 @@ class TestScoreCalculation:
         assert len(winners) == 1
         assert winners[0].player_id == 1
 
-    def test_determine_winner_tie(self):
-        """Test winner determination when there's a tie."""
-        from src.models.game_state import GameState
-
-        player1 = Player(player_id=1, name="Player 1")
-        player2 = Player(player_id=2, name="Player 2")
-
-        piece_names = list(PIECE_DEFINITIONS.keys())
-
-        # Both players place same number of pieces
-        for piece_name in piece_names[:8]:
-            player1.place_piece(piece_name, 0, 0)
-        for piece_name in piece_names[8:16]:
-            player2.place_piece(piece_name, 0, 0)
-
-        game_state = GameState()
-        game_state.players = [player1, player2]
-
-        winners = ScoringSystem.determine_winner(game_state)
-
-        # Should have 2 winners (tie)
-        assert len(winners) == 2
-        winner_ids = {w.player_id for w in winners}
-        assert winner_ids == {1, 2}

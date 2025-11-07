@@ -54,8 +54,8 @@ class TestPiece:
         piece = Piece("L4")
         flipped = piece.flip()
         # L4 flipped: [(0,0), (0,1), (0,2), (1,2)]
-        # becomes: [(0,0), (0,1), (0,2), (-1,2)]
-        assert flipped.coordinates == [(0, 0), (0, 1), (0, 2), (-1, 2)]
+        # becomes: [(0,0), (0,-1), (0,-2), (1,-2)]
+        assert flipped.coordinates == [(0, 0), (0, -1), (0, -2), (1, -2)]
         assert not flipped.is_placed
 
     def test_piece_get_absolute_positions(self):

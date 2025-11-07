@@ -1,0 +1,447 @@
+# TurnController Contract (Extended)
+
+**Purpose**: Define extended interface for managing AI-enabled turn progression
+
+## Interface Specification
+
+### Class: TurnController (Extended)
+
+```python
+from typing import Optional, Callable, List
+from enum import Enum
+
+class TurnState(Enum):
+    """Turn state enumeration"""
+    HUMAN_TURN = "human_turn"
+    AI_CALCULATING = "ai_calculating"
+    AI_MAKING_MOVE = "ai_making_move"
+    TRANSITION_AUTO = "transition_auto"
+    GAME_OVER = "game_over"
+
+class TurnController:
+    """
+    Extended turn controller for managing AI and human turns
+
+    Extends existing TurnController with AI-aware functionality.
+    Maintains game flow for both human and AI players.
+    """
+
+    def __init__(self,
+                 game_mode: 'GameMode',
+                 initial_player: int = 1):
+        """
+        Initialize turn controller
+
+        Args:
+            game_mode: GameMode configuration
+            initial_player: Starting player ID (default: 1)
+
+        Raises:
+            ValueError: If game_mode is invalid
+            ValueError: If initial_player not in valid positions
+        """
+
+    @property
+    def game_mode(self) -> 'GameMode':
+        """Get current game mode configuration"""
+
+    @property
+    def current_player(self) -> int:
+        """Get current player ID (1-4)"""
+
+    @property
+    def current_state(self) -> TurnState:
+        """Get current turn state"""
+
+    @property
+    def is_ai_turn(self) -> bool:
+        """Check if current turn is AI-controlled"""
+
+    @property
+    def elapsed_ai_time(self) -> float:
+        """Get elapsed time for current AI calculation (seconds)"""
+
+    def set_game_mode(self, game_mode: 'GameMode'):
+        """
+        Set game mode before game starts
+
+        Args:
+            game_mode: New game mode configuration
+
+        Raises:
+            ValueError: If game has already started
+            ConfigurationError: If mode is invalid
+        """
+
+    def start_turn(self):
+        """
+        Start turn for current player
+
+        Behavior:
+            - If AI player: Automatically trigger AI calculation
+            - If human player: Enable UI input, wait for move
+
+        Contract:
+            - Must be called after game initialization
+            - Cannot be called if game is over
+            - State transitions to AI_CALCULATING or HUMAN_TURN
+        """
+
+    def trigger_ai_turn(self,
+                       on_move_calculated: Callable[['Move'], None] = None,
+                       on_timeout: Callable[[], None] = None):
+        """
+        Trigger AI move calculation for current player
+
+        Args:
+            on_move_calculated: Callback when move is calculated
+            on_timeout: Callback if calculation times out
+
+        Contract:
+            - Must only be called when is_ai_turn is True
+            - Automatically handles timeout scenarios
+            - Calls on_move_calculated with result (or None if pass)
+            - Calls on_timeout if strategy exceeds time limit
+            - Runs calculation in background thread to avoid UI blocking
+
+        Raises:
+            InvalidStateError: If not AI turn
+            AIPlayerError: If AI player is misconfigured
+        """
+
+    def handle_ai_move(self, move: Optional['Move']):
+        """
+        Process AI-calculated move
+
+        Args:
+            move: Move object or None (for pass turn)
+
+        Behavior:
+            1. Validate move (uses existing validator)
+            2. Animate piece placement (if visual)
+            3. Update board state
+            4. Update player pieces/score
+            5. Transition to next turn
+
+        Contract:
+            - Must be called after AI calculation completes
+            - Move must be valid according to Blokus rules
+            - Updates game state atomically
+            - Cannot be called during AI calculation
+
+        Raises:
+            InvalidMoveError: If move violates rules
+            InvalidStateError: If not in proper state
+        """
+
+    def end_turn(self):
+        """
+        End current turn and advance to next player
+
+        Behavior:
+            - Validates game is not over
+            - Identifies next active player
+            - Calls start_turn() for next player
+
+        Contract:
+            - Can be called after move is placed or passed
+            - Skips inactive positions (empty quadrants)
+            - Detects game end condition (all players passed)
+
+        Raises:
+            InvalidStateError: If move not yet processed
+            GameOverError: If game should end
+        """
+
+    def pass_turn(self):
+        """
+        Handle player passing turn (no valid moves)
+
+        Behavior:
+            - Marks current player as passed
+            - Checks if all active players have passed
+            - If all passed: ends game
+            - Otherwise: proceeds to next turn
+
+        Contract:
+            - Can be called at any time during player's turn
+            - Validates player actually has no valid moves
+            - Prevents consecutive passes by same player
+            - Updates game state to track pass count
+
+        Raises:
+            InvalidStateError: If player has valid moves
+            GameOverError: If game ends
+        """
+
+    def check_game_over(self) -> bool:
+        """
+        Check if game should end
+
+        Returns:
+            True if game over condition met
+
+        Conditions:
+            - All active players have passed consecutively
+            - No pieces remain for any player
+            - Board is completely filled
+
+        Contract:
+            - Must be called after each turn
+            - Returns consistent result for same state
+        """
+
+    def add_turn_listener(self, callback: Callable[['TurnEvent'], None]):
+        """
+        Add listener for turn events
+
+        Args:
+            callback: Function to call on turn events
+
+        Events:
+            - TURN_STARTED: New turn begins
+            - AI_CALCULATION_STARTED: AI starts thinking
+            - AI_MOVE_CALCULATED: AI finished calculating
+            - MOVE_PLACED: Piece placed on board
+            - TURN_PASSED: Player passed turn
+            - GAME_OVER: Game ended
+
+        Contract:
+            - Callbacks are called on main UI thread
+            - Multiple listeners supported
+            - Listeners notified in registration order
+        """
+
+    def remove_turn_listener(self, callback: Callable[['TurnEvent'], None]):
+        """
+        Remove turn event listener
+
+        Args:
+            callback: Previously registered callback
+
+        Contract:
+            - Safe to call if callback not registered
+            - Callback will not be called after removal
+        """
+
+    def get_turn_history(self) -> List['TurnEvent']:
+        """
+        Get history of turn events
+
+        Returns:
+            List of all turn events in order
+
+        Contract:
+            - Events include timestamps
+            - Used for game replay/debugging
+            - Thread-safe snapshot of history
+        """
+
+    def force_ai_timeout(self) -> Optional['Move']:
+        """
+        Force AI calculation to timeout and return best move found
+
+        Returns:
+            Best move found before timeout, or None
+
+        Contract:
+            - Only for testing/debugging
+            - Interrupt calculation immediately
+            - Returns partial result
+            - Not for production use
+
+        Raises:
+            InvalidStateError: If not AI calculation in progress
+        """
+```
+
+### TurnEvent
+
+```python
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
+
+@dataclass
+class TurnEvent:
+    """Event data for turn state changes"""
+
+    event_type: str  # TURN_STARTED, AI_CALCULATION_STARTED, etc.
+    timestamp: datetime
+    player_id: int
+    state: TurnState
+    move: Optional['Move'] = None
+    ai_time_seconds: Optional[float] = None
+    additional_data: Optional[dict] = None
+```
+
+## State Machine
+
+```
+[Game Start]
+     ↓
+start_turn()
+     ↓
+is_ai_turn?
+     ↓            ↓
+   YES           NO
+     ↓            ↓
+AI_CALCULATING  HUMAN_TURN
+     ↓            ↓
+trigger_ai_turn()  Wait for human input
+     ↓            ↓
+Calculate move    [Human places piece]
+     ↓            ↓
+AI_MAKING_MOVE   handle_human_move()
+     ↓            ↓
+handle_ai_move()      ↓
+     ↓            ↓
+end_turn()        end_turn()
+     ↓            ↓
+    [Check Game Over?]
+     ↓            ↓
+   YES            NO
+     ↓            ↓
+GAME_OVER    start_turn()
+                  (next player)
+```
+
+## Error Types
+
+### InvalidStateError
+Raised when operation called in invalid state
+
+```python
+class InvalidStateError(Exception):
+    """Operation called in invalid state"""
+    def __init__(self, operation: str, current_state: TurnState, expected_states: List[TurnState]):
+        self.operation = operation
+        self.current_state = current_state
+        self.expected_states = expected_states
+```
+
+### AIPlayerError
+Raised when AI player is misconfigured
+
+```python
+class AIPlayerError(Exception):
+    """AI player configuration or execution error"""
+    def __init__(self, player_id: int, message: str):
+        self.player_id = player_id
+        self.message = message
+```
+
+### GameOverError
+Raised when game is already over
+
+```python
+class GameOverError(Exception):
+    """Game is over, cannot continue"""
+    def __init__(self, winner: Optional[int] = None, final_scores: Optional[dict] = None):
+        self.winner = winner
+        self.final_scores = final_scores
+```
+
+## Usage Examples
+
+### Basic Usage
+
+```python
+# Initialize with game mode
+mode = GameMode.single_ai(Difficulty.MEDIUM)
+controller = TurnController(game_mode=mode)
+
+# Start first turn
+controller.start_turn()
+
+# If AI turn, automatically triggered
+if controller.is_ai_turn:
+    # AI calculation happens in background
+    # Callback when move is ready
+    def on_move(move):
+        controller.handle_ai_move(move)
+
+    controller.trigger_ai_turn(on_move_calculated=on_move)
+
+# After move placed or passed
+controller.end_turn()
+```
+
+### With Event Listeners
+
+```python
+def on_turn_event(event: TurnEvent):
+    if event.event_type == "AI_CALCULATION_STARTED":
+        show_indicator("AI is thinking...")
+    elif event.event_type == "AI_MOVE_CALCULATED":
+        hide_indicator()
+        animate_move(event.move)
+    elif event.event_type == "GAME_OVER":
+        show_game_over(event.additional_data['winner'],
+                      event.additional_data['scores'])
+
+controller.add_turn_listener(on_turn_event)
+```
+
+### Timeout Handling
+
+```python
+def on_move_calculated(move):
+    controller.handle_ai_move(move)
+
+def on_timeout():
+    # AI didn't finish in time
+    # Use best available move or pass
+    controller.handle_ai_move(None)  # Pass the turn
+
+controller.trigger_ai_turn(
+    on_move_calculated=on_move_calculated,
+    on_timeout=on_timeout
+)
+```
+
+## Contract Compliance
+
+### Invariants
+- `current_player` is always an active player (not skipped position)
+- `current_state` matches actual controller state
+- If `is_ai_turn` is True, `current_player` has AI strategy configured
+- Turn progression follows game mode configuration
+
+### Preconditions
+- `start_turn()`: Game initialized, not over, player has turn
+- `trigger_ai_turn()`: `is_ai_turn` is True, not already calculating
+- `handle_ai_move()`: Move is valid, state is AI_MAKING_MOVE
+- `end_turn()`: Move processed, game not over
+- `pass_turn()`: Player has no valid moves
+
+### Postconditions
+- After `start_turn()`: State is HUMAN_TURN or AI_CALCULATING
+- After `trigger_ai_turn()`: AI calculation started in background
+- After `handle_ai_move()`: Move validated and applied to board
+- After `end_turn()`: Current player advanced to next active player
+- After `pass_turn()`: Player marked as passed, game state updated
+
+### Thread Safety
+- TurnController methods must be thread-safe
+- AI calculation runs in background thread
+- UI updates must happen on main thread
+- Event listeners called on main thread
+- Game state updates are atomic
+- Multiple AI players can calculate simultaneously
+
+### Performance Requirements
+- `start_turn()` completes in < 1ms
+- `is_ai_turn()` check is O(1)
+- State transitions complete in < 10ms
+- Event listener notification is O(n) where n = number of listeners
+- Game over detection is O(1)
+- Memory footprint: O(p) where p = number of players
+- AI calculation does not block UI thread
+
+### Integration with Existing Game
+- Extends, does not replace, existing TurnController
+- Maintains backward compatibility with human-only games
+- Uses existing move validation logic
+- Integrates with existing UI update mechanisms
+- Preserves existing game state management

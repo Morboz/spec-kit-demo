@@ -54,6 +54,12 @@ class KeyboardShortcuts:
         "Right": "move_cursor_right",
         "Up": "move_cursor_up",
         "Down": "move_cursor_down",
+
+        # Game mode selection (AI Battle Mode)
+        "F1": "show_help_dialog",
+        "F2": "select_single_ai_mode",
+        "F3": "select_three_ai_mode",
+        "F4": "select_spectate_mode",
     }
 
     def __init__(self, root: tk.Tk):
@@ -87,8 +93,16 @@ class KeyboardShortcuts:
             return
 
         for key, action in self.bindings.items():
+            # Handle function keys (F1, F2, etc.) differently
+            if key.startswith("F") and key[1:].isdigit():
+                # For function keys, use the exact binding
+                binding = f"<{key}>"
+            else:
+                # For regular keys, use Key-event
+                binding = f"<Key-{key}>"
+
             # Bind to root window
-            self.root.bind(f"<Key-{key}>", lambda e, a=action: self._handle_action(a))
+            self.root.bind(binding, lambda e, a=action: self._handle_action(a))
 
             # Also bind to all common widgets
             for widget_class in [tk.Canvas, tk.Frame, tk.Toplevel]:
@@ -157,7 +171,12 @@ class KeyboardShortcuts:
         """
         self.bindings[key] = action
         if self.enabled:
-            self.root.bind(f"<Key-{key}>", lambda e, a=action: self._handle_action(a))
+            # Handle function keys differently
+            if key.startswith("F") and key[1:].isdigit():
+                binding = f"<{key}>"
+            else:
+                binding = f"<Key-{key}>"
+            self.root.bind(binding, lambda e, a=action: self._handle_action(a))
 
     def remove_binding(self, key: str):
         """
@@ -167,7 +186,12 @@ class KeyboardShortcuts:
             key: Key to unbind
         """
         if key in self.bindings:
-            self.root.unbind(f"<Key-{key}>")
+            # Handle function keys differently
+            if key.startswith("F") and key[1:].isdigit():
+                binding = f"<{key}>"
+            else:
+                binding = f"<Key-{key}>"
+            self.root.unbind(binding)
             del self.bindings[key]
 
     def get_all_bindings(self) -> Dict[str, str]:
@@ -191,13 +215,15 @@ class GameKeyboardHandler:
     """Handles keyboard shortcuts for the game."""
 
     def __init__(
-        self, 
-        root: tk.Tk, 
-        game_state: Any, 
-        board: Any, 
+        self,
+        root: tk.Tk,
+        game_state: Any,
+        board: Any,
         piece_display: Any,
         on_rotate: Optional[Callable[[], None]] = None,
         on_flip: Optional[Callable[[], None]] = None,
+        on_mode_select: Optional[Callable[[str], None]] = None,
+        on_show_help: Optional[Callable[[], None]] = None,
     ):
         """
         Initialize game keyboard handler.
@@ -209,6 +235,8 @@ class GameKeyboardHandler:
             piece_display: Piece display component
             on_rotate: Callback for rotating piece
             on_flip: Callback for flipping piece
+            on_mode_select: Callback for selecting game mode
+            on_show_help: Callback for showing help dialog
         """
         self.root = root
         self.game_state = game_state
@@ -216,6 +244,8 @@ class GameKeyboardHandler:
         self.piece_display = piece_display
         self.on_rotate_callback = on_rotate
         self.on_flip_callback = on_flip
+        self.on_mode_select_callback = on_mode_select
+        self.on_show_help_callback = on_show_help
         self.keyboard = KeyboardShortcuts(root)
 
         # Setup callbacks
@@ -255,6 +285,12 @@ class GameKeyboardHandler:
         self.keyboard.register_callback("move_cursor_right", self._move_cursor_right)
         self.keyboard.register_callback("move_cursor_up", self._move_cursor_up)
         self.keyboard.register_callback("move_cursor_down", self._move_cursor_down)
+
+        # Game mode selection (AI Battle Mode)
+        self.keyboard.register_callback("show_help_dialog", self._show_help_dialog)
+        self.keyboard.register_callback("select_single_ai_mode", lambda: self._select_game_mode("single_ai"))
+        self.keyboard.register_callback("select_three_ai_mode", lambda: self._select_game_mode("three_ai"))
+        self.keyboard.register_callback("select_spectate_mode", lambda: self._select_game_mode("spectate"))
 
     def _rotate_clockwise(self):
         """Rotate current piece clockwise."""
@@ -375,6 +411,26 @@ class GameKeyboardHandler:
             self.root.winfo_rooty() + 50
         ))
 
+    def _show_help_dialog(self):
+        """Show help dialog for AI battle mode."""
+        if self.on_show_help_callback:
+            self.on_show_help_callback()
+        else:
+            # Fallback to displaying keyboard shortcuts help
+            self._display_help()
+
+    def _select_game_mode(self, mode: str):
+        """
+        Select game mode via keyboard shortcut.
+
+        Args:
+            mode: Game mode to select ("single_ai", "three_ai", or "spectate")
+        """
+        if self.on_mode_select_callback:
+            self.on_mode_select_callback(mode)
+        else:
+            print(f"Game mode selection callback not set: {mode}")
+
     def _get_help_text(self) -> str:
         """Get help text for keyboard shortcuts."""
         return """
@@ -410,6 +466,13 @@ Right Arrow  : Move cursor right
 Up Arrow     : Move cursor up
 Down Arrow   : Move cursor down
 
+AI BATTLE MODE (002)
+--------------------
+F1           : Show help dialog
+F2           : Select Single AI mode
+F3           : Select Three AI mode
+F4           : Select Spectate AI mode
+
 TIPS
 ----
 • Use number keys to quickly select pieces
@@ -417,6 +480,8 @@ TIPS
 • Press F to flip pieces
 • Space bar skips your turn if you can't make a move
 • Press H at any time to see this help
+• In AI Battle mode, use F2, F3, F4 to quickly select game modes
+• Press F1 to open comprehensive help for AI Battle features
 
 For more information, see the game documentation.
         """.strip()

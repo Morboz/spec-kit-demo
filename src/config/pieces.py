@@ -7,32 +7,44 @@ Each piece is defined by its name and coordinates relative to an origin (0,0).
 All coordinates represent connected squares (orthogonally adjacent).
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.models.piece import Piece
 
 # Standard Blokus piece definitions (21 total)
 # Each piece is defined by its coordinates relative to the origin (0,0)
 PIECE_DEFINITIONS = {
+    # 1-square piece (1 piece)
     "I1": [(0, 0)],
+    
+    # 2-square piece (1 piece)
     "I2": [(0, 0), (1, 0)],
-    "I3": [(0, 0), (1, 0), (2, 0)],
-    "I4": [(0, 0), (1, 0), (2, 0), (3, 0)],
-    "I5": [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0)],
-    "L4": [(0, 0), (0, 1), (0, 2), (1, 2)],
-    "L5": [(0, 0), (0, 1), (0, 2), (0, 3), (1, 3)],
-    "T4": [(0, 0), (0, 1), (0, 2), (1, 1)],
-    "Z4": [(0, 0), (0, 1), (1, 1), (1, 2)],
-    "Z5": [(0, 0), (0, 1), (1, 1), (2, 1), (2, 2)],
-    "V3": [(0, 0), (1, 0), (1, 1)],
-    "V4": [(0, 0), (1, 0), (2, 0), (2, 1)],
-    "V5": [(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],
-    "U5": [(0, 0), (0, 1), (1, 0), (1, 2), (0, 2)],
-    "T5": [(0, 0), (0, 1), (0, 2), (1, 1), (2, 1)],
-    "W5": [(0, 0), (1, 0), (1, 1), (2, 1), (2, 2)],
-    "X5": [(1, 0), (0, 1), (1, 1), (2, 1), (1, 2)],
-    "Y5": [(0, 0), (1, 0), (2, 0), (3, 0), (2, 1)],
-    "F5": [(1, 0), (2, 0), (0, 1), (1, 1), (1, 2)],
-    "P5": [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2)],
-    "W4": [(0, 0), (1, 0), (1, 1), (2, 1)],
+    
+    # 3-square pieces (2 pieces)
+    "I3": [(0, 0), (1, 0), (2, 0)],  # Straight line
+    "V3": [(0, 0), (1, 0), (1, 1)],  # L-shape (corner)
+    
+    # 4-square pieces (5 pieces)
+    "I4": [(0, 0), (1, 0), (2, 0), (3, 0)],  # Straight line
+    "L4": [(0, 0), (0, 1), (0, 2), (1, 2)],  # L-shape
+    "O4": [(0, 0), (0, 1), (1, 0), (1, 1)],  # Square (2x2)
+    "T4": [(0, 0), (0, 1), (0, 2), (1, 1)],  # T-shape
+    "Z4": [(0, 0), (0, 1), (1, 1), (1, 2)],  # Z-shape
+    
+    # 5-square pieces (12 pieces)
+    "I5": [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0)],  # Straight line
+    "L5": [(0, 0), (0, 1), (0, 2), (0, 3), (1, 3)],  # L-shape
+    "V5": [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)],  # V-shape (elongated L)
+    "U5": [(0, 0), (0, 1), (1, 0), (1, 2), (0, 2)],  # U-shape
+    "T5": [(0, 0), (0, 1), (0, 2), (1, 1), (2, 1)],  # T-shape
+    "W5": [(0, 0), (1, 0), (1, 1), (2, 1), (2, 2)],  # W-shape (stairs)
+    "X5": [(1, 0), (0, 1), (1, 1), (2, 1), (1, 2)],  # Plus/Cross
+    "Y5": [(0, 0), (1, 0), (2, 0), (3, 0), (2, 1)],  # Y-shape
+    "F5": [(1, 0), (2, 0), (0, 1), (1, 1), (1, 2)],  # F-shape
+    "P5": [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2)],  # P-shape
+    "Z5": [(0, 0), (0, 1), (1, 1), (2, 1), (2, 2)],  # Z-shape (elongated)
+    "N5": [(0, 0), (1, 0), (1, 1), (2, 1), (3, 1)],  # N-shape
 }
 
 # Player colors (RGB hex values)
@@ -185,3 +197,36 @@ def validate_piece_coordinates(coordinates: List[Tuple[int, int]]) -> bool:
 
     # All coordinates must be reachable
     return len(visited) == len(coordinates)
+
+
+def get_piece(piece_name: str) -> "Piece":
+    """
+    Create and return a new Piece object.
+
+    Args:
+        piece_name: Name of the piece (e.g., "I1", "L4", "X5")
+
+    Returns:
+        A new Piece instance
+
+    Raises:
+        KeyError: If piece_name is not found in PIECE_DEFINITIONS
+    """
+    from src.models.piece import Piece
+    return Piece(piece_name)
+
+
+def get_full_piece_set() -> List["Piece"]:
+    """
+    Create and return a complete set of all 21 standard Blokus pieces.
+
+    Returns:
+        List of all 21 Piece instances
+
+    Example:
+        >>> pieces = get_full_piece_set()
+        >>> len(pieces)
+        21
+    """
+    from src.models.piece import Piece
+    return [Piece(name) for name in get_all_piece_names()]

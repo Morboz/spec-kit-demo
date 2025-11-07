@@ -270,6 +270,10 @@ class TurnManager:
         if not player.has_pieces_remaining():
             return False
 
+        # Check if player has already passed in current round
+        if player.has_passed:
+            return False
+
         return True
 
     def _get_active_players(self) -> List[Player]:

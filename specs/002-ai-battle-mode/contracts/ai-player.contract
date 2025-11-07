@@ -1,0 +1,250 @@
+# AIPlayer Contract
+
+**Purpose**: Define interface for AI-controlled players in Blokus game
+
+## Interface Specification
+
+### Class: AIPlayer
+
+Inherits from: Player (base class)
+
+```python
+class AIPlayer(Player):
+    """AI-controlled Blokus player with configurable strategy"""
+
+    def __init__(self,
+                 player_id: int,
+                 strategy: 'AIStrategy',
+                 color: str,
+                 name: str = None):
+        """
+        Initialize AI player
+
+        Args:
+            player_id: Unique identifier (1-4)
+            strategy: AIStrategy implementation for move calculation
+            color: Display color for pieces
+            name: Display name (default: "AI Player {player_id}")
+        """
+
+    @property
+    def strategy(self) -> 'AIStrategy':
+        """Get current strategy instance"""
+
+    @strategy.setter
+    def strategy(self, value: 'AIStrategy'):
+        """Set strategy instance (allows difficulty change mid-game)"""
+
+    @property
+    def difficulty(self) -> str:
+        """Get difficulty level: Easy, Medium, or Hard"""
+
+    def calculate_move(self,
+                      board: List[List[int]],
+                      pieces: List['BlokusPiece'],
+                      time_limit: int = None) -> Optional['Move']:
+        """
+        Calculate best move for current game state
+
+        Args:
+            board: 2D array representing game board (20x20)
+            pieces: List of available pieces to place
+            time_limit: Maximum calculation time in seconds (overrides strategy default)
+
+        Returns:
+            Move object with piece, position, and rotation, or None if no valid moves
+
+        Raises:
+            StrategyTimeoutError: If calculation exceeds time limit
+            NoValidMovesError: If no valid moves exist
+
+        Contract:
+            - Must return None if no valid moves available
+            - Must respect time_limit if provided
+            - Returned move must pass validate_move(board)
+            - Must complete within strategy.get_timeout_seconds() if time_limit not provided
+        """
+
+    def is_calculating(self) -> bool:
+        """
+        Check if player is currently calculating a move
+
+        Returns:
+            True if in calculating state, False otherwise
+        """
+
+    def get_available_moves(self,
+                           board: List[List[int]],
+                           pieces: List['BlokusPiece']) -> List['Move']:
+        """
+        Generate all valid moves for current state
+
+        Args:
+            board: Current board state
+            pieces: Available pieces
+
+        Returns:
+            List of all valid Move objects
+
+        Contract:
+            - Each move must be valid according to Blokus rules
+            - Moves are unoptimized - for strategy use only
+            - Empty list if no valid moves exist
+        """
+
+    def evaluate_position(self, board: List[List[int]]) -> float:
+        """
+        Evaluate board position from this player's perspective
+
+        Args:
+            board: Current board state
+
+        Returns:
+            Float score (higher = better for this player)
+
+        Contract:
+            - Score is relative (no absolute scale required)
+            - Consistent evaluation for same board state
+            - Considers all players on board
+        """
+
+    def pass_turn(self):
+        """
+        Indicate that player passes (no valid moves)
+
+        Contract:
+            - Sets internal passed flag
+            - Cleared at start of player's next turn
+        """
+```
+
+## State Machine
+
+```
+IDLE
+  ↓ (turn begins)
+CALCULATING
+  ↓ (move calculated)
+IDLE
+  ↓ (no valid moves)
+PASSED
+  ↓ (turn begins)
+IDLE
+```
+
+## Error Types
+
+### StrategyTimeoutError
+Raised when AI calculation exceeds time limit
+
+```python
+class StrategyTimeoutError(Exception):
+    """AI strategy calculation exceeded time limit"""
+    def __init__(self, timeout_seconds: int, elapsed_seconds: float):
+        self.timeout_seconds = timeout_seconds
+        self.elapsed_seconds = elapsed_seconds
+```
+
+### NoValidMovesError
+Raised when player has no valid moves available
+
+```python
+class NoValidMovesError(Exception):
+    """Player has no valid moves available"""
+    pass
+```
+
+### InvalidStrategyError
+Raised when strategy is not properly configured
+
+```python
+class InvalidStrategyError(Exception):
+    """Strategy does not meet interface requirements"""
+    pass
+```
+
+## Usage Examples
+
+### Basic Move Calculation
+
+```python
+# Initialize AI player with corner strategy
+ai_player = AIPlayer(
+    player_id=2,
+    strategy=CornerStrategy(),
+    color="red",
+    name="AI Player 2"
+)
+
+# Calculate move
+board = [[0] * 20 for _ in range(20)]  # Empty board
+pieces = player_pieces  # Get from game state
+move = ai_player.calculate_move(board, pieces)
+
+if move:
+    game.place_piece(move.piece, move.position, move.rotation)
+else:
+    ai_player.pass_turn()
+```
+
+### Difficulty Change
+
+```python
+# Change strategy during game
+ai_player.strategy = StrategicStrategy()
+```
+
+### Move Generation for Strategy Analysis
+
+```python
+# Get all valid moves for evaluation
+valid_moves = ai_player.get_available_moves(board, pieces)
+
+# Evaluate each move
+for move in valid_moves:
+    score = ai_player.evaluate_position(simulate_board_after_move(board, move))
+    move.evaluation_score = score
+
+# Select best move
+best_move = max(valid_moves, key=lambda m: m.evaluation_score)
+```
+
+## Contract Compliance
+
+### Invariants (Must Always Be True)
+- `player_id` is unique across all players in game
+- `strategy` is never None
+- If `is_calculating()` is True, `calculate_move()` cannot be called again
+- `pieces` always represents remaining pieces (never includes placed pieces)
+- `difficulty` is always one of: "Easy", "Medium", "Hard"
+
+### Preconditions (Must Be True Before Method Call)
+- `calculate_move()`:
+  - Game is not over
+  - It is this player's turn
+  - `board` is valid 20x20 game board
+  - `pieces` contains only unplaced pieces for this player
+  - `time_limit` (if provided) is positive integer
+- `get_available_moves()`:
+  - `board` is valid game state
+  - `pieces` contains valid BlokusPiece objects
+- `evaluate_position()`:
+  - `board` represents valid game state
+
+### Postconditions (Guaranteed After Method Call)
+- `calculate_move()`:
+  - Returned move is valid (passes validation) OR None
+  - If move returned, player still has that piece in pieces
+  - If None returned, player should call `pass_turn()`
+- `get_available_moves()`:
+  - Returned list contains only valid moves
+  - No move in list violates Blokus rules
+- `evaluate_position()`:
+  - Returns consistent value for identical board states
+  - Higher score indicates better position for this player
+
+### Thread Safety
+- `calculate_move()` may perform long-running computation
+- UI thread must not block while AI is calculating
+- Use async/threading to prevent UI freezing
+- Multiple AI players can calculate simultaneously
