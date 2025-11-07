@@ -15,12 +15,13 @@ The project focuses on educational and entertainment value, demonstrating AI str
 - **Testing Framework**: pytest >= 8.4.2
 - **Test Coverage**: pytest-cov >= 7.0.0
 - **Code Formatting**: black >= 25.9.0 (88 character line length)
-- **Linting**: flake8 >= 7.3.0 (E203, W503 ignored)
+- **Linting**: ruff >= 0.1.0 (fast, auto-fixing linter replacing flake8)
 - **Type Checking**: mypy >= 1.18.2 (strict mode enabled)
-- **Build Tool**: uv (optional, for dependency management)
+- **Pre-commit Hooks**: pre-commit >= 3.0.0 (automated quality checks)
+- **Build Tool**: uv (primary dependency management)
 
 **Runtime Dependencies**: None (uses only Python standard library)
-**Dev Dependencies**: black, flake8, mypy, pytest, pytest-cov (for development only)
+**Dev Dependencies**: black, ruff, pre-commit, mypy, pytest, pytest-cov (for development only)
 
 ## Project Conventions
 
@@ -28,7 +29,7 @@ The project focuses on educational and entertainment value, demonstrating AI str
 - **Line Length**: 88 characters (Black default)
 - **Python Version**: 3.11+ (minimum version check enforced)
 - **Formatting**: Black for automatic formatting
-- **Linting**: flake8 with max-line-length=88, ignoring E203 and W503
+- **Linting**: ruff with auto-fixing (fast, modern linter replacing flake8)
 - **Type Hints**: Strict mypy enforcement with:
   - `disallow_untyped_defs = true`
   - `disallow_incomplete_defs = true`
@@ -36,7 +37,15 @@ The project focuses on educational and entertainment value, demonstrating AI str
   - `no_implicit_optional = true`
   - `strict_equality = true`
 - **Naming**: Standard Python conventions (snake_case for functions/variables, PascalCase for classes)
-- **Imports**: Standard library organized by PEP 8 (tkinter imports explicitly allowed to fail)
+- **Imports**: Automatic import sorting via ruff's isort integration
+- **Pre-commit**: Automated quality checks run before each commit
+
+**Quality Assurance Workflow**:
+1. Pre-commit hooks automatically validate all changes
+2. ruff fixes auto-fixable issues instantly (<200ms execution)
+3. Black ensures consistent formatting across the codebase
+4. Mypy validates type annotations with strict checking
+5. Commits are blocked if critical issues are detected
 
 ### Architecture Patterns
 

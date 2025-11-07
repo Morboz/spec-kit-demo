@@ -37,11 +37,40 @@ tests/
 
 ## Commands
 
-cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] pytest [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] ruff check .
+```bash
+# Development setup
+uv sync --dev              # Install all dependencies
+pre-commit install         # Install git hooks
+
+# Code quality checks
+uv run ruff check .        # Run ruff linting
+uv run ruff check --fix .  # Auto-fix ruff issues
+uv run black .             # Format code with black
+uv run mypy .              # Run type checking
+pre-commit run --all-files # Run all pre-commit hooks
+
+# Testing
+uv run pytest              # Run all tests
+uv run pytest tests/unit/ # Run unit tests only
+uv run pytest tests/integration/ # Run integration tests only
+```
 
 ## Code Style
 
-Python 3.11+ (portable, rapid prototyping, good game libraries): Follow standard conventions
+- **Line Length**: 88 characters (Black default)
+- **Python Version**: 3.11+ (minimum version check enforced)
+- **Formatting**: Black for automatic formatting
+- **Linting**: Ruff with auto-fixing (replaces flake8)
+- **Type Hints**: Strict mypy enforcement
+- **Import Sorting**: Ruff's isort integration
+- **Pre-commit**: Automated hooks run before each commit
+
+**Quality Workflow**:
+1. Code changes trigger pre-commit hooks automatically
+2. Ruff fixes auto-fixable issues instantly
+3. Black ensures consistent formatting
+4. Mypy validates type annotations
+5. Commit only succeeds if all checks pass
 
 ## Recent Changes
 - 003-fix-ai-player: Added Python 3.11+ + tkinter (standard library), pytest (testing)
