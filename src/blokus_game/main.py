@@ -1137,9 +1137,9 @@ class BlokusApp:
         winners = self.game_state.get_winners()
 
         # Build results message with better formatting
-        results_msg = "╔" + "═" * 48 + "╗\n"
+        results_msg = "╔" + "═" * 32 + "╗\n"
         results_msg += "║" + " " * 16 + "游戏结束" + " " * 16 + "║\n"
-        results_msg += "╚" + "═" * 48 + "╝\n\n"
+        results_msg += "╚" + "═" * 32 + "╝\n\n"
 
         results_msg += "📊 最终得分排名:\n"
         results_msg += "─" * 50 + "\n"

@@ -55,7 +55,7 @@ class GameConfig:
     # UI settings
     window_width: int = 1500
     window_height: int = 800
-    cell_size: int = 28
+    cell_size: int = 23
     show_grid_lines: bool = True
     show_coordinates: bool = False
     animation_speed: int = 100  # milliseconds
@@ -266,7 +266,7 @@ class GameConfig:
         config.max_players = data.get("max_players", 4)
         config.window_width = data.get("window_width", 1200)
         config.window_height = data.get("window_height", 800)
-        config.cell_size = data.get("cell_size", 30)
+        config.cell_size = data.get("cell_size", 25)
         config.current_color_scheme = data.get("current_color_scheme", "default")
 
         # Load players
@@ -356,7 +356,7 @@ def create_config_from_preset(preset_name: str) -> GameConfig:
         config = GameConfig.create_default_four_player()
         config.current_color_scheme = "high_contrast"
         config.show_grid_lines = True
-        config.cell_size = 35
+        config.cell_size = 25
         return config
     else:
         return GameConfig.create_default_four_player()
