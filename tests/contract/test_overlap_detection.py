@@ -4,11 +4,10 @@ This test validates that pieces cannot overlap with any existing
 pieces on the board, regardless of player.
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
-from src.models.game_state import GameState
 from src.game.rules import BlokusRules
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestOverlapDetection:
@@ -38,9 +37,7 @@ class TestOverlapDetection:
         # At (7, 6): positions are (7, 6), (7, 7), (7, 8), (8, 8)
         # Diagonal contact with I2 at (5, 5): (8, 8) touches (7, 7) diagonally ✓
         piece2 = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 7, 6
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 7, 6)
 
         # Then: Valid
         assert result.is_valid is True
@@ -65,9 +62,7 @@ class TestOverlapDetection:
 
         # When: Second piece tries to overlap at (5, 5)
         piece2 = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 5, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 5, 5)
 
         # Then: Invalid
         assert result.is_valid is False
@@ -125,9 +120,7 @@ class TestOverlapDetection:
 
         # When: I2 piece tries to overlap at one square
         piece2 = player.get_piece("I2")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 5, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 5, 5)
 
         # Then: Invalid
         assert result.is_valid is False
@@ -156,9 +149,7 @@ class TestOverlapDetection:
         # At (7, 6): positions are (7, 6), (8, 6), (8, 7)
         # Diagonal contact with I2 at (5, 5): (8, 7) touches (7, 6) diagonally ✓
         piece2 = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 7, 6
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 7, 6)
 
         # Then: Valid (adjacent but not overlapping)
         assert result.is_valid is True
@@ -187,9 +178,7 @@ class TestOverlapDetection:
         # At (7, 6): positions are (7, 6), (7, 7), (7, 8), (8, 8)
         # Diagonal contact with I2 at (5, 5): (8, 8) touches (7, 7) diagonally ✓
         piece2 = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 7, 6
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 7, 6)
 
         # Then: Valid (diagonal, not overlapping)
         assert result.is_valid is True
@@ -214,9 +203,7 @@ class TestOverlapDetection:
 
         # When: Overlap at (10, 10)
         piece2 = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 10, 10
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 10, 10)
 
         # Then: Error includes position
         assert result.is_valid is False
@@ -243,9 +230,7 @@ class TestOverlapDetection:
 
         # When: New L4 piece overlaps at multiple points
         piece2 = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 10, 10
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 10, 10)
 
         # Then: Overlap detected
         assert result.is_valid is False
@@ -274,9 +259,7 @@ class TestOverlapDetection:
         # At (7, 6): positions are (7, 6), (8, 6), (8, 7)
         # Diagonal contact with I2 at (5, 5): (8, 7) touches (7, 6) diagonally ✓
         piece2 = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 7, 6
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 7, 6)
 
         # Then: Valid (corner touch, not overlap)
         assert result.is_valid is True
@@ -302,9 +285,7 @@ class TestOverlapDetection:
 
         # When: L4 piece tries to overlap
         piece2 = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 10, 10
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 10, 10)
 
         # Then: Overlap detected
         assert result.is_valid is False
@@ -368,9 +349,7 @@ class TestOverlapDetection:
 
         # When: Try overlapping placement
         piece2 = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 5, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 5, 5)
 
         # Then: Placement prevented, no new squares added
         assert result.is_valid is False
@@ -397,9 +376,7 @@ class TestOverlapDetection:
 
         # When: Small piece tries to overlap
         piece2 = player.get_piece("I1")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 7, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 7, 5)
 
         # Then: Overlap detected
         assert result.is_valid is False
@@ -425,9 +402,7 @@ class TestOverlapDetection:
 
         # When: Rotated piece overlaps
         piece2 = player.get_piece("L4").rotate(90)
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 5, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 5, 5)
 
         # Then: Overlap detected
         assert result.is_valid is False

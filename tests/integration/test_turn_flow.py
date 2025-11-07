@@ -4,11 +4,10 @@ This test validates the entire turn-based gameplay flow from start to finish,
 including piece placement, turn advancement, and round management.
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
-from src.models.game_state import GameState
 from src.game.game_loop import GameLoop
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestTurnFlowIntegration:
@@ -218,7 +217,29 @@ class TestTurnFlowIntegration:
 
         # When: Player 2 is eliminated (no pieces left)
         # Simulate by placing all their pieces
-        for piece_name in ["I1", "V3", "L4", "T5", "Z5", "F5", "P5", "W5", "U5", "X5", "Y5", "I2", "I3", "I4", "I5", "L5", "T4", "V4", "V5", "T4", "P5"]:
+        for piece_name in [
+            "I1",
+            "V3",
+            "L4",
+            "T5",
+            "Z5",
+            "F5",
+            "P5",
+            "W5",
+            "U5",
+            "X5",
+            "Y5",
+            "I2",
+            "I3",
+            "I4",
+            "I5",
+            "L5",
+            "T4",
+            "V4",
+            "V5",
+            "T4",
+            "P5",
+        ]:
             if player2.has_pieces_remaining():
                 piece = player2.get_piece(piece_name)
                 if piece and not piece.is_placed:

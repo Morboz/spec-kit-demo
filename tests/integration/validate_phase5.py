@@ -10,10 +10,11 @@ This script validates that all Phase 5 (Difficulty Settings) requirements are me
 import os
 import tempfile
 from pathlib import Path
-from src.models.game_mode import GameMode, GameModeType
-from src.models.ai_config import Difficulty, AIConfig
+
+from src.models.ai_config import AIConfig, Difficulty
 from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+from src.models.game_mode import GameMode, GameModeType
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 
 
 def validate_t058_easy_vs_hard_behavior():
@@ -32,8 +33,12 @@ def validate_t058_easy_vs_hard_behavior():
     hard_ai = AIPlayer(2, StrategicStrategy(), "red")
 
     # Check strategy types
-    assert isinstance(easy_ai.strategy, RandomStrategy), "Easy AI should use RandomStrategy"
-    assert isinstance(hard_ai.strategy, StrategicStrategy), "Hard AI should use StrategicStrategy"
+    assert isinstance(
+        easy_ai.strategy, RandomStrategy
+    ), "Easy AI should use RandomStrategy"
+    assert isinstance(
+        hard_ai.strategy, StrategicStrategy
+    ), "Hard AI should use StrategicStrategy"
     print("✓ Easy AI uses RandomStrategy")
     print("✓ Hard AI uses StrategicStrategy")
 
@@ -53,7 +58,7 @@ def validate_t058_easy_vs_hard_behavior():
     stats = easy_ai.strategy.get_cache_stats()
     assert "hits" in stats
     assert "misses" in stats
-    print(f"✓ Easy AI has caching (stats available)")
+    print("✓ Easy AI has caching (stats available)")
     print(f"  Cache size: {stats['size']}")
 
     print("\n✅ T058 PASSED: Easy AI makes simpler/lower-value moves than Hard AI")
@@ -79,14 +84,16 @@ def validate_t059_difficulty_persistence():
 
         try:
             # Mock the home directory
-            os.environ['HOME'] = tmpdir
+            os.environ["HOME"] = tmpdir
             Path(tmpdir).mkdir(parents=True, exist_ok=True)
 
             # Create a game mode instance for saving
             game_mode = GameMode(GameModeType.SINGLE_AI, Difficulty.HARD)
 
             # Save preferences for different modes
-            game_mode.save_difficulty_preference(GameModeType.SINGLE_AI, Difficulty.HARD)
+            game_mode.save_difficulty_preference(
+                GameModeType.SINGLE_AI, Difficulty.HARD
+            )
             game_mode.save_difficulty_preference(GameModeType.THREE_AI, Difficulty.EASY)
 
             print("✓ Saved difficulty preferences")
@@ -100,8 +107,12 @@ def validate_t059_difficulty_persistence():
             single_ai_pref = GameMode.get_difficulty_preference(GameModeType.SINGLE_AI)
             three_ai_pref = GameMode.get_difficulty_preference(GameModeType.THREE_AI)
 
-            assert single_ai_pref == Difficulty.HARD, "Single AI preference should be HARD"
-            assert three_ai_pref == Difficulty.EASY, "Three AI preference should be EASY"
+            assert (
+                single_ai_pref == Difficulty.HARD
+            ), "Single AI preference should be HARD"
+            assert (
+                three_ai_pref == Difficulty.EASY
+            ), "Three AI preference should be EASY"
             print(f"✓ Single AI preference loaded: {single_ai_pref.value}")
             print(f"✓ Three AI preference loaded: {three_ai_pref.value}")
 
@@ -109,8 +120,12 @@ def validate_t059_difficulty_persistence():
             single_ai_mode = GameMode.single_ai()
             three_ai_mode = GameMode.three_ai()
 
-            assert single_ai_mode.difficulty == Difficulty.HARD, "Should use saved preference"
-            assert three_ai_mode.difficulty == Difficulty.EASY, "Should use saved preference"
+            assert (
+                single_ai_mode.difficulty == Difficulty.HARD
+            ), "Should use saved preference"
+            assert (
+                three_ai_mode.difficulty == Difficulty.EASY
+            ), "Should use saved preference"
             print("✓ GameMode.single_ai() uses saved preference")
             print("✓ GameMode.three_ai() uses saved preference")
 
@@ -126,9 +141,9 @@ def validate_t059_difficulty_persistence():
 
         finally:
             # Restore original HOME
-            if 'HOME' in os.environ:
-                del os.environ['HOME']
-            os.environ['HOME'] = original_home
+            if "HOME" in os.environ:
+                del os.environ["HOME"]
+            os.environ["HOME"] = original_home
 
     print("\n✅ T059 PASSED: Difficulty settings persist across game sessions")
     return True
@@ -179,7 +194,9 @@ def validate_t060_all_difficulties_all_modes():
     # Spectate should have mixed difficulties
     difficulties_used = {ai.difficulty for ai in spectate_mode.ai_players}
     assert len(difficulties_used) >= 2, "Should use mixed difficulties"
-    print(f"✓ Spectate mode: {len(spectate_mode.ai_players)} AI players with mixed difficulties")
+    print(
+        f"✓ Spectate mode: {len(spectate_mode.ai_players)} AI players with mixed difficulties"
+    )
     print(f"  Difficulties used: {', '.join(d.value for d in difficulties_used)}")
 
     # Test difficulty switching
@@ -279,11 +296,11 @@ def validate_performance_optimizations():
 
     # Verify other strategies don't have caching interface
     medium_ai = AIPlayer(2, CornerStrategy(), "red")
-    assert hasattr(medium_ai.strategy, 'get_available_moves')
+    assert hasattr(medium_ai.strategy, "get_available_moves")
     print("✓ Medium AI has move generation")
 
     hard_ai = AIPlayer(3, StrategicStrategy(), "green")
-    assert hasattr(hard_ai.strategy, 'get_available_moves')
+    assert hasattr(hard_ai.strategy, "get_available_moves")
     print("✓ Hard AI has move generation")
 
     print("\n✅ Performance optimizations validated")
@@ -312,6 +329,7 @@ def main():
         except Exception as e:
             print(f"\n❌ {test_name} FAILED: {e}")
             import traceback
+
             traceback.print_exc()
             results.append((test_name, False))
 

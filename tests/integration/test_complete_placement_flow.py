@@ -4,11 +4,10 @@ This test validates that the entire piece placement process works correctly,
 including piece selection, rotation, flip, validation, and placement.
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
-from src.models.game_state import GameState
 from src.game.placement_handler import PlacementHandler
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestCompletePlacementFlow:

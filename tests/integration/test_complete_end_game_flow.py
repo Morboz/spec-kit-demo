@@ -6,13 +6,12 @@ winner determination, and UI components working together.
 """
 
 import pytest
-from unittest.mock import Mock, patch
-from src.models.game_state import GameState, GamePhase
-from src.models.player import Player
-from src.game.game_loop import GameLoop
+
 from src.game.end_game_detector import EndGameDetector
+from src.game.game_loop import GameLoop
 from src.game.winner_determiner import WinnerDeterminer
-from src.ui.game_results import GameResults
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestCompleteEndGameFlow:
@@ -30,6 +29,7 @@ class TestCompleteEndGameFlow:
 
         # Create callback tracker
         callback_called = []
+
         def game_end_callback(gs):
             callback_called.append(gs)
 
@@ -189,6 +189,7 @@ class TestCompleteEndGameFlow:
 
         # Create callback tracker
         callback_data = []
+
         def game_end_callback(gs):
             callback_data.append(gs)
 

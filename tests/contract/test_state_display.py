@@ -4,11 +4,10 @@ This test validates that UI components can correctly display and update
 game state information including current player, scores, and piece inventory.
 """
 
-import pytest
-from src.models.game_state import GameState
-from src.models.player import Player
 from src.models.board import Board
+from src.models.game_state import GameState
 from src.models.piece import Piece
+from src.models.player import Player
 
 
 class TestStateDisplay:
@@ -233,6 +232,7 @@ class TestStateDisplay:
 
         # When: Game starts
         from src.models.game_state import GamePhase
+
         game_state.phase = GamePhase.PLAYING
         assert game_state.phase.value == 2  # PLAYING
         assert game_state.phase.name == "PLAYING"

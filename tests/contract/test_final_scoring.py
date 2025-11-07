@@ -8,10 +8,9 @@ according to Blokus scoring rules:
 - +15 bonus for placing all pieces
 """
 
-import pytest
+from src.game.scoring import ScoringSystem
 from src.models.game_state import GameState
 from src.models.player import Player
-from src.game.scoring import ScoringSystem
 
 
 class TestFinalScoring:

@@ -5,22 +5,24 @@ This module defines the AIPlayer class which represents an AI-controlled
 player in the Blokus game with configurable strategy.
 """
 
-from typing import Optional, List, Dict
-import time
 import logging
-from src.services.ai_strategy import AIStrategy, Move
-from src.models.piece import Piece
+import time
+
 from src.config.pieces import get_full_piece_set
+from src.models.piece import Piece
+from src.services.ai_strategy import AIStrategy, Move
 
 # Configure logger for AI players
-ai_logger = logging.getLogger('ai_player')
+ai_logger = logging.getLogger("ai_player")
 ai_logger.setLevel(logging.DEBUG)
 
 # Create console handler if not already present
 if not ai_logger.handlers:
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     handler.setFormatter(formatter)
     ai_logger.addHandler(handler)
 
@@ -75,7 +77,7 @@ class AIPlayer:
         self._calculation_start_time = None
 
         # Performance metrics tracking
-        self._calculation_times: List[float] = []
+        self._calculation_times: list[float] = []
         self._move_count = 0
         self._pass_count = 0
         self._timeout_count = 0
@@ -104,10 +106,10 @@ class AIPlayer:
 
     def calculate_move(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         time_limit: int = None,
-    ) -> Optional[Move]:
+    ) -> Move | None:
         """
         Calculate best move for current game state.
 
@@ -146,11 +148,15 @@ class AIPlayer:
                 ai_logger.info(f"AI Player {self.player_id}: No valid moves available")
                 # Record pass (no moves available)
                 elapsed = time.time() - start_time
-                self._record_calculation_time(elapsed, timed_out=False, used_fallback=False)
+                self._record_calculation_time(
+                    elapsed, timed_out=False, used_fallback=False
+                )
                 self._pass_count += 1
                 return None
 
-            ai_logger.debug(f"AI Player {self.player_id}: Found {len(available_moves)} valid moves")
+            ai_logger.debug(
+                f"AI Player {self.player_id}: Found {len(available_moves)} valid moves"
+            )
 
             # Calculate move with timeout
             move = self.strategy.calculate_move(
@@ -177,9 +183,9 @@ class AIPlayer:
                 else:
                     # Timeout with no move - try fallback to first available move
                     ai_logger.info(
-                        f"AI Player {self.player_id}: Timeout, falling back to simple move"
+                        f"AI Player {self.player_id}: Timeout, fallback to simple move"
                     )
-                    # For timeout, just return first available move (simplest valid move)
+                    # For timeout, return first available move (simplest valid move)
                     move = available_moves[0] if available_moves else None
                     used_fallback = True
 
@@ -187,14 +193,16 @@ class AIPlayer:
             if move and not move.is_pass:
                 if move.piece not in self.pieces:
                     ai_logger.error(
-                        f"AI Player {self.player_id}: Invalid move - piece not in inventory"
+                        f"AI Player {self.player_id}: Invalid move - piece missing"
                     )
                     # Fall back to a valid move
                     move = available_moves[0] if available_moves else None
                     used_fallback = True
 
             # Record performance metrics
-            self._record_calculation_time(elapsed, timed_out=timed_out, used_fallback=used_fallback)
+            self._record_calculation_time(
+                elapsed, timed_out=timed_out, used_fallback=used_fallback
+            )
 
             # Update counters
             if move:
@@ -207,7 +215,7 @@ class AIPlayer:
                 else:
                     self._move_count += 1
                     ai_logger.info(
-                        f"AI Player {self.player_id}: Calculated move in {elapsed:.2f}s "
+                        f"AI Player {self.player_id}: Calculated in {elapsed:.2f}s "
                         f"(piece={move.piece.name if move.piece else 'PASS'})"
                     )
             else:
@@ -221,8 +229,8 @@ class AIPlayer:
         except Exception as e:
             elapsed = time.time() - self._calculation_start_time
             ai_logger.error(
-                f"AI Player {self.player_id}: Calculation error after {elapsed:.2f}s: {e}",
-                exc_info=True
+                f"AI Player {self.player_id}: Calculation error after {elapsed:.2f}s: {e}",  # noqa: E501
+                exc_info=True,
             )
 
             # Record the error calculation
@@ -233,13 +241,13 @@ class AIPlayer:
                 available_moves = self.get_available_moves(board, pieces)
                 if available_moves:
                     ai_logger.info(
-                        f"AI Player {self.player_id}: Falling back to first available move"
+                        f"AI Player {self.player_id}: Falling back to first available move"  # noqa: E501
                     )
                     self._fallback_count += 1
                     return available_moves[0]
             except Exception as fallback_error:
                 ai_logger.error(
-                    f"AI Player {self.player_id}: Fallback also failed: {fallback_error}"
+                    f"AI Player {self.player_id}: Fallback also failed: {fallback_error}"  # noqa: E501
                 )
 
             return None
@@ -247,16 +255,16 @@ class AIPlayer:
             self.is_calculating = False
             final_elapsed = time.time() - self._calculation_start_time
             ai_logger.debug(
-                f"AI Player {self.player_id}: Calculation finished (total time={final_elapsed:.2f}s)"
+                f"AI Player {self.player_id}: Calculation finished (time={final_elapsed:.2f}s)"  # noqa: E501
             )
 
     def calculate_move_with_game_state(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         game_state,
         time_limit: int = None,
-    ) -> Optional[Move]:
+    ) -> Move | None:
         """
         Calculate best move with game state for rule validation.
 
@@ -270,7 +278,7 @@ class AIPlayer:
             Move object with piece, position, and rotation, or None if no valid moves
         """
         from src.game.rules import BlokusRules
-        
+
         self.is_calculating = True
         self._calculation_start_time = time.time()
 
@@ -282,23 +290,23 @@ class AIPlayer:
         try:
             # Get valid moves using proper rule validation
             valid_moves = []
-            
+
             for piece in pieces:
                 if piece.is_placed:
                     continue
-                    
+
                 # Try all rotations and flips
                 for flip in [False, True]:
                     # Create flipped version if needed
                     working_piece = piece.flip() if flip else piece
-                    
+
                     for rotation in [0, 90, 180, 270]:
                         # Create rotated version
                         if rotation == 0:
                             test_piece = working_piece
                         else:
                             test_piece = working_piece.rotate(rotation)
-                        
+
                         # Try positions on board
                         for row in range(20):
                             for col in range(20):
@@ -306,43 +314,54 @@ class AIPlayer:
                                 result = BlokusRules.validate_move(
                                     game_state, self.player_id, test_piece, row, col
                                 )
-                                
+
                                 if result.is_valid:
                                     valid_moves.append(
-                                        Move(piece, (row, col), rotation, self.player_id, flip=flip)
+                                        Move(
+                                            piece,
+                                            (row, col),
+                                            rotation,
+                                            self.player_id,
+                                            flip=flip,
+                                        )
                                     )
-            
+
             if not valid_moves:
-                ai_logger.info(f"AI Player {self.player_id}: No valid moves with rule validation")
+                ai_logger.info(
+                    f"AI Player {self.player_id}: No valid moves with rule validation"
+                )
                 elapsed = time.time() - self._calculation_start_time
-                self._record_calculation_time(elapsed, timed_out=False, used_fallback=False)
+                self._record_calculation_time(
+                    elapsed, timed_out=False, used_fallback=False
+                )
                 self._pass_count += 1
                 return None
-            
-            ai_logger.debug(f"AI Player {self.player_id}: Found {len(valid_moves)} rule-valid moves")
-            
+
+            ai_logger.debug(
+                f"AI Player {self.player_id}: Found {len(valid_moves)} rule-valid moves"
+            )
+
             # Use strategy to pick best move from valid ones
             # For now, use simple scoring from strategy
             best_move = None
             best_score = float("-inf")
-            
+
             for move in valid_moves:
                 score = self.strategy._evaluate_move_score(board, move, self.player_id)
                 if score > best_score:
                     best_score = score
                     best_move = move
-            
+
             elapsed = time.time() - self._calculation_start_time
             self._record_calculation_time(elapsed, timed_out=False, used_fallback=False)
             self._move_count += 1
-            
+
             return best_move
-            
+
         except Exception as e:
             elapsed = time.time() - self._calculation_start_time
             ai_logger.error(
-                f"AI Player {self.player_id}: Calculation error: {e}",
-                exc_info=True
+                f"AI Player {self.player_id}: Calculation error: {e}", exc_info=True
             )
             self._record_calculation_time(elapsed, timed_out=False, used_fallback=True)
             return None
@@ -359,8 +378,8 @@ class AIPlayer:
         return True
 
     def get_available_moves(
-        self, board: List[List[int]], pieces: List[Piece]
-    ) -> List[Move]:
+        self, board: list[list[int]], pieces: list[Piece]
+    ) -> list[Move]:
         """
         Generate all valid moves for current state.
 
@@ -378,7 +397,7 @@ class AIPlayer:
         """
         return self.strategy.get_available_moves(board, pieces, self.player_id)
 
-    def evaluate_position(self, board: List[List[int]]) -> float:
+    def evaluate_position(self, board: list[list[int]]) -> float:
         """
         Evaluate board position from this player's perspective.
 
@@ -424,17 +443,16 @@ class AIPlayer:
         """
         return len(self.pieces) > 0
 
-
     # Compatibility methods to match Player interface
-    def get_all_pieces(self) -> List[Piece]:
+    def get_all_pieces(self) -> list[Piece]:
         """Return all Piece instances for this AI player."""
         return list(self.pieces)
 
-    def get_unplaced_pieces(self) -> List[Piece]:
+    def get_unplaced_pieces(self) -> list[Piece]:
         """Return pieces that have not been placed yet."""
         return [p for p in self.pieces if not getattr(p, "is_placed", False)]
 
-    def get_placed_pieces(self) -> List[Piece]:
+    def get_placed_pieces(self) -> list[Piece]:
         """Return pieces that have been placed."""
         return [p for p in self.pieces if getattr(p, "is_placed", False)]
 
@@ -468,11 +486,11 @@ class AIPlayer:
         """Subtract points from the player's score (compatibility with Player class)."""
         self.score -= points
 
-    def get_piece_names(self) -> List[str]:
+    def get_piece_names(self) -> list[str]:
         """Return sorted list of piece names."""
         return sorted(p.name for p in self.pieces)
 
-    def get_piece(self, piece_name: str) -> Optional[Piece]:
+    def get_piece(self, piece_name: str) -> Piece | None:
         """Return a Piece by name, or None if not found (compat with Player)."""
         return next((p for p in self.pieces if p.name == piece_name), None)
 
@@ -492,11 +510,13 @@ class AIPlayer:
 
         # Otherwise assume Piece instance
         if piece not in self.pieces:
-            raise ValueError(f"Attempted to remove piece {getattr(piece, 'name', piece)} not in inventory")
+            raise ValueError(
+                f"Attempted to remove piece {getattr(piece, 'name', piece)} not in inventory"  # noqa: E501
+            )
         self.pieces.remove(piece)
         return piece
 
-    def get_elapsed_calculation_time(self) -> Optional[float]:
+    def get_elapsed_calculation_time(self) -> float | None:
         """
         Get elapsed time for current calculation.
 
@@ -507,7 +527,7 @@ class AIPlayer:
             return None
         return time.time() - self._calculation_start_time
 
-    def get_performance_metrics(self) -> Dict[str, float]:
+    def get_performance_metrics(self) -> dict[str, float]:
         """
         Get comprehensive performance metrics for this AI player.
 
@@ -562,8 +582,8 @@ class AIPlayer:
             f"(min: {metrics['min_calculation_time']}s, "
             f"max: {metrics['max_calculation_time']}s)\n"
             f"  Total Time: {metrics['total_calculation_time']}s\n"
-            f"  Timeouts: {metrics['timeout_count']} ({metrics['timeout_rate_percent']}%)\n"
-            f"  Fallbacks: {metrics['fallback_count']} ({metrics['fallback_rate_percent']}%)"
+            f"  Timeouts: {metrics['timeout_count']} ({metrics['timeout_rate_percent']}%)\n"  # noqa: E501
+            f"  Fallbacks: {metrics['fallback_count']} ({metrics['fallback_rate_percent']}%)"  # noqa: E501
         )
 
     def reset_performance_metrics(self):
@@ -577,7 +597,9 @@ class AIPlayer:
 
         ai_logger.debug(f"AI Player {self.player_id}: Performance metrics reset")
 
-    def _record_calculation_time(self, elapsed_time: float, timed_out: bool = False, used_fallback: bool = False):
+    def _record_calculation_time(
+        self, elapsed_time: float, timed_out: bool = False, used_fallback: bool = False
+    ):
         """
         Record calculation time and update counters.
 
@@ -660,12 +682,18 @@ class AIPlayer:
             try:
                 diff_enum = AIDifficulty(difficulty)
             except ValueError:
-                raise ValueError(f"Invalid difficulty: {difficulty}. Must be Easy, Medium, or Hard")
+                raise ValueError(
+                    f"Invalid difficulty: {difficulty}. Must be Easy, Medium, or Hard"
+                )
         else:
             diff_enum = difficulty
 
         # Create new strategy based on difficulty
-        from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+        from src.services.ai_strategy import (
+            CornerStrategy,
+            RandomStrategy,
+            StrategicStrategy,
+        )
 
         if diff_enum == AIDifficulty.EASY:
             self.strategy = RandomStrategy()
@@ -678,4 +706,7 @@ class AIPlayer:
 
     def __repr__(self):
         """String representation of AI player."""
-        return f"AIPlayer(id={self.player_id}, name='{self.name}', difficulty='{self.difficulty}')"
+        return (
+            f"AIPlayer(id={self.player_id}, name='{self.name}', "
+            f"difficulty='{self.difficulty}')"
+        )

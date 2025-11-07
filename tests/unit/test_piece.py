@@ -1,6 +1,7 @@
 """Unit tests for Piece model."""
 
 import pytest
+
 from src.config.pieces import PIECE_DEFINITIONS
 from src.models.piece import Piece
 

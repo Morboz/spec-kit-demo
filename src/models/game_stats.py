@@ -5,16 +5,16 @@ This module provides functionality for tracking and managing game statistics
 during AI matches, particularly for spectator mode.
 """
 
-from typing import Dict, List, Optional, Any
+import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-import json
-import time
+from typing import Any
 
 
 class StatType(Enum):
     """Type of statistic being tracked."""
+
     MOVE_COUNT = "move_count"
     PASS_COUNT = "pass_count"
     PIECES_PLACED = "pieces_placed"
@@ -43,10 +43,10 @@ class PlayerStats:
     passes: int = 0
     pieces_placed: int = 0
     total_score: int = 0
-    ai_calculation_times: List[float] = field(default_factory=list)
-    difficulties: List[str] = field(default_factory=list)
+    ai_calculation_times: list[float] = field(default_factory=list)
+    difficulties: list[str] = field(default_factory=list)
 
-    def add_move(self, ai_time: Optional[float] = None, difficulty: Optional[str] = None):
+    def add_move(self, ai_time: float | None = None, difficulty: str | None = None):
         """Record a move made by this player."""
         self.moves_made += 1
         self.pieces_placed += 1
@@ -55,7 +55,7 @@ class PlayerStats:
         if difficulty:
             self.difficulties.append(difficulty)
 
-    def add_pass(self, ai_time: Optional[float] = None, difficulty: Optional[str] = None):
+    def add_pass(self, ai_time: float | None = None, difficulty: str | None = None):
         """Record a pass turn."""
         self.passes += 1
         if ai_time is not None:
@@ -79,7 +79,7 @@ class PlayerStats:
             return 0.0
         return max(self.ai_calculation_times)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "player_id": self.player_id,
@@ -89,7 +89,7 @@ class PlayerStats:
             "total_score": self.total_score,
             "average_ai_time": round(self.get_average_ai_time(), 3),
             "max_ai_time": round(self.get_max_ai_time(), 3),
-            "difficulties_used": list(set(self.difficulties))
+            "difficulties_used": list(set(self.difficulties)),
         }
 
 
@@ -104,20 +104,20 @@ class GameStatistics:
     # Game metadata
     game_mode: str
     start_time: datetime
-    end_time: Optional[datetime] = None
+    end_time: datetime | None = None
 
     # Turn tracking
     total_turns: int = 0
-    turn_history: List[Dict[str, Any]] = field(default_factory=list)
+    turn_history: list[dict[str, Any]] = field(default_factory=list)
 
     # Player statistics
-    player_stats: Dict[int, PlayerStats] = field(default_factory=dict)
+    player_stats: dict[int, PlayerStats] = field(default_factory=dict)
 
     # Game events
-    events: List[Dict[str, Any]] = field(default_factory=list)
+    events: list[dict[str, Any]] = field(default_factory=list)
 
     # Winner tracking
-    winner_player_id: Optional[int] = None
+    winner_player_id: int | None = None
 
     def __post_init__(self):
         """Initialize player stats for all 4 players."""
@@ -128,10 +128,10 @@ class GameStatistics:
     def record_move(
         self,
         player_id: int,
-        piece_id: Optional[str] = None,
-        position: Optional[tuple] = None,
-        ai_time: Optional[float] = None,
-        difficulty: Optional[str] = None
+        piece_id: str | None = None,
+        position: tuple | None = None,
+        ai_time: float | None = None,
+        difficulty: str | None = None,
     ):
         """
         Record a move in the game.
@@ -156,7 +156,7 @@ class GameStatistics:
             "ai_time": ai_time,
             "piece_id": piece_id,
             "position": position,
-            "difficulty": difficulty
+            "difficulty": difficulty,
         }
         self.turn_history.append(event)
         self.events.append(event)
@@ -164,8 +164,8 @@ class GameStatistics:
     def record_pass(
         self,
         player_id: int,
-        ai_time: Optional[float] = None,
-        difficulty: Optional[str] = None
+        ai_time: float | None = None,
+        difficulty: str | None = None,
     ):
         """
         Record a pass turn.
@@ -186,12 +186,12 @@ class GameStatistics:
             "player_id": player_id,
             "timestamp": datetime.now().isoformat(),
             "ai_time": ai_time,
-            "difficulty": difficulty
+            "difficulty": difficulty,
         }
         self.turn_history.append(event)
         self.events.append(event)
 
-    def set_final_scores(self, scores: Dict[int, int]):
+    def set_final_scores(self, scores: dict[int, int]):
         """
         Set final scores for all players.
 
@@ -214,7 +214,7 @@ class GameStatistics:
             "type": "GAME_END",
             "total_turns": self.total_turns,
             "timestamp": self.end_time.isoformat(),
-            "winner": self.winner_player_id
+            "winner": self.winner_player_id,
         }
         self.events.append(event)
 
@@ -260,7 +260,7 @@ class GameStatistics:
             return self.get_player_score(self.winner_player_id)
         return 0
 
-    def get_scores_dict(self) -> Dict[int, int]:
+    def get_scores_dict(self) -> dict[int, int]:
         """
         Get all final scores.
 
@@ -269,7 +269,7 @@ class GameStatistics:
         """
         return {pid: stats.total_score for pid, stats in self.player_stats.items()}
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """
         Get game summary statistics.
 
@@ -283,11 +283,15 @@ class GameStatistics:
             "winner": self.winner_player_id,
             "winner_score": self.get_winner_score(),
             "scores": self.get_scores_dict(),
-            "total_ai_turns": sum(1 for e in self.events if e.get("type") in ["MOVE", "PASS"]),
-            "average_turn_time": round(self.get_game_duration() / max(1, self.total_turns), 2)
+            "total_ai_turns": sum(
+                1 for e in self.events if e.get("type") in ["MOVE", "PASS"]
+            ),
+            "average_turn_time": round(
+                self.get_game_duration() / max(1, self.total_turns), 2
+            ),
         }
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert to dictionary for serialization.
 
@@ -300,9 +304,11 @@ class GameStatistics:
             "end_time": self.end_time.isoformat() if self.end_time else None,
             "total_turns": self.total_turns,
             "winner_player_id": self.winner_player_id,
-            "player_stats": {pid: stats.to_dict() for pid, stats in self.player_stats.items()},
+            "player_stats": {
+                pid: stats.to_dict() for pid, stats in self.player_stats.items()
+            },
             "turn_history": self.turn_history,
-            "events": self.events
+            "events": self.events,
         }
 
     def save_to_file(self, filename: str):
@@ -312,7 +318,7 @@ class GameStatistics:
         Args:
             filename: Path to save file
         """
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(self.to_dict(), f, indent=2)
 
     @classmethod
@@ -326,13 +332,13 @@ class GameStatistics:
         Returns:
             Loaded GameStatistics instance
         """
-        with open(filename, 'r') as f:
+        with open(filename) as f:
             data = json.load(f)
 
         # Convert to GameStatistics
         stats = cls(
             game_mode=data["game_mode"],
-            start_time=datetime.fromisoformat(data["start_time"])
+            start_time=datetime.fromisoformat(data["start_time"]),
         )
 
         if data.get("end_time"):
@@ -351,7 +357,7 @@ class GameStatistics:
                 pieces_placed=ps_data.get("pieces_placed", 0),
                 total_score=ps_data.get("total_score", 0),
                 ai_calculation_times=ps_data.get("ai_calculation_times", []),
-                difficulties=ps_data.get("difficulties", [])
+                difficulties=ps_data.get("difficulties", []),
             )
 
         stats.turn_history = data.get("turn_history", [])
@@ -371,10 +377,7 @@ def create_game_statistics(game_mode: str) -> GameStatistics:
     Returns:
         New GameStatistics instance
     """
-    return GameStatistics(
-        game_mode=game_mode,
-        start_time=datetime.now()
-    )
+    return GameStatistics(game_mode=game_mode, start_time=datetime.now())
 
 
 def export_statistics(stats: GameStatistics, filename: str):
@@ -412,7 +415,10 @@ if __name__ == "__main__":
     print(f"  Mode: {stats.game_mode}")
     print(f"  Duration: {stats.get_duration_string()}")
     print(f"  Total Turns: {stats.total_turns}")
-    print(f"  Winner: Player {stats.winner_player_id} with {stats.get_winner_score()} points")
+    print(
+        f"  Winner: Player {stats.winner_player_id} with "
+        f"{stats.get_winner_score()} points"
+    )
 
     # Print player stats
     print("\nPlayer Statistics:")

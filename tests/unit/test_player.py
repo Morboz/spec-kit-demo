@@ -1,9 +1,10 @@
 """Unit tests for Player model."""
 
 import pytest
-from src.models.player import Player
-from src.models.piece import Piece
+
 from src.config.pieces import get_all_piece_names
+from src.models.piece import Piece
+from src.models.player import Player
 
 
 class TestPlayer:

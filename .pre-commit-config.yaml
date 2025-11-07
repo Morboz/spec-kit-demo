@@ -1,3 +1,4 @@
+exclude: '^(tests/|specs/)'
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -15,13 +16,17 @@ repos:
       - id: black
         language_version: python3
         args: [--line-length=88]
+        exclude: ^tests/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.0
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix, --select=E,W,F,UP]
+        args: [--fix, --exit-non-zero-on-fix, --select=E,W,F,UP,I]
+        files: '\\.py$'
+        exclude: ^tests/
       - id: ruff-format
+        files: '\\.py$'
 
   # Temporarily disabled mypy due to initial setup issues
   # - repo: https://github.com/pre-commit/mirrors-mypy

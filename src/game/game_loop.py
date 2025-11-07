@@ -5,12 +5,13 @@ This module provides the GameLoop class which manages the main game loop,
 including turn management and game end detection.
 """
 
-from typing import Optional, Callable
-from src.models.game_state import GameState
+from collections.abc import Callable
+
 from src.game.end_game_detector import EndGameDetector
-from src.game.winner_determiner import WinnerDeterminer
-from src.game.turn_manager import TurnManager
 from src.game.scoring import ScoringSystem
+from src.game.turn_manager import TurnManager
+from src.game.winner_determiner import WinnerDeterminer
+from src.models.game_state import GameState
 
 
 class GameLoop:
@@ -19,7 +20,7 @@ class GameLoop:
     def __init__(
         self,
         game_state: GameState,
-        on_game_end: Optional[Callable] = None,
+        on_game_end: Callable | None = None,
     ) -> None:
         """
         Initialize the game loop.
@@ -98,7 +99,7 @@ class GameLoop:
         """
         return self.end_game_detector.should_end_game()
 
-    def get_end_game_reason(self) -> Optional[str]:
+    def get_end_game_reason(self) -> str | None:
         """
         Get reason for game end.
 

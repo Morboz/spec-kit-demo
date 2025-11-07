@@ -7,8 +7,6 @@ for AI battle mode features and game modes.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional, Dict, Any, Callable
-import webbrowser
 
 
 class Tooltip:
@@ -25,7 +23,7 @@ class Tooltip:
         text: str,
         delay: int = 500,
         wraplength: int = 300,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize the tooltip.
@@ -96,7 +94,7 @@ class Tooltip:
             relief=tk.SOLID,
             borderwidth=1,
             font=("Arial", 9),
-            wraplength=self.wraplength
+            wraplength=self.wraplength,
         )
         label.pack()
 
@@ -119,8 +117,8 @@ class HelpDialog:
         self,
         parent: tk.Widget,
         title: str = "Help",
-        content: Optional[str] = None,
-        **kwargs
+        content: str | None = None,
+        **kwargs,
     ):
         """
         Initialize the help dialog.
@@ -180,11 +178,7 @@ class HelpDialog:
         self._create_spectator_content(spectator_frame)
 
         # Close button
-        close_btn = ttk.Button(
-            main_frame,
-            text="Close",
-            command=self.close
-        )
+        close_btn = ttk.Button(main_frame, text="Close", command=self.close)
         close_btn.pack(pady=(10, 0))
 
     def _create_modes_content(self, parent):
@@ -194,10 +188,7 @@ class HelpDialog:
 
         # Scrollable text
         text_widget = tk.Text(
-            content,
-            wrap=tk.WORD,
-            font=("Arial", 10),
-            state=tk.DISABLED
+            content, wrap=tk.WORD, font=("Arial", 10), state=tk.DISABLED
         )
         scrollbar = ttk.Scrollbar(content, orient="vertical", command=text_widget.yview)
         text_widget.configure(yscrollcommand=scrollbar.set)
@@ -216,10 +207,7 @@ class HelpDialog:
         content.pack(fill=tk.BOTH, expand=True)
 
         text_widget = tk.Text(
-            content,
-            wrap=tk.WORD,
-            font=("Arial", 10),
-            state=tk.DISABLED
+            content, wrap=tk.WORD, font=("Arial", 10), state=tk.DISABLED
         )
         scrollbar = ttk.Scrollbar(content, orient="vertical", command=text_widget.yview)
         text_widget.configure(yscrollcommand=scrollbar.set)
@@ -237,10 +225,7 @@ class HelpDialog:
         content.pack(fill=tk.BOTH, expand=True)
 
         text_widget = tk.Text(
-            content,
-            wrap=tk.WORD,
-            font=("Arial", 10),
-            state=tk.DISABLED
+            content, wrap=tk.WORD, font=("Arial", 10), state=tk.DISABLED
         )
         scrollbar = ttk.Scrollbar(content, orient="vertical", command=text_widget.yview)
         text_widget.configure(yscrollcommand=scrollbar.set)
@@ -258,10 +243,7 @@ class HelpDialog:
         content.pack(fill=tk.BOTH, expand=True)
 
         text_widget = tk.Text(
-            content,
-            wrap=tk.WORD,
-            font=("Arial", 10),
-            state=tk.DISABLED
+            content, wrap=tk.WORD, font=("Arial", 10), state=tk.DISABLED
         )
         scrollbar = ttk.Scrollbar(content, orient="vertical", command=text_widget.yview)
         text_widget.configure(yscrollcommand=scrollbar.set)
@@ -531,20 +513,20 @@ def show_help_dialog(parent: tk.Widget, title: str = "Game Help"):
 
 # Predefined tooltip texts
 TOOLTIP_TEXT = {
-    "single_ai": "Play against one AI opponent. You control position 1 (blue), AI controls position 3 (red).\nShortcut: Press F2",
-    "three_ai": "Compete against three AI opponents. You control position 1 (blue), AI controls positions 2, 3, and 4.\nShortcut: Press F3",
-    "spectate": "Watch AI vs AI battle. All 4 players are AI-controlled with mixed difficulty levels. No input required.\nShortcut: Press F4",
-    "easy": "Easy AI uses random placement. Faster moves, simpler strategy. Good for beginners.",
-    "medium": "Medium AI uses corner strategy. Balanced moves with moderate calculation time. Good for most players.",
-    "hard": "Hard AI uses strategic evaluation. Slower but more challenging. Best for expert players.",
+    "single_ai": "Play vs AI. You control position 1 (blue), AI controls position 3 (red).\nShortcut: Press F2",  # noqa: E501
+    "three_ai": "Compete vs three AI. You control position 1 (blue), AI controls 2,3,4.\nShortcut: Press F3",  # noqa: E501
+    "spectate": "Watch AI vs AI battle. 4 AI players with mixed difficulties. No input required.\nShortcut: Press F4",  # noqa: E501
+    "easy": "Easy AI uses random placement. Faster moves, simpler strategy. Good for beginners.",  # noqa: E501
+    "medium": "Medium AI uses corner strategy. Balanced moves with moderate time. Good for most players.",  # noqa: E501
+    "hard": "Hard AI uses strategic evaluation. Slower but challenging. Best for expert players.",  # noqa: E501
     "ai_thinking": "AI is calculating the best move. Please wait...",
     "turn": "Current turn number. Shows how many turns have been completed.",
     "score": "Current score. Points are awarded for each square placed on the board.",
-    "pass": "Pass your turn if you have no valid moves. Game continues with next player.",
+    "pass": "Pass your turn if you have no valid moves. Game continues with next player.",  # noqa: E501
     "restart": "Start a new game. Current game will be lost.",
-    "piece_inventory": "Your remaining pieces. Click to select, then click on board to place.",
-    "help": "Open help dialog with detailed information about game modes and controls.\nShortcut: Press F1 or H",
-    "keyboard_shortcuts": "Keyboard shortcuts help:\n• F1: Help dialog\n• F2: Single AI mode\n• F3: Three AI mode\n• F4: Spectate mode\n• R: Rotate piece\n• H: Show shortcuts",
+    "piece_inventory": "Your remaining pieces. Click to select, then click on board to place.",  # noqa: E501
+    "help": "Open help dialog with detailed info about game modes and controls.\nShortcut: Press F1 or H",  # noqa: E501
+    "keyboard_shortcuts": "Keyboard shortcuts help:\n• F1: Help dialog\n• F2: Single AI mode\n• F3: Three AI mode\n• F4: Spectate mode\n• R: Rotate piece\n• H: Show shortcuts",  # noqa: E501
 }
 
 
@@ -571,9 +553,7 @@ if __name__ == "__main__":
     add_tooltip(spectate_btn, TOOLTIP_TEXT["spectate"])
 
     help_btn = ttk.Button(
-        frame,
-        text="Show Help",
-        command=lambda: show_help_dialog(root)
+        frame, text="Show Help", command=lambda: show_help_dialog(root)
     )
     help_btn.pack(pady=(20, 5))
 
@@ -581,7 +561,7 @@ if __name__ == "__main__":
     test_btn = ttk.Button(
         frame,
         text="Show Help Dialog",
-        command=lambda: show_help_dialog(root, "AI Battle Mode Help")
+        command=lambda: show_help_dialog(root, "AI Battle Mode Help"),
     )
     test_btn.pack(pady=5)
 

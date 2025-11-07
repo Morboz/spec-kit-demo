@@ -1,6 +1,7 @@
 """Unit tests for Board model."""
 
 import pytest
+
 from src.models.board import Board
 from src.models.piece import Piece
 

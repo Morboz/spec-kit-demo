@@ -10,11 +10,10 @@ It enforces the official Blokus rules including:
 - Pieces must be within board bounds
 """
 
-from typing import List, Tuple, Set, Dict, Optional
 from src.models.board import Board
-from src.models.player import Player
-from src.models.piece import Piece
 from src.models.game_state import GameState
+from src.models.piece import Piece
+from src.models.player import Player
 
 
 class ValidationResult:
@@ -114,7 +113,7 @@ class BlokusRules:
 
     @staticmethod
     def _check_board_bounds(
-        positions: List[Tuple[int, int]], board: Board
+        positions: list[tuple[int, int]], board: Board
     ) -> ValidationResult:
         """
         Check that all positions are within board bounds.
@@ -135,7 +134,7 @@ class BlokusRules:
 
     @staticmethod
     def _check_overlap(
-        positions: List[Tuple[int, int]], board: Board
+        positions: list[tuple[int, int]], board: Board
     ) -> ValidationResult:
         """
         Check that positions don't overlap with existing pieces.
@@ -157,7 +156,7 @@ class BlokusRules:
 
     @staticmethod
     def _check_adjacency(
-        positions: List[Tuple[int, int]], player_id: int, board: Board
+        positions: list[tuple[int, int]], player_id: int, board: Board
     ) -> ValidationResult:
         """
         Check that piece doesn't have edge-to-edge contact with own pieces.
@@ -195,7 +194,7 @@ class BlokusRules:
 
     @staticmethod
     def _check_corner_connection(
-        positions: List[Tuple[int, int]], player_id: int, board: Board
+        positions: list[tuple[int, int]], player_id: int, board: Board
     ) -> ValidationResult:
         """
         Check that piece has corner-to-corner contact with at least one own piece.
@@ -240,7 +239,8 @@ class BlokusRules:
 
         return ValidationResult(
             False,
-            "Piece must touch at least one of your own pieces corner-to-corner (diagonally)",
+            "Piece must touch at least one of your own pieces "
+            "corner-to-corner (diagonally)",
         )
 
     @staticmethod
@@ -260,7 +260,7 @@ class BlokusRules:
 
     @staticmethod
     def _check_first_move_corner(
-        positions: List[Tuple[int, int]], player: Player, game_state: GameState
+        positions: list[tuple[int, int]], player: Player, game_state: GameState
     ) -> ValidationResult:
         """
         Check that first move occupies player's starting corner.
@@ -281,17 +281,16 @@ class BlokusRules:
         if (corner_row, corner_col) not in positions:
             return ValidationResult(
                 False,
-                f"First move must occupy the starting corner ({corner_row}, {corner_col})",
+                f"First move must occupy the starting corner "
+                f"({corner_row}, {corner_col})",
             )
 
-        return ValidationResult(
-            True, "First move correctly placed in starting corner"
-        )
+        return ValidationResult(True, "First move correctly placed in starting corner")
 
     @staticmethod
     def get_valid_moves(
         game_state: GameState, player_id: int, piece: Piece
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """
         Get all valid anchor positions for a piece.
 
@@ -323,7 +322,7 @@ class BlokusRules:
     @staticmethod
     def get_invalid_positions(
         game_state: GameState, player_id: int, piece: Piece
-    ) -> Dict[Tuple[int, int], str]:
+    ) -> dict[tuple[int, int], str]:
         """
         Get all invalid positions and their reasons.
 

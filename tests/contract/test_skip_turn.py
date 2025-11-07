@@ -4,10 +4,8 @@ This test validates that players can skip their turn when they have
 no valid moves, and that the game correctly handles skipped turns.
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestSkipTurnContract:
@@ -159,7 +157,6 @@ class TestSkipTurnContract:
         # Then: Player has no pieces remaining
         assert player.has_pieces_remaining() is False
         # Note: Player might need to be manually set inactive, or this could be automatic
-
 
     def test_skip_turn_can_be_undone_before_advancement(self):
         """Contract: Player can undo skip before turn advances.

@@ -5,11 +5,10 @@ This module provides enhanced visual feedback for AI thinking state,
 including animated indicators, elapsed time display, and progress tracking.
 """
 
-import tkinter as tk
-from tkinter import ttk
 import time
-from typing import Optional, Callable
-from datetime import datetime
+import tkinter as tk
+from collections.abc import Callable
+from tkinter import ttk
 
 
 class AIThinkingIndicator(ttk.Frame):
@@ -29,8 +28,8 @@ class AIThinkingIndicator(ttk.Frame):
         parent: tk.Widget,
         show_elapsed_time: bool = True,
         animation_style: str = "dots",  # "dots", "spinner", or "pulse"
-        on_timeout: Optional[Callable[[], None]] = None,
-        **kwargs
+        on_timeout: Callable[[], None] | None = None,
+        **kwargs,
     ):
         """
         Initialize the AI thinking indicator.
@@ -74,7 +73,7 @@ class AIThinkingIndicator(ttk.Frame):
             self,
             textvariable=self.status_var,
             font=("Arial", 12, "bold"),
-            foreground="orange"
+            foreground="orange",
         )
         self.status_label.pack(pady=(0, 5))
 
@@ -86,18 +85,13 @@ class AIThinkingIndicator(ttk.Frame):
         if self.show_elapsed_time:
             self.time_var = tk.StringVar(value="Elapsed: 0.0s")
             self.time_label = ttk.Label(
-                self,
-                textvariable=self.time_var,
-                font=("Arial", 9),
-                foreground="gray"
+                self, textvariable=self.time_var, font=("Arial", 9), foreground="gray"
             )
             self.time_label.pack()
 
         # Progress bar (optional, shown when timeout threshold reached)
         self.progress = ttk.Progressbar(
-            self,
-            mode='indeterminate',
-            style="AIThinking.Horizontal.TProgressbar"
+            self, mode="indeterminate", style="AIThinking.Horizontal.TProgressbar"
         )
         self.progress.pack(fill=tk.X, pady=(5, 0))
 
@@ -109,24 +103,20 @@ class AIThinkingIndicator(ttk.Frame):
         style = ttk.Style()
 
         # Configure thinking frame style
-        style.configure(
-            "AIThinking.TFrame",
-            relief="groove",
-            borderwidth=2
-        )
+        style.configure("AIThinking.TFrame", relief="groove", borderwidth=2)
 
         # Configure progress bar style
         style.configure(
             "AIThinking.Horizontal.TProgressbar",
             troughcolor="lightgray",
-            background="orange"
+            background="orange",
         )
 
     def start_thinking(
         self,
         player_name: str,
-        difficulty: Optional[str] = None,
-        estimated_time: Optional[float] = None
+        difficulty: str | None = None,
+        estimated_time: float | None = None,
     ):
         """
         Start the thinking indicator animation.
@@ -311,7 +301,7 @@ class AIThinkingIndicator(ttk.Frame):
         """
         self._timeout_threshold = max(seconds, 1.0)
 
-    def get_elapsed_time(self) -> Optional[float]:
+    def get_elapsed_time(self) -> float | None:
         """
         Get elapsed time since thinking started.
 
@@ -336,9 +326,9 @@ class ThinkingIndicatorDialog(tk.Toplevel):
         parent: tk.Widget,
         title: str = "AI Thinking",
         player_name: str = "AI Player",
-        difficulty: Optional[str] = None,
-        estimated_time: Optional[float] = None,
-        **kwargs
+        difficulty: str | None = None,
+        estimated_time: float | None = None,
+        **kwargs,
     ):
         """
         Initialize thinking indicator dialog.
@@ -363,15 +353,21 @@ class ThinkingIndicatorDialog(tk.Toplevel):
 
         # Center on parent
         self.update_idletasks()
-        x = parent.winfo_rootx() + (parent.winfo_width() // 2) - (self.winfo_width() // 2)
-        y = parent.winfo_rooty() + (parent.winfo_height() // 2) - (self.winfo_height() // 2)
+        x = (
+            parent.winfo_rootx()
+            + (parent.winfo_width() // 2)
+            - (self.winfo_width() // 2)
+        )
+        y = (
+            parent.winfo_rooty()
+            + (parent.winfo_height() // 2)
+            - (self.winfo_height() // 2)
+        )
         self.geometry(f"+{x}+{y}")
 
         # Create indicator
         self.indicator = AIThinkingIndicator(
-            self,
-            show_elapsed_time=True,
-            animation_style="dots"
+            self, show_elapsed_time=True, animation_style="dots"
         )
         self.indicator.pack(fill=tk.BOTH, expand=True)
 
@@ -398,8 +394,8 @@ class ThinkingIndicatorDialog(tk.Toplevel):
 def show_thinking_indicator(
     parent: tk.Widget,
     player_name: str,
-    difficulty: Optional[str] = None,
-    estimated_time: Optional[float] = None
+    difficulty: str | None = None,
+    estimated_time: float | None = None,
 ) -> AIThinkingIndicator:
     """
     Create and show a thinking indicator.
@@ -414,9 +410,7 @@ def show_thinking_indicator(
         AIThinkingIndicator instance
     """
     indicator = AIThinkingIndicator(
-        parent,
-        show_elapsed_time=True,
-        animation_style="dots"
+        parent, show_elapsed_time=True, animation_style="dots"
     )
     indicator.start_thinking(player_name, difficulty, estimated_time)
     return indicator
@@ -426,8 +420,8 @@ def show_thinking_dialog(
     parent: tk.Widget,
     title: str = "AI Thinking",
     player_name: str = "AI Player",
-    difficulty: Optional[str] = None,
-    estimated_time: Optional[float] = None
+    difficulty: str | None = None,
+    estimated_time: float | None = None,
 ) -> ThinkingIndicatorDialog:
     """
     Show a modal thinking dialog.
@@ -447,7 +441,7 @@ def show_thinking_dialog(
         title=title,
         player_name=player_name,
         difficulty=difficulty,
-        estimated_time=estimated_time
+        estimated_time=estimated_time,
     )
     return dialog
 
@@ -464,9 +458,7 @@ if __name__ == "__main__":
 
     # Create indicator
     indicator = AIThinkingIndicator(
-        test_frame,
-        show_elapsed_time=True,
-        animation_style="dots"
+        test_frame, show_elapsed_time=True, animation_style="dots"
     )
     indicator.pack(fill=tk.X, pady=10)
 
@@ -474,23 +466,21 @@ if __name__ == "__main__":
     start_btn = ttk.Button(
         test_frame,
         text="Start AI Thinking (5s)",
-        command=lambda: indicator.start_thinking("Player 1", "Medium", 5.0)
+        command=lambda: indicator.start_thinking("Player 1", "Medium", 5.0),
     )
     start_btn.pack(side=tk.LEFT, padx=(0, 10))
 
     # Stop button
-    stop_btn = ttk.Button(
-        test_frame,
-        text="Stop",
-        command=indicator.stop_thinking
-    )
+    stop_btn = ttk.Button(test_frame, text="Stop", command=indicator.stop_thinking)
     stop_btn.pack(side=tk.LEFT)
 
     # Test dialog button
     dialog_btn = ttk.Button(
         test_frame,
         text="Show Dialog",
-        command=lambda: show_thinking_dialog(root, "Calculating Move", "AI Player", "Hard", 3.0)
+        command=lambda: show_thinking_dialog(
+            root, "Calculating Move", "AI Player", "Hard", 3.0
+        ),
     )
     dialog_btn.pack(side=tk.RIGHT)
 

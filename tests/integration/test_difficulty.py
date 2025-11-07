@@ -5,9 +5,10 @@ Tests verify that different difficulty levels produce measurably different behav
 """
 
 import pytest
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+
 from src.config.pieces import get_piece
+from src.models.ai_player import AIPlayer
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 
 
 class TestAIDifficultyBehavior:
@@ -15,8 +16,9 @@ class TestAIDifficultyBehavior:
 
     def test_easy_ai_faster_calculation(self):
         """Test that Easy AI calculates moves faster than Hard AI."""
-        from src.config.pieces import get_full_piece_set
         import time
+
+        from src.config.pieces import get_full_piece_set
 
         board = [[0] * 20 for _ in range(20)]
         pieces = get_full_piece_set()[:10]  # Use 10 pieces for test
@@ -201,8 +203,9 @@ class TestAIDifficultyBehavior:
 
     def test_performance_comparison_over_multiple_moves(self):
         """Test performance characteristics across multiple moves."""
-        from src.config.pieces import get_full_piece_set
         import time
+
+        from src.config.pieces import get_full_piece_set
 
         # Setup
         board = [[0] * 20 for _ in range(20)]
@@ -281,8 +284,8 @@ class TestAIDifficultyBehavior:
 
     def test_difficulty_settings_work_in_full_game_context(self):
         """Test that difficulty settings integrate with game mode."""
-        from src.models.game_mode import GameMode, GameModeType
         from src.models.ai_config import Difficulty
+        from src.models.game_mode import GameMode, GameModeType
 
         # Create game mode with specific difficulty
         game_mode = GameMode.single_ai(Difficulty.HARD)
@@ -302,5 +305,5 @@ class TestAIDifficultyBehavior:
         assert all(ai.difficulty == Difficulty.EASY for ai in game_mode2.ai_players)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main([__file__])

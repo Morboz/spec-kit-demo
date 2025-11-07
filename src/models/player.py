@@ -5,16 +5,19 @@ This module defines the Player class which represents a player in the game,
 including their score, pieces, and turn state.
 """
 
-from typing import List, Optional, Set
-from src.models.piece import Piece
 from src.config.pieces import get_all_piece_names, get_player_color, get_starting_corner
+from src.models.piece import Piece
 
 
 class Player:
     """Represents a Blokus game player."""
 
     def __init__(
-        self, player_id: int, name: str, pieces: Optional[List[Piece]] = None, color: Optional[str] = None
+        self,
+        player_id: int,
+        name: str,
+        pieces: list[Piece] | None = None,
+        color: str | None = None,
     ) -> None:
         """
         Initialize a new player.
@@ -44,13 +47,13 @@ class Player:
             self.pieces = {piece.name: piece for piece in pieces}
 
         # Track placed positions for scoring
-        self.placed_positions: Set[tuple] = set()
+        self.placed_positions: set[tuple] = set()
 
         # Game state
         self.has_passed = False
         self.is_active = True
 
-    def get_piece(self, piece_name: str) -> Optional[Piece]:
+    def get_piece(self, piece_name: str) -> Piece | None:
         """
         Get a piece by name.
 
@@ -62,7 +65,7 @@ class Player:
         """
         return self.pieces.get(piece_name)
 
-    def get_all_pieces(self) -> List[Piece]:
+    def get_all_pieces(self) -> list[Piece]:
         """
         Get all pieces belonging to the player.
 
@@ -71,7 +74,7 @@ class Player:
         """
         return list(self.pieces.values())
 
-    def get_unplaced_pieces(self) -> List[Piece]:
+    def get_unplaced_pieces(self) -> list[Piece]:
         """
         Get all pieces that have not been placed on the board.
 
@@ -80,7 +83,7 @@ class Player:
         """
         return [piece for piece in self.pieces.values() if not piece.is_placed]
 
-    def get_placed_pieces(self) -> List[Piece]:
+    def get_placed_pieces(self) -> list[Piece]:
         """
         Get all pieces that have been placed on the board.
 
@@ -89,7 +92,7 @@ class Player:
         """
         return [piece for piece in self.pieces.values() if piece.is_placed]
 
-    def remove_piece(self, piece_name: str) -> Optional[Piece]:
+    def remove_piece(self, piece_name: str) -> Piece | None:
         """
         Remove a piece from the player's inventory.
 
@@ -209,7 +212,7 @@ class Player:
         """Mark the player as active."""
         self.is_active = True
 
-    def get_piece_names(self) -> List[str]:
+    def get_piece_names(self) -> list[str]:
         """
         Get a list of all piece names.
 

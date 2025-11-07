@@ -8,11 +8,12 @@ Tests that PlacementHandler.current_player is correctly updated when:
 """
 
 import pytest
-from src.models.player import Player
+
+from src.game.placement_handler import PlacementHandler
 from src.models.ai_player import AIPlayer
 from src.models.board import Board
 from src.models.game_state import GameState
-from src.game.placement_handler import PlacementHandler
+from src.models.player import Player
 from src.services.ai_strategy import RandomStrategy
 
 
@@ -114,20 +115,21 @@ class TestPlacementHandlerUpdate:
 
         # Advance back to human (skipping passed AI)
         from src.game.turn_manager import TurnManager
+
         turn_manager = TurnManager(self.game_state)
         next_player = turn_manager.advance_to_next_active_player()
 
         # Verify we're back at human
         assert next_player is not None
         print(f"DEBUG: next_player id = {next_player.player_id}")
-        
+
         # Update handler's current player
         handler.current_player = next_player
 
         # If next player is AI player 3, their I1 should be available
         # If next player is human, their I1 should be placed
         result = handler.select_piece("I1")
-        
+
         if next_player.player_id == 1:
             # Human's I1 is already placed
             assert result is False

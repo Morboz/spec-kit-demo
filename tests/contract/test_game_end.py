@@ -7,9 +7,9 @@ implementation must satisfy.
 """
 
 import pytest
-from src.models.game_state import GameState, GamePhase
+
+from src.models.game_state import GamePhase, GameState
 from src.models.player import Player
-from src.models.board import Board
 
 
 class TestGameEndDetection:

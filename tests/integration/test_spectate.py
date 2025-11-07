@@ -9,13 +9,14 @@ Tests the complete spectator mode functionality including:
 - Game completion
 """
 
-import pytest
 import time
-from unittest.mock import Mock, MagicMock, patch
-from src.models.game_mode import GameMode, GameModeType, Difficulty
-from src.models.game_stats import GameStatistics, create_game_statistics
+from unittest.mock import Mock, patch
+
+import pytest
+
+from src.models.game_mode import Difficulty, GameMode, GameModeType
+from src.models.game_stats import create_game_statistics
 from src.models.turn_controller import TurnController, TurnState
-from src.services.ai_strategy import Move
 
 
 class TestSpectateMode:
@@ -55,7 +56,11 @@ class TestSpectateMode:
 
         # Verify all difficulties are valid
         for config in game_mode.ai_players:
-            assert config.difficulty in [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD]
+            assert config.difficulty in [
+                Difficulty.EASY,
+                Difficulty.MEDIUM,
+                Difficulty.HARD,
+            ]
 
     def test_turn_controller_spectate_mode_initialization(self):
         """Test turn controller initialization for spectate mode."""
@@ -82,7 +87,7 @@ class TestSpectateMode:
         # Controller should detect AI turns
         assert controller.is_ai_turn
 
-    @patch('src.models.turn_controller.time.sleep')
+    @patch("src.models.turn_controller.time.sleep")
     def test_spectate_mode_automated_turn_progression(self, mock_sleep):
         """Test that spectate mode automatically progresses turns."""
         game_mode = GameMode.spectate_ai()
@@ -96,7 +101,9 @@ class TestSpectateMode:
         controller.start_turn()
 
         # Verify AI calculation started
-        ai_started_events = [e for e in events if e.event_type == "AI_CALCULATION_STARTED"]
+        ai_started_events = [
+            e for e in events if e.event_type == "AI_CALCULATION_STARTED"
+        ]
         assert len(ai_started_events) > 0
 
         # Verify state changed to AI_CALCULATING
@@ -307,9 +314,13 @@ class TestSpectateMode:
         stats = create_game_statistics("spectate")
 
         # Record various events
-        stats.record_move(1, piece_id="I1", position=(5, 5), ai_time=2.5, difficulty="Medium")
+        stats.record_move(
+            1, piece_id="I1", position=(5, 5), ai_time=2.5, difficulty="Medium"
+        )
         stats.record_pass(2, ai_time=1.0, difficulty="Hard")
-        stats.record_move(3, piece_id="V3", position=(10, 10), ai_time=3.2, difficulty="Easy")
+        stats.record_move(
+            3, piece_id="V3", position=(10, 10), ai_time=3.2, difficulty="Easy"
+        )
 
         # Verify turn history
         assert len(stats.turn_history) == 3
@@ -400,10 +411,10 @@ class TestSpectateMode:
         # Note: We can't fully test the UI without tkinter,
         # but we can verify the class exists and has expected methods
         assert SpectatorModeIndicator is not None
-        assert hasattr(SpectatorModeIndicator, 'update_current_player')
-        assert hasattr(SpectatorModeIndicator, 'update_turn_count')
-        assert hasattr(SpectatorModeIndicator, 'set_thinking_state')
-        assert hasattr(SpectatorModeIndicator, 'set_game_over')
+        assert hasattr(SpectatorModeIndicator, "update_current_player")
+        assert hasattr(SpectatorModeIndicator, "update_turn_count")
+        assert hasattr(SpectatorModeIndicator, "set_thinking_state")
+        assert hasattr(SpectatorModeIndicator, "set_game_over")
 
 
 if __name__ == "__main__":

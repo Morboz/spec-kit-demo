@@ -6,12 +6,18 @@ and the Difficulty enum for AI difficulty levels.
 """
 
 from enum import Enum
-from typing import Optional
-from src.services.ai_strategy import AIStrategy, RandomStrategy, CornerStrategy, StrategicStrategy
+
+from src.services.ai_strategy import (
+    AIStrategy,
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
 
 
 class Difficulty(Enum):
     """AI difficulty levels."""
+
     EASY = "Easy"
     MEDIUM = "Medium"
     HARD = "Hard"
@@ -32,8 +38,8 @@ class AIConfig:
         self,
         position: int,
         difficulty: Difficulty,
-        name: Optional[str] = None,
-        color: Optional[str] = None,
+        name: str | None = None,
+        color: str | None = None,
     ):
         """
         Initialize AI player configuration.
@@ -52,7 +58,9 @@ class AIConfig:
             raise ValueError(f"Position must be 1-4, got {position}")
 
         if not isinstance(difficulty, Difficulty):
-            raise ValueError(f"Difficulty must be a Difficulty enum, got {type(difficulty)}")
+            raise ValueError(
+                f"Difficulty must be a Difficulty enum, got {type(difficulty)}"
+            )
 
         self.position = position
         self.difficulty = difficulty
@@ -70,19 +78,19 @@ class AIConfig:
             Default color string
         """
         color_map = {
-            1: "blue",      # Bottom-left
-            2: "red",       # Bottom-right
-            3: "green",     # Top-right
-            4: "orange",    # Top-left
+            1: "blue",  # Bottom-left
+            2: "red",  # Bottom-right
+            3: "green",  # Top-right
+            4: "orange",  # Top-left
         }
         return color_map.get(position, "gray")
 
-    def create_player(self, strategy: Optional[AIStrategy] = None):
+    def create_player(self, strategy: AIStrategy | None = None):
         """
         Create AIPlayer instance from configuration.
 
         Args:
-            strategy: Strategy instance (optional, will be created from difficulty if None)
+            strategy: Strategy instance (optional, created from difficulty if None)
 
         Returns:
             Configured AIPlayer object
@@ -101,10 +109,7 @@ class AIConfig:
             raise ValueError("Strategy must implement AIStrategy interface")
 
         return AIPlayer(
-            player_id=self.position,
-            strategy=strategy,
-            color=self.color,
-            name=self.name
+            player_id=self.position, strategy=strategy, color=self.color, name=self.name
         )
 
     def _create_strategy(self) -> AIStrategy:
@@ -137,7 +142,9 @@ class AIConfig:
             ValueError: If difficulty is not valid
         """
         if not isinstance(difficulty, Difficulty):
-            raise ValueError(f"Difficulty must be a Difficulty enum, got {type(difficulty)}")
+            raise ValueError(
+                f"Difficulty must be a Difficulty enum, got {type(difficulty)}"
+            )
         self.difficulty = difficulty
 
     def set_name(self, name: str):
@@ -196,4 +203,7 @@ class AIConfig:
 
     def __repr__(self):
         """String representation of AI config."""
-        return f"AIConfig(position={self.position}, difficulty={self.difficulty.value}, name='{self.name}')"
+        return (
+            f"AIConfig(position={self.position}, difficulty={self.difficulty.value}, "
+            f"name='{self.name}')"
+        )

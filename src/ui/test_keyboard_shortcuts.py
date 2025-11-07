@@ -5,8 +5,9 @@ This script demonstrates the new game mode selection keyboard shortcuts.
 
 import tkinter as tk
 from tkinter import ttk
+
+from src.ui.help_tooltips import TOOLTIP_TEXT, add_tooltip, show_help_dialog
 from src.ui.keyboard_shortcuts import GameKeyboardHandler
-from src.ui.help_tooltips import show_help_dialog, add_tooltip, TOOLTIP_TEXT
 
 
 def test_keyboard_shortcuts():
@@ -24,7 +25,7 @@ def test_keyboard_shortcuts():
         mode_names = {
             "single_ai": "Single AI Mode",
             "three_ai": "Three AI Mode",
-            "spectate": "Spectate AI Mode"
+            "spectate": "Spectate AI Mode",
         }
         mode_name = mode_names.get(mode, mode)
         selected_mode.set(f"Selected: {mode_name}")
@@ -46,7 +47,7 @@ def test_keyboard_shortcuts():
         board=None,
         piece_display=None,
         on_mode_select=on_mode_select,
-        on_show_help=on_show_help
+        on_show_help=on_show_help,
     )
 
     # Create UI
@@ -57,15 +58,13 @@ def test_keyboard_shortcuts():
     title_label = ttk.Label(
         main_frame,
         text="AI Battle Mode - Keyboard Shortcuts Test",
-        font=("Arial", 16, "bold")
+        font=("Arial", 16, "bold"),
     )
     title_label.pack(pady=(0, 20))
 
     # Instructions
     instructions = ttk.Label(
-        main_frame,
-        text="Test the keyboard shortcuts:",
-        font=("Arial", 12)
+        main_frame, text="Test the keyboard shortcuts:", font=("Arial", 12)
     )
     instructions.pack(pady=(0, 10))
 
@@ -77,7 +76,7 @@ def test_keyboard_shortcuts():
     single_btn = ttk.Button(
         buttons_frame,
         text="Single AI Mode (F2)",
-        command=lambda: on_mode_select("single_ai")
+        command=lambda: on_mode_select("single_ai"),
     )
     single_btn.pack(side=tk.LEFT, padx=5)
     add_tooltip(single_btn, TOOLTIP_TEXT["single_ai"])
@@ -85,7 +84,7 @@ def test_keyboard_shortcuts():
     three_ai_btn = ttk.Button(
         buttons_frame,
         text="Three AI Mode (F3)",
-        command=lambda: on_mode_select("three_ai")
+        command=lambda: on_mode_select("three_ai"),
     )
     three_ai_btn.pack(side=tk.LEFT, padx=5)
     add_tooltip(three_ai_btn, TOOLTIP_TEXT["three_ai"])
@@ -93,16 +92,12 @@ def test_keyboard_shortcuts():
     spectate_btn = ttk.Button(
         buttons_frame,
         text="Spectate AI Mode (F4)",
-        command=lambda: on_mode_select("spectate")
+        command=lambda: on_mode_select("spectate"),
     )
     spectate_btn.pack(side=tk.LEFT, padx=5)
     add_tooltip(spectate_btn, TOOLTIP_TEXT["spectate"])
 
-    help_btn = ttk.Button(
-        buttons_frame,
-        text="Help (F1)",
-        command=on_show_help
-    )
+    help_btn = ttk.Button(buttons_frame, text="Help (F1)", command=on_show_help)
     help_btn.pack(side=tk.LEFT, padx=5)
     add_tooltip(help_btn, TOOLTIP_TEXT["help"])
 
@@ -114,29 +109,33 @@ def test_keyboard_shortcuts():
         selection_frame,
         textvariable=selected_mode,
         font=("Arial", 14, "bold"),
-        foreground="blue"
+        foreground="blue",
     )
     selection_label.pack()
 
     # Mode history
-    history_frame = ttk.LabelFrame(main_frame, text="Mode Selection History (last 10)", padding="10")
+    history_frame = ttk.LabelFrame(
+        main_frame, text="Mode Selection History (last 10)", padding="10"
+    )
     history_frame.pack(fill=tk.BOTH, expand=True, pady=10)
 
     history_text = tk.Text(history_frame, height=8, font=("Courier", 10))
     history_text.pack(fill=tk.BOTH, expand=True)
 
     # Shortcuts reference
-    shortcuts_frame = ttk.LabelFrame(main_frame, text="Keyboard Shortcuts Reference", padding="10")
+    shortcuts_frame = ttk.LabelFrame(
+        main_frame, text="Keyboard Shortcuts Reference", padding="10"
+    )
     shortcuts_frame.pack(fill=tk.X, pady=10)
 
     shortcuts_text = ttk.Label(
         shortcuts_frame,
         text=(
-            "F1: Help Dialog    F2: Single AI Mode    F3: Three AI Mode    F4: Spectate AI Mode\n"
+            "F1: Help Dialog    F2: Single AI    F3: Three AI    F4: Spectate AI\n"
             "R: Rotate Piece    H: Show Shortcuts Help    Esc: Cancel Action"
         ),
         font=("Arial", 10),
-        foreground="gray"
+        foreground="gray",
     )
     shortcuts_text.pack()
 
@@ -145,7 +144,7 @@ def test_keyboard_shortcuts():
         main_frame,
         text="Click buttons or use keyboard shortcuts!",
         font=("Arial", 10, "italic"),
-        foreground="green"
+        foreground="green",
     )
     info_label.pack(pady=(20, 0))
 
@@ -153,7 +152,7 @@ def test_keyboard_shortcuts():
     ttk.Button(
         main_frame,
         text="Show Keyboard Shortcuts Help (H)",
-        command=lambda: keyboard_handler._display_help()
+        command=lambda: keyboard_handler._display_help(),
     ).pack(pady=10)
 
     print("\n=== Keyboard Shortcuts Test Started ===")

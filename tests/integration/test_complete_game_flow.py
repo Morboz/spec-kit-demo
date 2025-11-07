@@ -12,22 +12,22 @@ through game end, including:
 - Winner determination
 """
 
-import pytest
 import tkinter as tk
-from src.models.player import Player
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.game.scoring import ScoringSystem
-from src.game.score_history import ScoreHistory
+
+from src.config.pieces import PIECE_DEFINITIONS
+from src.game.end_game_detector import EndGameDetector
 from src.game.game_loop import GameLoop
+from src.game.score_history import ScoreHistory
+from src.game.scoring import ScoringSystem
 from src.game.turn_manager import TurnManager
 from src.game.turn_validator import TurnValidator
-from src.game.end_game_detector import EndGameDetector
 from src.game.winner_determiner import WinnerDeterminer
-from src.ui.scoreboard import Scoreboard
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 from src.ui.current_player_indicator import CurrentPlayerIndicator
 from src.ui.piece_inventory import PieceInventory
-from src.config.pieces import PIECE_DEFINITIONS
+from src.ui.scoreboard import Scoreboard
 
 
 class TestCompleteGameFlow:
@@ -59,9 +59,7 @@ class TestCompleteGameFlow:
 
         try:
             scoreboard = Scoreboard(root, board, [player1, player2])
-            current_player_indicator = CurrentPlayerIndicator(
-                root, game_state
-            )
+            current_player_indicator = CurrentPlayerIndicator(root, game_state)
             piece_inventory = PieceInventory(root, player1)
 
             # Step 4: Record initial game state
@@ -86,9 +84,7 @@ class TestCompleteGameFlow:
 
                     # Place piece
                     current_player.place_piece(piece_name, row, col)
-                    board.place_piece(
-                        current_player.player_id, piece_name, row, col
-                    )
+                    board.place_piece(current_player.player_id, piece_name, row, col)
 
                     # Update score
                     ScoringSystem.update_player_score(current_player)
@@ -117,7 +113,9 @@ class TestCompleteGameFlow:
 
             # Step 6: Check game state after gameplay
             assert len(game_state.players) == 2
-            assert all(p.score != 0 for p in game_state.players if p.pieces_remaining > 0)
+            assert all(
+                p.score != 0 for p in game_state.players if p.pieces_remaining > 0
+            )
 
             # Step 7: Check score history
             history_entries = score_history.get_all_histories()
@@ -182,9 +180,7 @@ class TestCompleteGameFlow:
 
         try:
             scoreboard = Scoreboard(root, board, players)
-            current_player_indicator = CurrentPlayerIndicator(
-                root, game_state
-            )
+            current_player_indicator = CurrentPlayerIndicator(root, game_state)
 
             # Step 3: Record initial state
             score_history.record_current_scores(0, 0)
@@ -207,9 +203,7 @@ class TestCompleteGameFlow:
 
                     # Validate and place
                     current_player.place_piece(piece_name, row, col)
-                    board.place_piece(
-                        current_player.player_id, piece_name, row, col
-                    )
+                    board.place_piece(current_player.player_id, piece_name, row, col)
 
                     # Update score
                     ScoringSystem.update_player_score(current_player)
@@ -324,6 +318,7 @@ class TestCompleteGameFlow:
 
         # Try to place second piece touching own piece (should fail)
         from src.game.rules import Rules
+
         result = Rules.validate_move(
             board, player2, piece_names[1], 0, 1, rotation=0, flipped=False
         )
@@ -370,9 +365,7 @@ class TestCompleteGameFlow:
                                     row,
                                     col,
                                 )
-                                ScoringSystem.update_player_score(
-                                    current_player
-                                )
+                                ScoringSystem.update_player_score(current_player)
                                 valid_move_found = True
                                 break
                         if valid_move_found:
@@ -423,7 +416,9 @@ class TestCompleteGameFlow:
             # Place piece
             piece_name = piece_names[turn % len(piece_names)]
             current_player.place_piece(piece_name, turn % 10, turn % 10)
-            board.place_piece(current_player.player_id, piece_name, turn % 10, turn % 10)
+            board.place_piece(
+                current_player.player_id, piece_name, turn % 10, turn % 10
+            )
 
             # Update score
             ScoringSystem.update_player_score(current_player)
@@ -481,9 +476,7 @@ class TestCompleteGameFlow:
         try:
             # Create all UI components
             scoreboard = Scoreboard(root, board, players)
-            current_player_indicator = CurrentPlayerIndicator(
-                root, game_state
-            )
+            current_player_indicator = CurrentPlayerIndicator(root, game_state)
             piece_inventory1 = PieceInventory(root, players[0])
             piece_inventory2 = PieceInventory(root, players[1])
 
@@ -491,7 +484,11 @@ class TestCompleteGameFlow:
             assert current_player_indicator.get_current_player_name() == "Player 1"
 
             for player in players:
-                inventory_count = piece_inventory1.get_remaining_count() if player == players[0] else piece_inventory2.get_remaining_count()
+                inventory_count = (
+                    piece_inventory1.get_remaining_count()
+                    if player == players[0]
+                    else piece_inventory2.get_remaining_count()
+                )
                 assert inventory_count == 21
 
             # Play some turns
@@ -620,9 +617,7 @@ class TestCompleteGameFlow:
 
         try:
             scoreboard = Scoreboard(root, board, players)
-            current_player_indicator = CurrentPlayerIndicator(
-                root, game_state
-            )
+            current_player_indicator = CurrentPlayerIndicator(root, game_state)
 
             # Record initial state
             score_history.record_current_scores(0, 0)

@@ -5,11 +5,10 @@ This module defines the GameState class which manages the overall state of the g
 including players, board, current turn, and game phase.
 """
 
-from typing import Dict, List, Optional, Set
 from enum import Enum, auto
+
 from src.models.board import Board
 from src.models.player import Player
-from src.models.piece import Piece
 
 
 class GamePhase(Enum):
@@ -24,7 +23,7 @@ class GameState:
     """Manages the complete state of a Blokus game."""
 
     def __init__(
-        self, players: Optional[List[Player]] = None, board: Optional[Board] = None
+        self, players: list[Player] | None = None, board: Board | None = None
     ) -> None:
         """
         Initialize a new game state.
@@ -38,8 +37,8 @@ class GameState:
         self.current_player_index = 0
         self.phase = GamePhase.SETUP
         self.round_number = 1
-        self.move_history: List[Dict] = []
-        self.last_move: Optional[Dict] = None
+        self.move_history: list[dict] = []
+        self.last_move: dict | None = None
 
     def add_player(self, player: Player) -> None:
         """
@@ -68,7 +67,7 @@ class GameState:
         """
         return len(self.players)
 
-    def get_current_player(self) -> Optional[Player]:
+    def get_current_player(self) -> Player | None:
         """
         Get the current player whose turn it is.
 
@@ -79,7 +78,7 @@ class GameState:
             return None
         return self.players[self.current_player_index]
 
-    def get_player_by_id(self, player_id: int) -> Optional[Player]:
+    def get_player_by_id(self, player_id: int) -> Player | None:
         """
         Get a player by their ID.
 
@@ -107,7 +106,7 @@ class GameState:
         # If we've looped back to player 0, increment round number
         if self.current_player_index == 0:
             self.round_number += 1
-            # Note: Do NOT reset pass states here, as we need to detect when all players have passed
+            # Note: Do NOT reset pass states here, as we need to detect when all passed  # noqa: E501
 
     def previous_player(self) -> None:
         """Go back to the previous player's turn."""
@@ -178,7 +177,7 @@ class GameState:
 
         return not player.has_passed and player.is_active
 
-    def get_active_players(self) -> List[Player]:
+    def get_active_players(self) -> list[Player]:
         """
         Get all players who can still make moves.
 
@@ -187,7 +186,7 @@ class GameState:
         """
         return [p for p in self.players if p.is_active and p.has_pieces_remaining()]
 
-    def get_eliminated_players(self) -> List[Player]:
+    def get_eliminated_players(self) -> list[Player]:
         """
         Get all players who can no longer make moves.
 
@@ -225,7 +224,7 @@ class GameState:
         active_players = self.get_active_players()
         return len(active_players) == 0 or self.should_end_round()
 
-    def get_winners(self) -> List[Player]:
+    def get_winners(self) -> list[Player]:
         """
         Determine the winner(s) based on final scores.
 
@@ -243,7 +242,7 @@ class GameState:
 
         return winners
 
-    def get_move_history(self) -> List[Dict]:
+    def get_move_history(self) -> list[dict]:
         """
         Get the complete move history.
 
@@ -252,7 +251,7 @@ class GameState:
         """
         return self.move_history.copy()
 
-    def get_player_positions(self, player_id: int) -> Set[tuple]:
+    def get_player_positions(self, player_id: int) -> set[tuple]:
         """
         Get all positions occupied by a specific player on the board.
 
@@ -264,7 +263,7 @@ class GameState:
         """
         return self.board.get_player_positions(player_id)
 
-    def get_board_state(self) -> List[List[Optional[int]]]:
+    def get_board_state(self) -> list[list[int | None]]:
         """
         Get the current board state.
 

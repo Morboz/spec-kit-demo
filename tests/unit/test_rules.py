@@ -1,11 +1,9 @@
 """Unit tests for Rules validator."""
 
-import pytest
 from src.game.rules import BlokusRules, ValidationResult
 from src.models.game_state import GameState
-from src.models.board import Board
-from src.models.player import Player
 from src.models.piece import Piece
+from src.models.player import Player
 
 
 class TestValidationResult:

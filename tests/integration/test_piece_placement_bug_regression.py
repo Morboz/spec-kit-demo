@@ -13,18 +13,16 @@ The fix involved:
 Test covers the complete interaction flow to prevent regression.
 """
 
-import pytest
-import time
 import os
-from typing import Optional
+import time
+
+from src.game.error_handler import get_error_handler
+from src.game.placement_handler import PlacementHandler
 
 # Import game components
 from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
-from src.game.placement_handler import PlacementHandler
-from src.ui.piece_selector import PieceSelector
-from src.game.error_handler import get_error_handler
+from src.models.player import Player
 
 
 class TestPiecePlacementBugRegression:
@@ -60,7 +58,7 @@ class TestPiecePlacementBugRegression:
 
         placement_handler.set_callbacks(
             on_piece_placed=lambda name: test_callback(name),
-            on_placement_error=lambda msg: None
+            on_placement_error=lambda msg: None,
         )
 
         # Exercise: Select a piece
@@ -68,7 +66,9 @@ class TestPiecePlacementBugRegression:
 
         # Verify: Selection should succeed
         assert result is True, "Piece selection should succeed"
-        assert placement_handler.selected_piece is not None, "Selected piece should be set"
+        assert (
+            placement_handler.selected_piece is not None
+        ), "Selected piece should be set"
 
     def test_piece_selector_synchronizes_on_turn_change(self):
         """
@@ -105,7 +105,9 @@ class TestPiecePlacementBugRegression:
         placement_handler.current_player = current_player
 
         # Verify: Handler references correct player
-        assert placement_handler.current_player == player2, "Handler should reference player 2"
+        assert (
+            placement_handler.current_player == player2
+        ), "Handler should reference player 2"
 
     def test_complete_piece_selection_to_placement_flow(self):
         """
@@ -134,12 +136,16 @@ class TestPiecePlacementBugRegression:
         placement_handler = PlacementHandler(board, game_state, player1)
 
         # Initial state
-        assert player1.get_remaining_piece_count() == 21, "Player 1 should have 21 pieces initially"
+        assert (
+            player1.get_remaining_piece_count() == 21
+        ), "Player 1 should have 21 pieces initially"
 
         # Exercise: Select a piece
         success = placement_handler.select_piece("I2")
         assert success is True, "Piece selection should succeed"
-        assert placement_handler.selected_piece is not None, "Selected piece should be set"
+        assert (
+            placement_handler.selected_piece is not None
+        ), "Selected piece should be set"
 
         selected_piece_name = placement_handler.selected_piece.name
 
@@ -151,7 +157,9 @@ class TestPiecePlacementBugRegression:
         assert error is None, "No error should occur on valid placement"
 
         # Verify: Piece is removed from player's inventory
-        assert player1.get_remaining_piece_count() == 20, "Player 1 should have 20 pieces after placement"
+        assert (
+            player1.get_remaining_piece_count() == 20
+        ), "Player 1 should have 20 pieces after placement"
 
         # Verify: Piece is placed on board (I2 is horizontal, occupies (0,0) and (1,0))
         assert board.grid.get((0, 0)) == 1, "Board should show piece at (0, 0)"
@@ -162,7 +170,9 @@ class TestPiecePlacementBugRegression:
         assert current_player.player_id == 2, "Turn should advance to player 2"
 
         # Verify: Selection is cleared
-        assert placement_handler.selected_piece is None, "Selection should be cleared after placement"
+        assert (
+            placement_handler.selected_piece is None
+        ), "Selection should be cleared after placement"
 
     def test_visual_feedback_states(self):
         """
@@ -189,15 +199,21 @@ class TestPiecePlacementBugRegression:
         placement_handler = PlacementHandler(board, game_state, player)
 
         # Verify: Initial state - no piece selected
-        assert placement_handler.selected_piece is None, "No piece should be selected initially"
+        assert (
+            placement_handler.selected_piece is None
+        ), "No piece should be selected initially"
 
         # Exercise: Select piece
         success = placement_handler.select_piece("L4")
         assert success is True, "Piece selection should succeed"
 
         # Verify: Selected piece is set
-        assert placement_handler.selected_piece is not None, "Selected piece should be set"
-        assert placement_handler.selected_piece.name == "L4", "L4 piece should be selected"
+        assert (
+            placement_handler.selected_piece is not None
+        ), "Selected piece should be set"
+        assert (
+            placement_handler.selected_piece.name == "L4"
+        ), "L4 piece should be selected"
 
         # Exercise: Clear selection
         placement_handler.clear_selection()
@@ -230,16 +246,14 @@ class TestPiecePlacementBugRegression:
 
         # Exercise: Log various events
         error_handler.log_structured_event(
-            event_type="piece_selected",
-            player_id=1,
-            piece_name="I2"
+            event_type="piece_selected", player_id=1, piece_name="I2"
         )
 
         error_handler.log_structured_event(
             event_type="placement_attempted",
             player_id=1,
             piece_name="I2",
-            position=(0, 0)
+            position=(0, 0),
         )
 
         # Verify: Log file is created
@@ -248,19 +262,23 @@ class TestPiecePlacementBugRegression:
         # Verify: Log contains expected events
         import json
 
-        with open(log_file, 'r') as f:
+        with open(log_file) as f:
             lines = f.readlines()
             assert len(lines) == 2, "Two events should be logged"
 
             # Parse first event
             event1 = json.loads(lines[0])
-            assert event1["event_type"] == "piece_selected", "First event should be piece_selected"
+            assert (
+                event1["event_type"] == "piece_selected"
+            ), "First event should be piece_selected"
             assert event1["player_id"] == 1, "Event should include player_id"
             assert event1["piece_name"] == "I2", "Event should include piece_name"
 
             # Parse second event
             event2 = json.loads(lines[1])
-            assert event2["event_type"] == "placement_attempted", "Second event should be placement_attempted"
+            assert (
+                event2["event_type"] == "placement_attempted"
+            ), "Second event should be placement_attempted"
             assert event2["position"] == [0, 0], "Event should include position"
 
         # Cleanup
@@ -336,7 +354,9 @@ class TestPiecePlacementBugRegression:
         # Verify: Placement is rejected
         assert success is False, "Invalid placement should be rejected"
         assert error is not None, "Error message should be provided"
-        assert "occupied" in error.lower() or "already" in error.lower(), "Error should mention occupancy"
+        assert (
+            "occupied" in error.lower() or "already" in error.lower()
+        ), "Error should mention occupancy"
 
     def test_callback_initialization_order(self):
         """
@@ -371,18 +391,23 @@ class TestPiecePlacementBugRegression:
 
         # Exercise: Set callbacks
         placement_handler.set_callbacks(
-            on_piece_placed=test_piece_placed,
-            on_placement_error=test_placement_error
+            on_piece_placed=test_piece_placed, on_placement_error=test_placement_error
         )
 
         # Verify: Callbacks are registered
-        assert placement_handler.on_piece_placed is not None, "on_piece_placed callback should be set"
-        assert placement_handler.on_placement_error is not None, "on_placement_error callback should be set"
+        assert (
+            placement_handler.on_piece_placed is not None
+        ), "on_piece_placed callback should be set"
+        assert (
+            placement_handler.on_placement_error is not None
+        ), "on_placement_error callback should be set"
 
         # Exercise: Trigger placement
         placement_handler.select_piece("I2")
         success, error = placement_handler.place_piece(0, 0)
 
         # Verify: Callback is invoked
-        assert len(callback_set) > 0, "Callback should be invoked on successful placement"
+        assert (
+            len(callback_set) > 0
+        ), "Callback should be invoked on successful placement"
         assert callback_set[0][0] == "placed", "on_piece_placed should be called"

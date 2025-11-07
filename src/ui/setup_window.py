@@ -6,14 +6,13 @@ allowing players to configure the number of players and their names.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
-from typing import Optional, List, Dict
+from tkinter import messagebox, ttk
 
 
 class SetupWindow:
     """Game setup dialog window."""
 
-    def __init__(self, parent: Optional[tk.Widget] = None):
+    def __init__(self, parent: tk.Widget | None = None):
         """
         Initialize the setup window.
 
@@ -21,16 +20,16 @@ class SetupWindow:
             parent: Parent tkinter widget
         """
         self.parent = parent
-        self.result: Optional[Dict] = None
-        self.dialog: Optional[tk.Toplevel] = None
+        self.result: dict | None = None
+        self.dialog: tk.Toplevel | None = None
 
         # Player configuration
         self.num_players_var = tk.IntVar(value=4)
-        self.player_names: List[tk.StringVar] = [
+        self.player_names: list[tk.StringVar] = [
             tk.StringVar(value=f"Player {i+1}") for i in range(4)
         ]
 
-    def show(self) -> Optional[Dict]:
+    def show(self) -> dict | None:
         """
         Show the setup dialog and wait for user input.
 
@@ -92,7 +91,7 @@ class SetupWindow:
         names_frame = ttk.LabelFrame(main_frame, text="Player Names", padding="10")
         names_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
-        self.name_entries: List[ttk.Entry] = []
+        self.name_entries: list[ttk.Entry] = []
         for i in range(4):
             row_frame = ttk.Frame(names_frame)
             row_frame.pack(fill=tk.X, pady=2)

@@ -5,13 +5,16 @@ Tests the GameStatistics and PlayerStats classes for accurate tracking
 of AI game statistics and performance metrics.
 """
 
-import pytest
-import time
-import tempfile
 import os
-from datetime import datetime, timedelta
-from src.models.game_stats import GameStatistics, PlayerStats, create_game_statistics
-from src.models.game_stats import StatType
+import tempfile
+
+import pytest
+
+from src.models.game_stats import (
+    GameStatistics,
+    PlayerStats,
+    create_game_statistics,
+)
 
 
 class TestPlayerStats:
@@ -218,11 +221,7 @@ class TestGameStatistics:
         stats = create_game_statistics("spectate")
 
         stats.record_move(
-            player_id=2,
-            piece_id="I1",
-            position=(5, 5),
-            ai_time=3.0,
-            difficulty="Hard"
+            player_id=2, piece_id="I1", position=(5, 5), ai_time=3.0, difficulty="Hard"
         )
 
         turn = stats.turn_history[0]
@@ -408,7 +407,7 @@ class TestGameStatistics:
         stats.end_game()
 
         # Save to temporary file
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             filename = f.name
 
         try:
@@ -416,7 +415,7 @@ class TestGameStatistics:
 
             # Verify file exists and has content
             assert os.path.exists(filename)
-            with open(filename, 'r') as f:
+            with open(filename) as f:
                 content = f.read()
                 assert len(content) > 0
                 assert '"game_mode"' in content
@@ -435,7 +434,7 @@ class TestGameStatistics:
         stats1.end_game()
 
         # Save to temporary file
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             filename = f.name
 
         try:

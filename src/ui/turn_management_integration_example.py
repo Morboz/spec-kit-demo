@@ -6,14 +6,15 @@ with UI state updates and the complete game flow.
 """
 
 import tkinter as tk
+from collections.abc import Callable
 from tkinter import ttk
-from typing import Optional, Callable
-from src.models.game_state import GameState, GamePhase
-from src.models.player import Player
+
 from src.game.game_loop import GameLoop
+from src.models.game_state import GameState
+from src.models.player import Player
 from src.ui.current_player_indicator import CurrentPlayerIndicator
-from src.ui.skip_turn_button import SkipTurnButton
 from src.ui.scoreboard import Scoreboard
+from src.ui.skip_turn_button import SkipTurnButton
 
 
 class TurnManagementIntegration:
@@ -35,9 +36,9 @@ class TurnManagementIntegration:
             root: Root Tkinter window
         """
         self.root = root
-        self.game_state: Optional[GameState] = None
-        self.game_loop: Optional[GameLoop] = None
-        self.on_ui_update: Optional[Callable[[], None]] = None
+        self.game_state: GameState | None = None
+        self.game_loop: GameLoop | None = None
+        self.on_ui_update: Callable[[], None] | None = None
 
         # Create UI layout
         self._create_layout()
@@ -85,16 +86,20 @@ class TurnManagementIntegration:
         round_frame = ttk.Frame(status_frame)
         round_frame.pack(fill=tk.X, pady=2)
 
-        ttk.Label(round_frame, text="Round:", font=("Arial", 10, "bold")).pack(side=tk.LEFT)
+        ttk.Label(round_frame, text="Round:", font=("Arial", 10, "bold")).pack(
+            side=tk.LEFT
+        )
         self.round_var = tk.StringVar(value="1")
-        ttk.Label(
-            round_frame, textvariable=self.round_var, font=("Arial", 10)
-        ).pack(side=tk.RIGHT)
+        ttk.Label(round_frame, textvariable=self.round_var, font=("Arial", 10)).pack(
+            side=tk.RIGHT
+        )
 
         turn_frame = ttk.Frame(status_frame)
         turn_frame.pack(fill=tk.X, pady=2)
 
-        ttk.Label(turn_frame, text="Turn:", font=("Arial", 10, "bold")).pack(side=tk.LEFT)
+        ttk.Label(turn_frame, text="Turn:", font=("Arial", 10, "bold")).pack(
+            side=tk.LEFT
+        )
         self.turn_var = tk.StringVar(value="1")
         ttk.Label(turn_frame, textvariable=self.turn_var, font=("Arial", 10)).pack(
             side=tk.RIGHT
@@ -103,15 +108,19 @@ class TurnManagementIntegration:
         phase_frame = ttk.Frame(status_frame)
         phase_frame.pack(fill=tk.X, pady=2)
 
-        ttk.Label(phase_frame, text="Phase:", font=("Arial", 10, "bold")).pack(side=tk.LEFT)
+        ttk.Label(phase_frame, text="Phase:", font=("Arial", 10, "bold")).pack(
+            side=tk.LEFT
+        )
         self.phase_var = tk.StringVar(value="SETUP")
-        ttk.Label(
-            turn_frame, textvariable=self.phase_var, font=("Arial", 10)
-        ).pack(side=tk.RIGHT)
+        ttk.Label(turn_frame, textvariable=self.phase_var, font=("Arial", 10)).pack(
+            side=tk.RIGHT
+        )
 
         # Control buttons
         control_frame = ttk.LabelFrame(main_frame, text="Controls", padding="10")
-        control_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(20, 0))
+        control_frame.grid(
+            row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(20, 0)
+        )
 
         ttk.Button(
             control_frame,
@@ -125,13 +134,13 @@ class TurnManagementIntegration:
             command=self._start_four_player_game,
         ).pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Button(
-            control_frame, text="Advance Turn", command=self._advance_turn
-        ).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(control_frame, text="Advance Turn", command=self._advance_turn).pack(
+            side=tk.LEFT, padx=(0, 10)
+        )
 
-        ttk.Button(
-            control_frame, text="End Game", command=self._end_game
-        ).pack(side=tk.LEFT)
+        ttk.Button(control_frame, text="End Game", command=self._end_game).pack(
+            side=tk.LEFT
+        )
 
     def _start_two_player_game(self) -> None:
         """Start a new two-player game."""
@@ -230,8 +239,7 @@ class TurnManagementIntegration:
                     f"Game Over!\n\nWinner(s): {winner_names}\n\n"
                     f"Final Scores:\n"
                     + "\n".join(
-                        f"{p.name}: {p.get_score()} points"
-                        for p in game_state.players
+                        f"{p.name}: {p.get_score()} points" for p in game_state.players
                     ),
                 )
 

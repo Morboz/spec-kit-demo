@@ -5,21 +5,20 @@ This module provides the TurnController class which extends TurnManager
 with AI-aware functionality for managing automatic AI moves.
 """
 
-from typing import Optional, Callable, List, Any
-from enum import Enum
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-import time
+from enum import Enum
+
 from src.game.turn_manager import TurnManager
-from src.models.game_state import GameState, GamePhase
-from src.models.player import Player
-from src.models.ai_player import AIPlayer
 from src.models.game_mode import GameModeType
 from src.services.ai_strategy import Move
 
 
 class TurnState(Enum):
     """Turn state enumeration."""
+
     HUMAN_TURN = "human_turn"
     AI_CALCULATING = "ai_calculating"
     AI_MAKING_MOVE = "ai_making_move"
@@ -30,13 +29,14 @@ class TurnState(Enum):
 @dataclass
 class TurnEvent:
     """Event data for turn state changes."""
+
     event_type: str
     timestamp: datetime
     player_id: int
     state: TurnState
-    move: Optional[Move] = None
-    ai_time_seconds: Optional[float] = None
-    additional_data: Optional[dict] = None
+    move: Move | None = None
+    ai_time_seconds: float | None = None
+    additional_data: dict | None = None
 
 
 class TurnController(TurnManager):
@@ -47,19 +47,21 @@ class TurnController(TurnManager):
     Maintains game flow for both human and AI players.
     """
 
-    def __init__(self, game_mode, initial_player: int = 1, scheduler: Optional[Callable] = None) -> None:
+    def __init__(
+        self, game_mode, initial_player: int = 1, scheduler: Callable | None = None
+    ) -> None:
         """
         Initialize turn controller.
 
         Args:
             game_mode: GameMode configuration
             initial_player: Starting player ID (default: 1)
-            scheduler: Optional scheduler function for delayed execution (e.g., tkinter's after)
+            scheduler: Optional scheduler function for delayed execution (e.g., tkinter after)
 
         Raises:
             ValueError: If game_mode is invalid
             ValueError: If initial_player not in valid positions
-        """
+        """  # noqa: E501
         # Get game_state from somewhere - need to initialize it
         # For now, we'll assume it's passed or we need to create it
         # This is a placeholder - actual implementation will need game_state
@@ -67,8 +69,8 @@ class TurnController(TurnManager):
         self.current_player = initial_player
         self.current_state = TurnState.HUMAN_TURN
         self._elapsed_ai_time = 0.0
-        self._listeners: List[Callable[[TurnEvent], None]] = []
-        self._turn_history: List[TurnEvent] = []
+        self._listeners: list[Callable[[TurnEvent], None]] = []
+        self._turn_history: list[TurnEvent] = []
         self._is_calculating = False
         self._scheduler = scheduler  # Optional scheduler for delayed execution
 
@@ -142,7 +144,7 @@ class TurnController(TurnManager):
             - Must be called after game initialization
             - Cannot be called if game is over
             - State transitions to AI_CALCULATING or HUMAN_TURN
-        """
+        """  # noqa: E501
         if self.current_state == TurnState.GAME_OVER:
             return
 
@@ -158,7 +160,7 @@ class TurnController(TurnManager):
 
     def trigger_ai_turn(
         self,
-        on_move_calculated: Callable[[Optional[Move]], None] = None,
+        on_move_calculated: Callable[[Move | None], None] = None,
         on_timeout: Callable[[], None] = None,
         auto_execute: bool = False,
     ):
@@ -168,7 +170,8 @@ class TurnController(TurnManager):
         Args:
             on_move_calculated: Callback when move is calculated
             on_timeout: Callback if calculation times out
-            auto_execute: Whether to automatically execute the move (default: False for testing)
+            auto_execute: Whether to automatically execute the move
+                (default: False for testing)
 
         Contract:
             - Must only be called when is_ai_turn is True
@@ -190,9 +193,7 @@ class TurnController(TurnManager):
 
         # Emit AI calculation started event
         self._emit_event(
-            "AI_CALCULATION_STARTED",
-            self.current_player,
-            self.current_state
+            "AI_CALCULATION_STARTED", self.current_player, self.current_state
         )
 
         # For testing, immediately mark calculation as complete if not auto-executing
@@ -216,7 +217,7 @@ class TurnController(TurnManager):
             "AI_MOVE_CALCULATED",
             self.current_player,
             self.current_state,
-            move=dummy_move
+            move=dummy_move,
         )
 
         # Call callback
@@ -229,7 +230,7 @@ class TurnController(TurnManager):
         else:
             self.pass_turn()
 
-    def handle_ai_move(self, move: Optional[Move]):
+    def handle_ai_move(self, move: Move | None):
         """
         Process AI-calculated move.
 
@@ -260,10 +261,7 @@ class TurnController(TurnManager):
 
         # Emit move placed event
         self._emit_event(
-            "MOVE_PLACED",
-            self.current_player,
-            self.current_state,
-            move=move
+            "MOVE_PLACED", self.current_player, self.current_state, move=move
         )
 
         # TODO: Validate move using BlokusRules
@@ -343,11 +341,7 @@ class TurnController(TurnManager):
         # player.pass_turn()
 
         # Emit pass event
-        self._emit_event(
-            "TURN_PASSED",
-            self.current_player,
-            self.current_state
-        )
+        self._emit_event("TURN_PASSED", self.current_player, self.current_state)
 
         # End the turn
         self.end_turn()
@@ -400,13 +394,18 @@ class TurnController(TurnManager):
             # This is a safeguard against infinite loops
 
             # Get recent turn history to check for passes
-            recent_events = self._turn_history[-len(active_players)*2:] if len(self._turn_history) > len(active_players)*2 else self._turn_history
+            recent_events = (
+                self._turn_history[-len(active_players) * 2 :]
+                if len(self._turn_history) > len(active_players) * 2
+                else self._turn_history
+            )
 
             # Count recent passes by AI players
             ai_pass_count = sum(
-                1 for event in recent_events
-                if event.event_type == "TURN_PASSED" and
-                   self.game_mode.is_ai_turn(event.player_id)
+                1
+                for event in recent_events
+                if event.event_type == "TURN_PASSED"
+                and self.game_mode.is_ai_turn(event.player_id)
             )
 
             # If all AI players have passed recently, game should end
@@ -526,7 +525,7 @@ class TurnController(TurnManager):
         if callback in self._listeners:
             self._listeners.remove(callback)
 
-    def get_turn_history(self) -> List[TurnEvent]:
+    def get_turn_history(self) -> list[TurnEvent]:
         """
         Get history of turn events.
 
@@ -545,8 +544,8 @@ class TurnController(TurnManager):
         event_type: str,
         player_id: int,
         state: TurnState,
-        move: Optional[Move] = None,
-        additional_data: Optional[dict] = None,
+        move: Move | None = None,
+        additional_data: dict | None = None,
     ):
         """
         Emit a turn event to all listeners.

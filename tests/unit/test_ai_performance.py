@@ -5,11 +5,13 @@ This module tests the performance characteristics of AI strategies,
 including calculation time, timeout handling, and move quality.
 """
 
-import pytest
 import time
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
-from src.models.ai_player import AIPlayer
+
+import pytest
+
 from src.config.pieces import get_full_piece_set
+from src.models.ai_player import AIPlayer
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 
 
 class TestAIPerformance:
@@ -29,7 +31,9 @@ class TestAIPerformance:
         elapsed_time = time.time() - start_time
 
         # Random strategy should be very fast (< 100ms)
-        assert elapsed_time < 0.1, f"RandomStrategy took {elapsed_time:.3f}s (should be < 0.1s)"
+        assert (
+            elapsed_time < 0.1
+        ), f"RandomStrategy took {elapsed_time:.3f}s (should be < 0.1s)"
 
         # Should complete within timeout
         assert elapsed_time <= strategy.timeout_seconds
@@ -48,7 +52,9 @@ class TestAIPerformance:
         elapsed_time = time.time() - start_time
 
         # Corner strategy should be fast (< 500ms)
-        assert elapsed_time < 0.5, f"CornerStrategy took {elapsed_time:.3f}s (should be < 0.5s)"
+        assert (
+            elapsed_time < 0.5
+        ), f"CornerStrategy took {elapsed_time:.3f}s (should be < 0.5s)"
 
         # Should complete within timeout
         assert elapsed_time <= strategy.timeout_seconds
@@ -69,23 +75,21 @@ class TestAIPerformance:
 
         # Strategic strategy with lookahead may take longer but should respect timeout
         # Allow up to the timeout limit
-        assert elapsed_time <= timeout + 0.5, f"StrategicStrategy exceeded timeout by {elapsed_time - timeout:.3f}s"
+        assert (
+            elapsed_time <= timeout + 0.5
+        ), f"StrategicStrategy exceeded timeout by {elapsed_time - timeout:.3f}s"
 
     def test_ai_player_calculation_performance(self):
         """Test AIPlayer calculation respects timeout limits."""
         # Test with different strategies
         strategies = [
-            (RandomStrategy(), 1.0),    # 1 second max
-            (CornerStrategy(), 2.0),    # 2 seconds max
-            (StrategicStrategy(), 3.0), # 3 seconds max
+            (RandomStrategy(), 1.0),  # 1 second max
+            (CornerStrategy(), 2.0),  # 2 seconds max
+            (StrategicStrategy(), 3.0),  # 3 seconds max
         ]
 
         for strategy, max_time in strategies:
-            ai_player = AIPlayer(
-                player_id=1,
-                strategy=strategy,
-                color="blue"
-            )
+            ai_player = AIPlayer(player_id=1, strategy=strategy, color="blue")
 
             # Create test board
             board = [[0 for _ in range(20)] for _ in range(20)]
@@ -97,14 +101,16 @@ class TestAIPerformance:
             elapsed_time = time.time() - start_time
 
             # Should complete within time limit
-            assert elapsed_time <= max_time + 0.5, f"{strategy.difficulty_name} took {elapsed_time:.3f}s (max: {max_time}s)"
+            assert (
+                elapsed_time <= max_time + 0.5
+            ), f"{strategy.difficulty_name} took {elapsed_time:.3f}s (max: {max_time}s)"
 
     def test_timeout_handling(self):
         """Test AI respects timeout limits."""
         ai_player = AIPlayer(
             player_id=1,
             strategy=StrategicStrategy(),  # Longest calculation
-            color="blue"
+            color="blue",
         )
 
         # Create board
@@ -118,18 +124,16 @@ class TestAIPerformance:
         elapsed_time = time.time() - start_time
 
         # Should respect timeout (may return None or best found move)
-        assert elapsed_time <= timeout + 0.5, f"Timeout not respected: {elapsed_time:.3f}s > {timeout}s"
+        assert (
+            elapsed_time <= timeout + 0.5
+        ), f"Timeout not respected: {elapsed_time:.3f}s > {timeout}s"
 
         # Should return a move (even if it's the first valid one found)
         assert move is not None or move is None  # Either is acceptable
 
     def test_calculation_with_no_pieces(self):
         """Test AI performance when no pieces are available."""
-        ai_player = AIPlayer(
-            player_id=1,
-            strategy=CornerStrategy(),
-            color="blue"
-        )
+        ai_player = AIPlayer(player_id=1, strategy=CornerStrategy(), color="blue")
 
         board = [[0 for _ in range(20)] for _ in range(20)]
         pieces = []  # No pieces
@@ -146,11 +150,7 @@ class TestAIPerformance:
 
     def test_calculation_with_empty_board(self):
         """Test AI performance on completely empty board."""
-        ai_player = AIPlayer(
-            player_id=1,
-            strategy=RandomStrategy(),
-            color="blue"
-        )
+        ai_player = AIPlayer(player_id=1, strategy=RandomStrategy(), color="blue")
 
         # Empty board
         board = [[0 for _ in range(20)] for _ in range(20)]
@@ -168,11 +168,7 @@ class TestAIPerformance:
 
     def test_calculation_with_full_board(self):
         """Test AI performance on nearly full board."""
-        ai_player = AIPlayer(
-            player_id=1,
-            strategy=CornerStrategy(),
-            color="blue"
-        )
+        ai_player = AIPlayer(player_id=1, strategy=CornerStrategy(), color="blue")
 
         # Nearly full board (only a few empty spaces)
         board = [[1 if (r + c) % 3 != 0 else 0 for c in range(20)] for r in range(20)]
@@ -190,7 +186,7 @@ class TestAIPerformance:
         ai_player = AIPlayer(
             player_id=1,
             strategy=StrategicStrategy(),  # More complex strategy
-            color="blue"
+            color="blue",
         )
 
         board = [[0 for _ in range(20)] for _ in range(20)]
@@ -227,11 +223,7 @@ class TestAIPerformance:
 
     def test_ai_elapsed_time_tracking(self):
         """Test AI player tracks elapsed calculation time."""
-        ai_player = AIPlayer(
-            player_id=1,
-            strategy=RandomStrategy(),
-            color="blue"
-        )
+        ai_player = AIPlayer(player_id=1, strategy=RandomStrategy(), color="blue")
 
         board = [[0 for _ in range(20)] for _ in range(20)]
         pieces = get_full_piece_set()
@@ -259,8 +251,12 @@ class TestAIPerformance:
         # Time tracking should have worked
         # Note: After calculation finishes, is_calculating is False, so get_elapsed_calculation_time returns None
         # But we tracked it during the calculation via the patch
-        assert len(times_during_calculation) > 0, "Should have tracked time during calculation"
-        assert all(t >= 0 for t in times_during_calculation), "All tracked times should be non-negative"
+        assert (
+            len(times_during_calculation) > 0
+        ), "Should have tracked time during calculation"
+        assert all(
+            t >= 0 for t in times_during_calculation
+        ), "All tracked times should be non-negative"
 
     def test_concurrent_calculation_performance(self):
         """Test multiple AI players can calculate concurrently."""
@@ -290,11 +286,7 @@ class TestAIPerformance:
 
     def test_performance_consistency(self):
         """Test AI performance is consistent across multiple runs."""
-        ai_player = AIPlayer(
-            player_id=1,
-            strategy=CornerStrategy(),
-            color="blue"
-        )
+        ai_player = AIPlayer(player_id=1, strategy=CornerStrategy(), color="blue")
 
         board = [[0 for _ in range(20)] for _ in range(20)]
         pieces = get_full_piece_set()
@@ -386,7 +378,9 @@ class TestAIMoveQuality:
         move = strategy.calculate_move(board, pieces, player_id=3)
 
         # Should return None or pass move when no valid moves
-        assert move is None or (move.is_pass if hasattr(move, 'is_pass') else move is None)
+        assert move is None or (
+            move.is_pass if hasattr(move, "is_pass") else move is None
+        )
 
 
 if __name__ == "__main__":

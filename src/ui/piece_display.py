@@ -6,8 +6,9 @@ rotation and flip controls for gameplay.
 """
 
 import tkinter as tk
+from collections.abc import Callable
 from tkinter import ttk
-from typing import Optional, Callable
+
 from src.models.piece import Piece
 
 
@@ -17,9 +18,9 @@ class PieceDisplay(ttk.Frame):
     def __init__(
         self,
         parent: tk.Widget,
-        on_place_piece: Optional[Callable[[int, int], None]] = None,
-        on_rotate: Optional[Callable[[], None]] = None,
-        on_flip: Optional[Callable[[], None]] = None,
+        on_place_piece: Callable[[int, int], None] | None = None,
+        on_rotate: Callable[[], None] | None = None,
+        on_flip: Callable[[], None] | None = None,
     ) -> None:
         """
         Initialize the piece display.
@@ -34,8 +35,8 @@ class PieceDisplay(ttk.Frame):
         self.on_place_piece = on_place_piece
         self.on_rotate = on_rotate
         self.on_flip = on_flip
-        self.current_piece: Optional[Piece] = None
-        self.canvas: Optional[tk.Canvas] = None
+        self.current_piece: Piece | None = None
+        self.canvas: tk.Canvas | None = None
 
         # Create widget
         self._create_widgets()
@@ -86,7 +87,7 @@ class PieceDisplay(ttk.Frame):
         )
         instructions.pack(pady=(5, 0))
 
-    def set_piece(self, piece: Optional[Piece]) -> None:
+    def set_piece(self, piece: Piece | None) -> None:
         """
         Set the piece to display.
 

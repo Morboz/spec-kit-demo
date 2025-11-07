@@ -7,11 +7,11 @@ This module provides AI strategy implementations for different difficulty levels
 - Hard: Strategic evaluation with lookahead
 """
 
-from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple, Dict
+import copy
 import random
 import time
-import copy
+from abc import ABC, abstractmethod
+
 from src.models.piece import Piece
 
 
@@ -26,8 +26,8 @@ class Move:
 
     def __init__(
         self,
-        piece: Optional[Piece],
-        position: Optional[Tuple[int, int]],
+        piece: Piece | None,
+        position: tuple[int, int] | None,
         rotation: int,
         player_id: int,
         is_pass: bool = False,
@@ -55,9 +55,12 @@ class Move:
         """String representation of the move for debugging."""
         if self.is_pass:
             return f"Move(player={self.player_id}, action=pass)"
-        return (f"Move(player={self.player_id}, piece={self.piece.name if self.piece else None}, "
-                f"position={self.position}, rotation={self.rotation}°"
-                f"{', flipped' if self.flip else ''})")
+        return (
+            f"Move(player={self.player_id}, "
+            f"piece={self.piece.name if self.piece else None}, "
+            f"position={self.position}, rotation={self.rotation}°"
+            f"{', flipped' if self.flip else ''})"
+        )
 
 
 class AIStrategy(ABC):
@@ -88,11 +91,11 @@ class AIStrategy(ABC):
     @abstractmethod
     def calculate_move(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         player_id: int,
         time_limit: int = None,
-    ) -> Optional[Move]:
+    ) -> Move | None:
         """
         Calculate best move for current game state.
 
@@ -109,10 +112,10 @@ class AIStrategy(ABC):
 
     def get_available_moves(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         player_id: int,
-    ) -> List[Move]:
+    ) -> list[Move]:
         """
         Generate all valid moves for given state (base implementation).
 
@@ -138,8 +141,12 @@ class AIStrategy(ABC):
                     for row in range(20):
                         for col in range(20):
                             # Basic bounds check
-                            piece_positions = self._get_piece_positions(piece, row, col, rotation, flip)
-                            if all(0 <= r < 20 and 0 <= c < 20 for r, c in piece_positions):
+                            piece_positions = self._get_piece_positions(
+                                piece, row, col, rotation, flip
+                            )
+                            if all(
+                                0 <= r < 20 and 0 <= c < 20 for r, c in piece_positions
+                            ):
                                 # Basic overlap check
                                 valid = True
                                 for r, c in piece_positions:
@@ -147,15 +154,23 @@ class AIStrategy(ABC):
                                         valid = False
                                         break
                                 if valid:
-                                    moves.append(Move(piece, (row, col), rotation, player_id, flip=flip))
+                                    moves.append(
+                                        Move(
+                                            piece,
+                                            (row, col),
+                                            rotation,
+                                            player_id,
+                                            flip=flip,
+                                        )
+                                    )
         return moves
 
     def _get_available_moves_fast(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         player_id: int,
-    ) -> List[Move]:
+    ) -> list[Move]:
         """
         Fast move generation for Easy difficulty (RandomStrategy).
 
@@ -184,8 +199,12 @@ class AIStrategy(ABC):
                     for row in range(0, 20, 2):
                         for col in range(0, 20, 2):
                             # Basic bounds check
-                            piece_positions = self._get_piece_positions(piece, row, col, rotation, flip)
-                            if all(0 <= r < 20 and 0 <= c < 20 for r, c in piece_positions):
+                            piece_positions = self._get_piece_positions(
+                                piece, row, col, rotation, flip
+                            )
+                            if all(
+                                0 <= r < 20 and 0 <= c < 20 for r, c in piece_positions
+                            ):
                                 # Basic overlap check
                                 valid = True
                                 for r, c in piece_positions:
@@ -193,11 +212,19 @@ class AIStrategy(ABC):
                                         valid = False
                                         break
                                 if valid:
-                                    moves.append(Move(piece, (row, col), rotation, player_id, flip=flip))
+                                    moves.append(
+                                        Move(
+                                            piece,
+                                            (row, col),
+                                            rotation,
+                                            player_id,
+                                            flip=flip,
+                                        )
+                                    )
 
         return moves
 
-    def evaluate_board(self, board: List[List[int]], player_id: int) -> float:
+    def evaluate_board(self, board: list[list[int]], player_id: int) -> float:
         """
         Evaluate board position from player's perspective.
 
@@ -224,7 +251,7 @@ class AIStrategy(ABC):
         col: int,
         rotation: int,
         flip: bool = False,
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """
         Get absolute board positions for a piece at given location with rotation and flip.
 
@@ -239,9 +266,9 @@ class AIStrategy(ABC):
 
         Returns:
             List of (row, col) tuples for piece squares
-        """
+        """  # noqa: E501
         # Get piece shape (list of relative positions)
-        shape = piece.coordinates if hasattr(piece, 'coordinates') else [(0, 0)]
+        shape = piece.coordinates if hasattr(piece, "coordinates") else [(0, 0)]
 
         positions = []
 
@@ -268,8 +295,8 @@ class AIStrategy(ABC):
 
     def _count_corner_connections(
         self,
-        board: List[List[int]],
-        piece_positions: List[Tuple[int, int]],
+        board: list[list[int]],
+        piece_positions: list[tuple[int, int]],
         player_id: int,
     ) -> int:
         """
@@ -310,7 +337,7 @@ class AIStrategy(ABC):
 
     def _evaluate_move_score(
         self,
-        board: List[List[int]],
+        board: list[list[int]],
         move: Move,
         player_id: int,
     ) -> float:
@@ -336,12 +363,12 @@ class AIStrategy(ABC):
         )
 
         # Factor 1: Corner connections (highly weighted)
-        corner_score = self._count_corner_connections(
-            board, piece_positions, player_id
-        ) * 10.0
+        corner_score = (
+            self._count_corner_connections(board, piece_positions, player_id) * 10.0
+        )
 
         # Factor 2: Piece size (larger pieces placed early get bonus)
-        piece_size = getattr(move.piece, 'size', 1)
+        piece_size = getattr(move.piece, "size", 1)
         size_score = piece_size * 2.0
 
         # Factor 3: Board coverage (encourage expansion)
@@ -376,12 +403,12 @@ class AIStrategy(ABC):
 
     def _find_valid_moves_optimized(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         player_id: int,
-        max_pieces: Optional[int] = None,
-        max_rotations: Optional[List[int]] = None,
-    ) -> List[Move]:
+        max_pieces: int | None = None,
+        max_rotations: list[int] | None = None,
+    ) -> list[Move]:
         """
         Optimized move generation with configurable limits.
 
@@ -416,7 +443,9 @@ class AIStrategy(ABC):
                 for row in range(0, board_size, step):
                     for col in range(0, board_size, step):
                         # Quick bounds check using piece's bounding box
-                        piece_positions = self._get_piece_positions(piece, row, col, rotation)
+                        piece_positions = self._get_piece_positions(
+                            piece, row, col, rotation
+                        )
 
                         # Bounds validation
                         valid = True
@@ -436,11 +465,11 @@ class AIStrategy(ABC):
     @abstractmethod
     def calculate_move(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         player_id: int,
         time_limit: int = None,
-    ) -> Optional[Move]:
+    ) -> Move | None:
         """
         Calculate best move for current game state.
 
@@ -491,11 +520,11 @@ class RandomStrategy(AIStrategy):
 
     def calculate_move(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         player_id: int,
         time_limit: int = None,
-    ) -> Optional[Move]:
+    ) -> Move | None:
         """
         Select random valid move with caching for performance.
 
@@ -557,7 +586,7 @@ class RandomStrategy(AIStrategy):
 
         return random.choice(valid_moves)
 
-    def _create_board_key(self, board: List[List[int]]) -> str:
+    def _create_board_key(self, board: list[list[int]]) -> str:
         """
         Create a hashable key from board state.
 
@@ -574,10 +603,10 @@ class RandomStrategy(AIStrategy):
             row = board[i]
             # Sample every 4th cell
             sampled = [str(cell) for cell in row[::4]]
-            key_parts.append(''.join(sampled))
-        return '|'.join(key_parts)
+            key_parts.append("".join(sampled))
+        return "|".join(key_parts)
 
-    def get_cache_stats(self) -> Dict[str, int]:
+    def get_cache_stats(self) -> dict[str, int]:
         """
         Get cache performance statistics.
 
@@ -590,7 +619,7 @@ class RandomStrategy(AIStrategy):
             "hits": self._cache_hits,
             "misses": self._cache_misses,
             "size": len(self._cache),
-            "hit_rate": round(hit_rate, 2)
+            "hit_rate": round(hit_rate, 2),
         }
 
     def clear_cache(self):
@@ -630,11 +659,11 @@ class CornerStrategy(AIStrategy):
 
     def calculate_move(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         player_id: int,
         time_limit: int = None,
-    ) -> Optional[Move]:
+    ) -> Move | None:
         """
         Select move that maximizes corner connections.
 
@@ -681,7 +710,7 @@ class CornerStrategy(AIStrategy):
         # Step 3: Return the best move found
         return best_move
 
-    def _score_move(self, board: List[List[int]], move: Move, player_id: int) -> float:
+    def _score_move(self, board: list[list[int]], move: Move, player_id: int) -> float:
         """
         Score a move based on corner strategy.
 
@@ -702,7 +731,9 @@ class CornerStrategy(AIStrategy):
         )
 
         # Count corner connections
-        corners_touched = self._count_corner_connections(board, piece_positions, player_id)
+        corners_touched = self._count_corner_connections(
+            board, piece_positions, player_id
+        )
 
         # Base score from corner connections
         score = corners_touched * 10
@@ -731,11 +762,11 @@ class StrategicStrategy(AIStrategy):
 
     def calculate_move(
         self,
-        board: List[List[int]],
-        pieces: List[Piece],
+        board: list[list[int]],
+        pieces: list[Piece],
         player_id: int,
         time_limit: int = None,
-    ) -> Optional[Move]:
+    ) -> Move | None:
         """
         Calculate move using lookahead and evaluation.
 
@@ -773,7 +804,7 @@ class StrategicStrategy(AIStrategy):
         return best_move or valid_moves[0]  # Fallback to any valid move
 
     def _evaluate_with_lookahead(
-        self, board: List[List[int]], move: Move, player_id: int, timeout: float
+        self, board: list[list[int]], move: Move, player_id: int, timeout: float
     ) -> float:
         """
         Evaluate move using multi-move lookahead.
@@ -799,20 +830,23 @@ class StrategicStrategy(AIStrategy):
 
         return score
 
-    def _apply_move_to_board(self, board: List[List[int]], move: Move):
+    def _apply_move_to_board(self, board: list[list[int]], move: Move):
         """Apply move to board in-place."""
         if move.is_pass or not move.position or not move.piece:
             return
 
         positions = self._get_piece_positions(
-            move.piece, move.position[0], move.position[1], move.rotation,
-            getattr(move, 'flip', False)
+            move.piece,
+            move.position[0],
+            move.position[1],
+            move.rotation,
+            getattr(move, "flip", False),
         )
         for row, col in positions:
             board[row][col] = move.player_id
 
     def _evaluate_position(
-        self, board: List[List[int]], move: Move, player_id: int
+        self, board: list[list[int]], move: Move, player_id: int
     ) -> float:
         """
         Evaluate positional advantages.
@@ -829,8 +863,11 @@ class StrategicStrategy(AIStrategy):
 
         # Get piece positions for this move
         piece_positions = self._get_piece_positions(
-            move.piece, move.position[0], move.position[1], move.rotation, 
-            getattr(move, 'flip', False)
+            move.piece,
+            move.position[0],
+            move.position[1],
+            move.rotation,
+            getattr(move, "flip", False),
         )
 
         # Count corners established
@@ -847,7 +884,7 @@ class StrategicStrategy(AIStrategy):
 
         return score
 
-    def _estimate_mobility(self, board: List[List[int]], player_id: int) -> int:
+    def _estimate_mobility(self, board: list[list[int]], player_id: int) -> int:
         """
         Estimate player's mobility (future move options).
 
@@ -864,7 +901,12 @@ class StrategicStrategy(AIStrategy):
             for col in range(20):
                 if board[row][col] == player_id:
                     # Check adjacent positions
-                    for adj_row, adj_col in [(row-1, col), (row+1, col), (row, col-1), (row, col+1)]:
+                    for adj_row, adj_col in [
+                        (row - 1, col),
+                        (row + 1, col),
+                        (row, col - 1),
+                        (row, col + 1),
+                    ]:
                         if 0 <= adj_row < 20 and 0 <= adj_col < 20:
                             if board[adj_row][adj_col] == 0:
                                 mobility += 1

@@ -10,14 +10,14 @@ This module provides high-performance rendering for the game board using:
 """
 
 import tkinter as tk
-from typing import Dict, List, Tuple, Optional, Set, Any
-from collections import defaultdict
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
 class RenderRegion:
     """Represents a region of the board that needs to be redrawn."""
+
     x: int
     y: int
     width: int
@@ -28,13 +28,14 @@ class RenderRegion:
 @dataclass
 class CachedPiece:
     """Cached piece rendering data."""
+
     piece_id: int
-    shape: List[Tuple[int, int]]
+    shape: list[tuple[int, int]]
     color: str
     rotation: int
     flipped: bool
     # Pre-rendered points for faster drawing
-    points: List[Tuple[int, int]]
+    points: list[tuple[int, int]]
 
 
 class OptimizedBoardRenderer:
@@ -69,17 +70,17 @@ class OptimizedBoardRenderer:
         self.canvas_height = board_size * cell_size
 
         # Double buffering
-        self.buffer_canvas: Optional[tk.Canvas] = None
-        self.buffer_image: Optional[tk.PhotoImage] = None
+        self.buffer_canvas: tk.Canvas | None = None
+        self.buffer_image: tk.PhotoImage | None = None
 
         # Caching
-        self.piece_cache: Dict[str, CachedPiece] = {}
-        self.grid_lines_cache: Optional[tk.PhotoImage] = None
-        self.background_cache: Optional[tk.PhotoImage] = None
+        self.piece_cache: dict[str, CachedPiece] = {}
+        self.grid_lines_cache: tk.PhotoImage | None = None
+        self.background_cache: tk.PhotoImage | None = None
 
         # Dirty regions tracking
-        self.dirty_regions: Set[Tuple[int, int, int, int]] = set()
-        self.last_rendered_state: Dict[str, Any] = {}
+        self.dirty_regions: set[tuple[int, int, int, int]] = set()
+        self.last_rendered_state: dict[str, Any] = {}
 
         # Performance metrics
         self.render_count = 0
@@ -113,12 +114,12 @@ class OptimizedBoardRenderer:
 
     def render_board(
         self,
-        board_state: Dict[Tuple[int, int], int],
-        pieces: Optional[Dict[int, Any]] = None,
+        board_state: dict[tuple[int, int], int],
+        pieces: dict[int, Any] | None = None,
         show_grid: bool = True,
         show_coordinates: bool = False,
-        highlight_regions: Optional[List[RenderRegion]] = None,
-    ) -> Dict[str, int]:
+        highlight_regions: list[RenderRegion] | None = None,
+    ) -> dict[str, int]:
         """
         Render the board with optimizations.
 
@@ -141,6 +142,7 @@ class OptimizedBoardRenderer:
         }
 
         import time
+
         start_time = time.time()
 
         if self.enable_region_updates and self.dirty_regions:
@@ -150,7 +152,9 @@ class OptimizedBoardRenderer:
             )
         else:
             # Full redraw (either region updates disabled or no dirty regions)
-            self._render_full(board_state, pieces, show_grid, show_coordinates, highlight_regions)
+            self._render_full(
+                board_state, pieces, show_grid, show_coordinates, highlight_regions
+            )
             # If we rendered everything, clear dirty regions
             self.dirty_regions.clear()
 
@@ -160,11 +164,11 @@ class OptimizedBoardRenderer:
 
     def _render_regions(
         self,
-        board_state: Dict[Tuple[int, int], int],
-        pieces: Optional[Dict[int, Any]],
+        board_state: dict[tuple[int, int], int],
+        pieces: dict[int, Any] | None,
         show_grid: bool,
         show_coordinates: bool,
-        highlight_regions: Optional[List[RenderRegion]],
+        highlight_regions: list[RenderRegion] | None,
     ):
         """
         Render only dirty regions.
@@ -192,7 +196,9 @@ class OptimizedBoardRenderer:
         )
 
         for x, y, w, h in sorted_regions:
-            self._render_region(x, y, w, h, board_state, pieces, show_grid, show_coordinates)
+            self._render_region(
+                x, y, w, h, board_state, pieces, show_grid, show_coordinates
+            )
             regions_rendered += 1
 
         # Clear dirty regions after rendering
@@ -206,8 +212,8 @@ class OptimizedBoardRenderer:
         y: int,
         width: int,
         height: int,
-        board_state: Dict[Tuple[int, int], int],
-        pieces: Optional[Dict[int, Any]],
+        board_state: dict[tuple[int, int], int],
+        pieces: dict[int, Any] | None,
         show_grid: bool,
         show_coordinates: bool,
     ):
@@ -240,7 +246,10 @@ class OptimizedBoardRenderer:
 
         # Clear region
         self.canvas.create_rectangle(
-            px, py, px + pw, py + ph,
+            px,
+            py,
+            px + pw,
+            py + ph,
             fill="white",
             outline="",
         )
@@ -255,11 +264,11 @@ class OptimizedBoardRenderer:
 
     def _render_full(
         self,
-        board_state: Dict[Tuple[int, int], int],
-        pieces: Optional[Dict[int, Any]],
+        board_state: dict[tuple[int, int], int],
+        pieces: dict[int, Any] | None,
         show_grid: bool,
         show_coordinates: bool,
-        highlight_regions: Optional[List[RenderRegion]],
+        highlight_regions: list[RenderRegion] | None,
     ):
         """
         Render entire board.
@@ -297,7 +306,10 @@ class OptimizedBoardRenderer:
     def _draw_background(self):
         """Draw the board background."""
         self.canvas.create_rectangle(
-            0, 0, self.canvas_width, self.canvas_height,
+            0,
+            0,
+            self.canvas_width,
+            self.canvas_height,
             fill="white",
             outline="",
         )
@@ -308,7 +320,8 @@ class OptimizedBoardRenderer:
         if self.enable_caching and self.grid_lines_cache:
             # Use cached grid
             self.canvas.create_image(
-                0, 0,
+                0,
+                0,
                 image=self.grid_lines_cache,
                 anchor=tk.NW,
             )
@@ -319,7 +332,10 @@ class OptimizedBoardRenderer:
             # Vertical lines
             x = i * self.cell_size
             self.canvas.create_line(
-                x, 0, x, self.canvas_height,
+                x,
+                0,
+                x,
+                self.canvas_height,
                 fill="#CCCCCC",
                 width=1,
             )
@@ -327,7 +343,10 @@ class OptimizedBoardRenderer:
             # Horizontal lines
             y = i * self.cell_size
             self.canvas.create_line(
-                0, y, self.canvas_width, y,
+                0,
+                y,
+                self.canvas_width,
+                y,
                 fill="#CCCCCC",
                 width=1,
             )
@@ -353,7 +372,10 @@ class OptimizedBoardRenderer:
 
         # Draw border of region
         self.canvas.create_rectangle(
-            px, py, px + pw, py + ph,
+            px,
+            py,
+            px + pw,
+            py + ph,
             outline="#CCCCCC",
             width=1,
         )
@@ -362,7 +384,10 @@ class OptimizedBoardRenderer:
         for i in range(width + 1):
             line_x = px + i * self.cell_size
             self.canvas.create_line(
-                line_x, py, line_x, py + ph,
+                line_x,
+                py,
+                line_x,
+                py + ph,
                 fill="#EEEEEE",
                 width=1,
             )
@@ -370,7 +395,10 @@ class OptimizedBoardRenderer:
         for i in range(height + 1):
             line_y = py + i * self.cell_size
             self.canvas.create_line(
-                px, line_y, px + pw, line_y,
+                px,
+                line_y,
+                px + pw,
+                line_y,
                 fill="#EEEEEE",
                 width=1,
             )
@@ -380,7 +408,7 @@ class OptimizedBoardRenderer:
         row: int,
         col: int,
         player_id: int,
-        pieces: Optional[Dict[int, Any]],
+        pieces: dict[int, Any] | None,
     ):
         """
         Draw a piece at a specific location.
@@ -400,7 +428,10 @@ class OptimizedBoardRenderer:
 
         # Draw cell
         self.canvas.create_rectangle(
-            x, y, x + self.cell_size, y + self.cell_size,
+            x,
+            y,
+            x + self.cell_size,
+            y + self.cell_size,
             fill=color,
             outline="#333333",
             width=1,
@@ -410,12 +441,18 @@ class OptimizedBoardRenderer:
         if self.render_quality == "high":
             # Top-left highlight
             self.canvas.create_line(
-                x, y, x + self.cell_size, y,
+                x,
+                y,
+                x + self.cell_size,
+                y,
                 fill="#FFFFFF",
                 width=1,
             )
             self.canvas.create_line(
-                x, y, x, y + self.cell_size,
+                x,
+                y,
+                x,
+                y + self.cell_size,
                 fill="#FFFFFF",
                 width=1,
             )
@@ -423,12 +460,18 @@ class OptimizedBoardRenderer:
             # Bottom-right shadow
             shadow_color = self._darken_color(color, 0.3)
             self.canvas.create_line(
-                x, y + self.cell_size, x + self.cell_size, y + self.cell_size,
+                x,
+                y + self.cell_size,
+                x + self.cell_size,
+                y + self.cell_size,
                 fill=shadow_color,
                 width=1,
             )
             self.canvas.create_line(
-                x + self.cell_size, y, x + self.cell_size, y + self.cell_size,
+                x + self.cell_size,
+                y,
+                x + self.cell_size,
+                y + self.cell_size,
                 fill=shadow_color,
                 width=1,
             )
@@ -441,7 +484,8 @@ class OptimizedBoardRenderer:
         for col in range(self.board_size):
             x = col * self.cell_size + self.cell_size // 2
             self.canvas.create_text(
-                x, -5,
+                x,
+                -5,
                 text=str(col),
                 anchor=tk.S,
                 font=("Arial", font_size),
@@ -452,7 +496,8 @@ class OptimizedBoardRenderer:
         for row in range(self.board_size):
             y = row * self.cell_size + self.cell_size // 2
             self.canvas.create_text(
-                -5, y,
+                -5,
+                y,
                 text=str(row),
                 anchor=tk.E,
                 font=("Arial", font_size),
@@ -472,7 +517,10 @@ class OptimizedBoardRenderer:
         ph = region.height * self.cell_size
 
         self.canvas.create_rectangle(
-            px, py, px + pw, py + ph,
+            px,
+            py,
+            px + pw,
+            py + ph,
             outline="#FF0000",
             width=2,
             dash=(5, 5),
@@ -542,7 +590,7 @@ class OptimizedBoardRenderer:
         self.grid_lines_cache = None
         self.background_cache = None
 
-    def get_performance_metrics(self) -> Dict[str, Any]:
+    def get_performance_metrics(self) -> dict[str, Any]:
         """
         Get performance metrics.
 
@@ -562,10 +610,10 @@ class OptimizedBoardRenderer:
 
     def configure(
         self,
-        double_buffer: Optional[bool] = None,
-        region_updates: Optional[bool] = None,
-        caching: Optional[bool] = None,
-        quality: Optional[str] = None,
+        double_buffer: bool | None = None,
+        region_updates: bool | None = None,
+        caching: bool | None = None,
+        quality: str | None = None,
     ):
         """
         Configure rendering options.
@@ -605,14 +653,14 @@ class PieceShapeCache:
 
     def __init__(self):
         """Initialize piece shape cache."""
-        self.cache: Dict[str, List[Tuple[int, int]]] = {}
+        self.cache: dict[str, list[tuple[int, int]]] = {}
 
     def get_shape(
         self,
         piece_name: str,
         rotation: int = 0,
         flipped: bool = False,
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """
         Get piece shape with transformation applied.
 
@@ -640,7 +688,7 @@ class PieceShapeCache:
         piece_name: str,
         rotation: int,
         flipped: bool,
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """
         Transform base piece shape.
 

@@ -5,9 +5,9 @@ from configuration through to a ready game state.
 """
 
 import pytest
+
 from src.game.game_setup import GameSetup
 from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
 
 

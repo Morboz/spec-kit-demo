@@ -6,9 +6,9 @@ including current AI player, turn count, and game statistics.
 """
 
 import tkinter as tk
-from tkinter import ttk
-from typing import Optional, Callable
+from collections.abc import Callable
 from datetime import datetime
+from tkinter import ttk
 
 
 class SpectatorModeIndicator(ttk.Frame):
@@ -26,8 +26,8 @@ class SpectatorModeIndicator(ttk.Frame):
         self,
         parent,
         game_mode,
-        on_statistics_requested: Optional[Callable] = None,
-        **kwargs
+        on_statistics_requested: Callable | None = None,
+        **kwargs,
     ):
         """
         Initialize spectator mode indicator.
@@ -60,7 +60,7 @@ class SpectatorModeIndicator(ttk.Frame):
             self,
             text="🎮 SPECTATOR MODE",
             font=("Arial", 14, "bold"),
-            foreground="purple"
+            foreground="purple",
         )
         title_label.pack(pady=(0, 10))
 
@@ -72,16 +72,13 @@ class SpectatorModeIndicator(ttk.Frame):
             player_frame,
             text="Player 1 (AI - Medium)",
             font=("Arial", 12, "bold"),
-            foreground="blue"
+            foreground="blue",
         )
         self.player_label.pack()
 
         # AI thinking indicator
         self.thinking_label = ttk.Label(
-            self,
-            text="",
-            font=("Arial", 10, "italic"),
-            foreground="orange"
+            self, text="", font=("Arial", 10, "italic"), foreground="orange"
         )
         self.thinking_label.pack()
 
@@ -90,18 +87,13 @@ class SpectatorModeIndicator(ttk.Frame):
         turn_frame.pack(fill=tk.X, pady=(5, 0))
 
         self.turn_label = ttk.Label(
-            turn_frame,
-            text="Turn 0 / ~200",
-            font=("Arial", 11)
+            turn_frame, text="Turn 0 / ~200", font=("Arial", 11)
         )
         self.turn_label.pack()
 
         # Game timer
         self.timer_label = ttk.Label(
-            turn_frame,
-            text="⏱️ 00:00",
-            font=("Arial", 10),
-            foreground="gray"
+            turn_frame, text="⏱️ 00:00", font=("Arial", 10), foreground="gray"
         )
         self.timer_label.pack()
 
@@ -113,7 +105,7 @@ class SpectatorModeIndicator(ttk.Frame):
             auto_frame,
             text="▶️ Autonomous gameplay",
             font=("Arial", 10, "bold"),
-            foreground="green"
+            foreground="green",
         )
         self.auto_label.pack()
 
@@ -123,7 +115,7 @@ class SpectatorModeIndicator(ttk.Frame):
             text="No human input required\nGames play automatically",
             font=("Arial", 9),
             foreground="gray",
-            justify=tk.CENTER
+            justify=tk.CENTER,
         )
         note_label.pack(pady=(10, 0))
 
@@ -140,8 +132,7 @@ class SpectatorModeIndicator(ttk.Frame):
         color = color_map.get(player_id, "black")
 
         self.player_label.configure(
-            text=f"Player {player_id} (AI - {difficulty})",
-            foreground=color
+            text=f"Player {player_id} (AI - {difficulty})", foreground=color
         )
 
     def update_turn_count(self, turn_count: int):
@@ -175,8 +166,7 @@ class SpectatorModeIndicator(ttk.Frame):
         """
         if is_thinking:
             self.thinking_label.configure(
-                text=f"🤖 {message or 'AI is thinking...'}",
-                foreground="orange"
+                text=f"🤖 {message or 'AI is thinking...'}", foreground="orange"
             )
         else:
             self.thinking_label.configure(text="")
@@ -190,17 +180,14 @@ class SpectatorModeIndicator(ttk.Frame):
             final_scores: Dictionary of player scores
         """
         # Update status
-        self.auto_label.configure(
-            text="🏁 Game Complete",
-            foreground="red"
-        )
+        self.auto_label.configure(text="🏁 Game Complete", foreground="red")
 
         # Show winner
         winner_label = ttk.Label(
             self,
             text=f"🏆 Winner: Player {winner_player_id}",
             font=("Arial", 12, "bold"),
-            foreground="gold"
+            foreground="gold",
         )
         winner_label.pack(pady=(5, 0))
 
@@ -212,9 +199,7 @@ class SpectatorModeIndicator(ttk.Frame):
         """Enable statistics button if callback provided."""
         if self.on_statistics_requested:
             stats_button = ttk.Button(
-                self,
-                text="📊 View Statistics",
-                command=self._on_statistics_clicked
+                self, text="📊 View Statistics", command=self._on_statistics_clicked
             )
             stats_button.pack(pady=(10, 0))
 
@@ -264,9 +249,7 @@ class GameStatisticsDialog(tk.Toplevel):
 
         # Title
         title_label = ttk.Label(
-            main_frame,
-            text="Game Statistics",
-            font=("Arial", 16, "bold")
+            main_frame, text="Game Statistics", font=("Arial", 16, "bold")
         )
         title_label.pack(pady=(0, 20))
 
@@ -277,48 +260,42 @@ class GameStatisticsDialog(tk.Toplevel):
         ttk.Label(
             summary_frame,
             text=f"Game Mode: {game_stats.get('mode', 'Unknown')}",
-            font=("Arial", 10)
+            font=("Arial", 10),
         ).pack(anchor=tk.W)
 
         ttk.Label(
             summary_frame,
             text=f"Duration: {game_stats.get('duration', 'Unknown')}",
-            font=("Arial", 10)
+            font=("Arial", 10),
         ).pack(anchor=tk.W)
 
         ttk.Label(
             summary_frame,
             text=f"Total Turns: {game_stats.get('total_turns', 0)}",
-            font=("Arial", 10)
+            font=("Arial", 10),
         ).pack(anchor=tk.W)
 
         # Player scores
         scores_frame = ttk.LabelFrame(main_frame, text="Final Scores", padding="10")
         scores_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
-        scores = game_stats.get('scores', {})
+        scores = game_stats.get("scores", {})
         for player_id in sorted(scores.keys()):
             score = scores[player_id]
             ttk.Label(
                 scores_frame,
                 text=f"Player {player_id}: {score} points",
-                font=("Arial", 11, "bold")
+                font=("Arial", 11, "bold"),
             ).pack(anchor=tk.W, pady=2)
 
         # Close button
-        close_button = ttk.Button(
-            main_frame,
-            text="Close",
-            command=self.destroy
-        )
+        close_button = ttk.Button(main_frame, text="Close", command=self.destroy)
         close_button.pack(pady=(10, 0))
 
 
 # Convenience function
 def show_spectator_indicator(
-    parent,
-    game_mode,
-    on_statistics_requested: Optional[Callable] = None
+    parent, game_mode, on_statistics_requested: Callable | None = None
 ) -> SpectatorModeIndicator:
     """
     Create and display spectator mode indicator.
@@ -332,8 +309,6 @@ def show_spectator_indicator(
         SpectatorModeIndicator instance
     """
     indicator = SpectatorModeIndicator(
-        parent,
-        game_mode,
-        on_statistics_requested=on_statistics_requested
+        parent, game_mode, on_statistics_requested=on_statistics_requested
     )
     return indicator

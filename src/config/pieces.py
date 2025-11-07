@@ -7,7 +7,7 @@ Each piece is defined by its name and coordinates relative to an origin (0,0).
 All coordinates represent connected squares (orthogonally adjacent).
 """
 
-from typing import List, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.models.piece import Piece
@@ -17,21 +17,17 @@ if TYPE_CHECKING:
 PIECE_DEFINITIONS = {
     # 1-square piece (1 piece)
     "I1": [(0, 0)],
-    
     # 2-square piece (1 piece)
     "I2": [(0, 0), (1, 0)],
-    
     # 3-square pieces (2 pieces)
     "I3": [(0, 0), (1, 0), (2, 0)],  # Straight line
     "V3": [(0, 0), (1, 0), (1, 1)],  # L-shape (corner)
-    
     # 4-square pieces (5 pieces)
     "I4": [(0, 0), (1, 0), (2, 0), (3, 0)],  # Straight line
     "L4": [(0, 0), (0, 1), (0, 2), (1, 2)],  # L-shape
     "O4": [(0, 0), (0, 1), (1, 0), (1, 1)],  # Square (2x2)
     "T4": [(0, 0), (0, 1), (0, 2), (1, 1)],  # T-shape
     "Z4": [(0, 0), (0, 1), (1, 1), (1, 2)],  # Z-shape
-    
     # 5-square pieces (12 pieces)
     "I5": [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0)],  # Straight line
     "L5": [(0, 0), (0, 1), (0, 2), (0, 3), (1, 3)],  # L-shape
@@ -68,7 +64,7 @@ PLAYER_STARTING_CORNERS = {
 }
 
 
-def get_piece_coordinates(piece_name: str) -> List[Tuple[int, int]]:
+def get_piece_coordinates(piece_name: str) -> list[tuple[int, int]]:
     """
     Get the coordinates for a specific piece.
 
@@ -86,7 +82,7 @@ def get_piece_coordinates(piece_name: str) -> List[Tuple[int, int]]:
     return PIECE_DEFINITIONS[piece_name]
 
 
-def get_all_piece_names() -> List[str]:
+def get_all_piece_names() -> list[str]:
     """
     Get a list of all available piece names.
 
@@ -127,7 +123,7 @@ def get_player_color(player_id: int) -> str:
     return PLAYER_COLORS[player_id]
 
 
-def get_starting_corner(player_id: int) -> Tuple[int, int]:
+def get_starting_corner(player_id: int) -> tuple[int, int]:
     """
     Get the starting corner position for a specific player.
 
@@ -145,7 +141,7 @@ def get_starting_corner(player_id: int) -> Tuple[int, int]:
     return PLAYER_STARTING_CORNERS[player_id]
 
 
-def validate_piece_coordinates(coordinates: List[Tuple[int, int]]) -> bool:
+def validate_piece_coordinates(coordinates: list[tuple[int, int]]) -> bool:
     """
     Validate that a set of coordinates represents a connected piece.
 
@@ -213,10 +209,11 @@ def get_piece(piece_name: str) -> "Piece":
         KeyError: If piece_name is not found in PIECE_DEFINITIONS
     """
     from src.models.piece import Piece
+
     return Piece(piece_name)
 
 
-def get_full_piece_set() -> List["Piece"]:
+def get_full_piece_set() -> list["Piece"]:
     """
     Create and return a complete set of all 21 standard Blokus pieces.
 
@@ -229,4 +226,5 @@ def get_full_piece_set() -> List["Piece"]:
         21
     """
     from src.models.piece import Piece
+
     return [Piece(name) for name in get_all_piece_names()]

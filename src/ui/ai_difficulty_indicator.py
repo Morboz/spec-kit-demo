@@ -6,9 +6,8 @@ and information during gameplay.
 """
 
 import tkinter as tk
-from tkinter import ttk
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
+from tkinter import ttk
 
 
 @dataclass
@@ -36,7 +35,7 @@ class AIDifficultyIndicator(ttk.Frame):
         parent: tk.Widget,
         show_scores: bool = True,
         show_colors: bool = True,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize the AI difficulty indicator.
@@ -54,8 +53,8 @@ class AIDifficultyIndicator(ttk.Frame):
         self.show_colors = show_colors
 
         # State
-        self.ai_players: Dict[int, AIPlayerInfo] = {}
-        self.human_player_id: Optional[int] = None
+        self.ai_players: dict[int, AIPlayerInfo] = {}
+        self.human_player_id: int | None = None
 
         # Create widgets
         self._create_widgets()
@@ -66,21 +65,19 @@ class AIDifficultyIndicator(ttk.Frame):
     def _create_widgets(self):
         """Create and arrange UI widgets."""
         # Title
-        title_label = ttk.Label(
-            self,
-            text="AI Players",
-            font=("Arial", 12, "bold")
-        )
+        title_label = ttk.Label(self, text="AI Players", font=("Arial", 12, "bold"))
         title_label.pack(pady=(0, 10))
 
         # Scrollable frame for players
         self.canvas = tk.Canvas(self, height=200)
-        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.scrollbar = ttk.Scrollbar(
+            self, orient="vertical", command=self.canvas.yview
+        )
         self.scrollable_frame = ttk.Frame(self.canvas)
 
         self.scrollable_frame.bind(
             "<Configure>",
-            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
         )
 
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
@@ -96,10 +93,7 @@ class AIDifficultyIndicator(ttk.Frame):
         # Info label
         self.info_var = tk.StringVar(value="")
         self.info_label = ttk.Label(
-            self,
-            textvariable=self.info_var,
-            font=("Arial", 9),
-            foreground="gray"
+            self, textvariable=self.info_var, font=("Arial", 9), foreground="gray"
         )
         self.info_label.pack(pady=(10, 0))
 
@@ -114,7 +108,7 @@ class AIDifficultyIndicator(ttk.Frame):
         difficulties = [
             ("Easy", "Simple random placement", "#90EE90"),
             ("Medium", "Balanced corner strategy", "#FFD700"),
-            ("Hard", "Advanced strategic play", "#FF6B6B")
+            ("Hard", "Advanced strategic play", "#FF6B6B"),
         ]
 
         for i, (level, description, color) in enumerate(difficulties):
@@ -123,31 +117,24 @@ class AIDifficultyIndicator(ttk.Frame):
 
             # Color indicator
             color_label = tk.Label(
-                frame,
-                text="●",
-                font=("Arial", 12),
-                foreground=color
+                frame, text="●", font=("Arial", 12), foreground=color
             )
             color_label.pack(side=tk.LEFT, padx=(0, 5))
 
             # Level and description
             text_label = ttk.Label(
-                frame,
-                text=f"{level}: {description}",
-                font=("Arial", 9)
+                frame, text=f"{level}: {description}", font=("Arial", 9)
             )
             text_label.pack(side=tk.LEFT)
 
     def _apply_styling(self):
         """Apply custom styling for difficulty indicator."""
         style = ttk.Style()
-        style.configure(
-            "AIPlayer.TFrame",
-            relief="groove",
-            borderwidth=1
-        )
+        style.configure("AIPlayer.TFrame", relief="groove", borderwidth=1)
 
-    def set_ai_players(self, players: List[AIPlayerInfo], human_player_id: Optional[int] = None):
+    def set_ai_players(
+        self, players: list[AIPlayerInfo], human_player_id: int | None = None
+    ):
         """
         Set the list of AI players to display.
 
@@ -181,10 +168,7 @@ class AIDifficultyIndicator(ttk.Frame):
             widget.destroy()
 
         # Sort players by ID
-        sorted_players = sorted(
-            self.ai_players.values(),
-            key=lambda p: p.player_id
-        )
+        sorted_players = sorted(self.ai_players.values(), key=lambda p: p.player_id)
 
         # Display each player
         for player in sorted_players:
@@ -211,10 +195,7 @@ class AIDifficultyIndicator(ttk.Frame):
         # Color indicator (left)
         if self.show_colors:
             color_label = tk.Label(
-                content_frame,
-                text="●",
-                font=("Arial", 16),
-                foreground=player.color
+                content_frame, text="●", font=("Arial", 16), foreground=player.color
             )
             color_label.pack(side=tk.LEFT, padx=(0, 10))
 
@@ -227,11 +208,7 @@ class AIDifficultyIndicator(ttk.Frame):
         if player.name:
             name_text = f"{player.name}"
 
-        name_label = ttk.Label(
-            info_frame,
-            text=name_text,
-            font=("Arial", 10, "bold")
-        )
+        name_label = ttk.Label(info_frame, text=name_text, font=("Arial", 10, "bold"))
         name_label.pack(anchor=tk.W)
 
         # Difficulty level
@@ -239,9 +216,7 @@ class AIDifficultyIndicator(ttk.Frame):
         difficulty_frame.pack(anchor=tk.W, fill=tk.X)
 
         difficulty_label = ttk.Label(
-            difficulty_frame,
-            text=f"Difficulty:",
-            font=("Arial", 9)
+            difficulty_frame, text="Difficulty:", font=("Arial", 9)
         )
         difficulty_label.pack(side=tk.LEFT)
 
@@ -251,7 +226,7 @@ class AIDifficultyIndicator(ttk.Frame):
             difficulty_frame,
             text=player.difficulty,
             font=("Arial", 9, "bold"),
-            foreground=diff_color
+            foreground=diff_color,
         )
         difficulty_value.pack(side=tk.LEFT, padx=(5, 0))
 
@@ -260,18 +235,14 @@ class AIDifficultyIndicator(ttk.Frame):
             score_frame = ttk.Frame(content_frame)
             score_frame.pack(side=tk.RIGHT, padx=(10, 0))
 
-            score_label = ttk.Label(
-                score_frame,
-                text="Score:",
-                font=("Arial", 9)
-            )
+            score_label = ttk.Label(score_frame, text="Score:", font=("Arial", 9))
             score_label.pack()
 
             score_value = ttk.Label(
                 score_frame,
                 text=str(player.score),
                 font=("Arial", 10, "bold"),
-                foreground=player.color
+                foreground=player.color,
             )
             score_value.pack()
 
@@ -281,7 +252,7 @@ class AIDifficultyIndicator(ttk.Frame):
                 row_frame,
                 text="(Inactive)",
                 font=("Arial", 8, "italic"),
-                foreground="gray"
+                foreground="gray",
             )
             inactive_label.pack(side=tk.RIGHT, padx=10)
 
@@ -296,9 +267,9 @@ class AIDifficultyIndicator(ttk.Frame):
             Color code for the difficulty
         """
         color_map = {
-            "Easy": "#90EE90",      # Light green
-            "Medium": "#FFD700",    # Gold
-            "Hard": "#FF6B6B"       # Light red
+            "Easy": "#90EE90",  # Light green
+            "Medium": "#FFD700",  # Gold
+            "Hard": "#FF6B6B",  # Light red
         }
         return color_map.get(difficulty, "#808080")  # Gray as default
 
@@ -317,11 +288,10 @@ class AIDifficultyIndicator(ttk.Frame):
         if player_id in self.ai_players:
             # Find and highlight the player's frame
             for widget in self.players_frame.winfo_children():
-                # This is a simplified highlight - in practice you'd track widget references
                 widget.configure(style="AIPlayer.TFrame")
                 break
 
-    def get_difficulty_summary(self) -> Dict[str, int]:
+    def get_difficulty_summary(self) -> dict[str, int]:
         """
         Get summary of difficulty levels.
 
@@ -334,7 +304,7 @@ class AIDifficultyIndicator(ttk.Frame):
                 summary[player.difficulty] += 1
         return summary
 
-    def get_player_by_id(self, player_id: int) -> Optional[AIPlayerInfo]:
+    def get_player_by_id(self, player_id: int) -> AIPlayerInfo | None:
         """
         Get player information by ID.
 
@@ -368,20 +338,13 @@ class GameModeIndicator(ttk.Frame):
     def _create_widgets(self):
         """Create and arrange UI widgets."""
         # Title
-        title_label = ttk.Label(
-            self,
-            text="Game Mode",
-            font=("Arial", 12, "bold")
-        )
+        title_label = ttk.Label(self, text="Game Mode", font=("Arial", 12, "bold"))
         title_label.pack(pady=(0, 10))
 
         # Mode display
         self.mode_var = tk.StringVar(value="")
         self.mode_label = ttk.Label(
-            self,
-            textvariable=self.mode_var,
-            font=("Arial", 11),
-            foreground="blue"
+            self, textvariable=self.mode_var, font=("Arial", 11), foreground="blue"
         )
         self.mode_label.pack(pady=(0, 5))
 
@@ -391,11 +354,11 @@ class GameModeIndicator(ttk.Frame):
             self,
             textvariable=self.difficulty_var,
             font=("Arial", 10),
-            foreground="gray"
+            foreground="gray",
         )
         self.difficulty_label.pack()
 
-    def set_game_mode(self, mode: str, difficulty: Optional[str] = None):
+    def set_game_mode(self, mode: str, difficulty: str | None = None):
         """
         Set the current game mode display.
 
@@ -414,9 +377,9 @@ class GameModeIndicator(ttk.Frame):
 # Convenience functions
 def create_ai_difficulty_display(
     parent: tk.Widget,
-    ai_players: List[AIPlayerInfo],
-    human_player_id: Optional[int] = None,
-    show_scores: bool = True
+    ai_players: list[AIPlayerInfo],
+    human_player_id: int | None = None,
+    show_scores: bool = True,
 ) -> AIDifficultyIndicator:
     """
     Create and configure an AI difficulty indicator.
@@ -430,10 +393,7 @@ def create_ai_difficulty_display(
     Returns:
         Configured AIDifficultyIndicator
     """
-    indicator = AIDifficultyIndicator(
-        parent,
-        show_scores=show_scores
-    )
+    indicator = AIDifficultyIndicator(parent, show_scores=show_scores)
     indicator.set_ai_players(ai_players, human_player_id)
     return indicator
 
@@ -453,11 +413,7 @@ if __name__ == "__main__":
     ]
 
     # Create indicator
-    indicator = AIDifficultyIndicator(
-        root,
-        show_scores=True,
-        show_colors=True
-    )
+    indicator = AIDifficultyIndicator(root, show_scores=True, show_colors=True)
     indicator.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     indicator.set_ai_players(test_players, human_player_id=1)
@@ -469,11 +425,7 @@ if __name__ == "__main__":
                 new_score = player.score + 10
                 indicator.update_player_info(player.player_id, score=new_score)
 
-    update_btn = ttk.Button(
-        root,
-        text="Update Scores",
-        command=update_scores
-    )
+    update_btn = ttk.Button(root, text="Update Scores", command=update_scores)
     update_btn.pack(pady=10)
 
     root.mainloop()

@@ -1,10 +1,8 @@
 """Unit tests for Scoring module."""
 
-import pytest
 from src.game.scoring import ScoringSystem
 from src.models.game_state import GameState
 from src.models.player import Player
-from src.models.board import Board
 
 
 class TestScoringSystem:

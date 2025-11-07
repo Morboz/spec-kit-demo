@@ -5,11 +5,9 @@ This module provides the TurnValidator class which validates whether
 players can make moves and checks various turn-related conditions.
 """
 
-from typing import List, Optional, Set, Tuple
-from src.models.game_state import GameState, GamePhase
-from src.models.player import Player
-from src.models.board import Board
 from src.game.rules import BlokusRules
+from src.models.game_state import GamePhase, GameState
+from src.models.player import Player
 
 
 class TurnValidator:
@@ -24,7 +22,7 @@ class TurnValidator:
         """
         self.game_state = game_state
 
-    def validate_player_can_move(self, player_id: int) -> Tuple[bool, Optional[str]]:
+    def validate_player_can_move(self, player_id: int) -> tuple[bool, str | None]:
         """
         Validate if a player can make a move.
 
@@ -41,7 +39,10 @@ class TurnValidator:
 
         # Check if game is in playing phase
         if self.game_state.phase != GamePhase.PLAYING:
-            return False, f"Game is not in playing phase (current: {self.game_state.phase.name})"
+            return (
+                False,
+                f"Game is not in playing phase (current: {self.game_state.phase.name})",
+            )
 
         # Check if player is active
         if not player.is_active:
@@ -68,7 +69,9 @@ class TurnValidator:
 
         return True, None
 
-    def get_player_valid_moves(self, player_id: int) -> Set[Tuple[str, int, int, int, bool]]:
+    def get_player_valid_moves(
+        self, player_id: int
+    ) -> set[tuple[str, int, int, int, bool]]:
         """
         Get all valid moves available to a player.
 
@@ -128,7 +131,7 @@ class TurnValidator:
         valid_moves = self.get_player_valid_moves(player_id)
         return len(valid_moves) > 0
 
-    def validate_current_player_turn(self) -> Tuple[bool, Optional[str]]:
+    def validate_current_player_turn(self) -> tuple[bool, str | None]:
         """
         Validate that the current turn state is valid.
 
@@ -155,7 +158,7 @@ class TurnValidator:
 
         return True, None
 
-    def validate_turn_sequence(self) -> Tuple[bool, Optional[str]]:
+    def validate_turn_sequence(self) -> tuple[bool, str | None]:
         """
         Validate that the turn sequence is correct.
 
@@ -184,7 +187,7 @@ class TurnValidator:
 
         return True, None
 
-    def validate_pass_state(self) -> Tuple[bool, Optional[str]]:
+    def validate_pass_state(self) -> tuple[bool, str | None]:
         """
         Validate that pass states are consistent.
 
@@ -213,11 +216,11 @@ class TurnValidator:
             Dictionary with turn statistics
         """
         active_players = [
-            p for p in self.game_state.players if p.is_active and p.has_pieces_remaining()
+            p
+            for p in self.game_state.players
+            if p.is_active and p.has_pieces_remaining()
         ]
-        passed_players = [
-            p for p in self.game_state.players if p.has_passed
-        ]
+        passed_players = [p for p in self.game_state.players if p.has_passed]
         inactive_players = [p for p in self.game_state.players if not p.is_active]
 
         return {

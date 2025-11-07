@@ -4,12 +4,10 @@ This test validates that piece placement moves are correctly validated
 according to Blokus rules before being accepted.
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
-from src.models.game_state import GameState
-from src.models.piece import Piece
 from src.game.rules import BlokusRules
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestMoveValidationContract:
@@ -199,7 +197,6 @@ class TestMoveValidationContract:
         # Then: Move is invalid
         assert not result.is_valid
         assert "already placed" in result.reason.lower()
-
 
     def test_validate_with_rotated_piece(self):
         """Contract: Rotation does not affect validation logic.

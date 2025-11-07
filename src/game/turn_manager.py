@@ -6,8 +6,7 @@ gameplay flow, including skipping inactive players, handling passes, and
 coordinating with game end detection.
 """
 
-from typing import List, Optional, Tuple
-from src.models.game_state import GameState, GamePhase
+from src.models.game_state import GamePhase, GameState
 from src.models.player import Player
 
 
@@ -23,7 +22,7 @@ class TurnManager:
         """
         self.game_state = game_state
 
-    def advance_to_next_active_player(self) -> Optional[Player]:
+    def advance_to_next_active_player(self) -> Player | None:
         """
         Advance turn to the next active (not eliminated) player.
 
@@ -61,7 +60,7 @@ class TurnManager:
         # No active players found
         return None
 
-    def skip_current_player(self) -> Optional[Player]:
+    def skip_current_player(self) -> Player | None:
         """
         Mark current player as passed and advance to next player.
 
@@ -112,7 +111,7 @@ class TurnManager:
 
         return True
 
-    def get_next_player(self) -> Optional[Player]:
+    def get_next_player(self) -> Player | None:
         """
         Get the next player who will have a turn.
 
@@ -200,7 +199,7 @@ class TurnManager:
         for player in self.game_state.players:
             player.reset_pass()
 
-    def get_turn_info(self) -> Tuple[int, int, Optional[Player]]:
+    def get_turn_info(self) -> tuple[int, int, Player | None]:
         """
         Get current turn information.
 
@@ -223,7 +222,7 @@ class TurnManager:
         """
         return self.game_state.phase == GamePhase.GAME_OVER
 
-    def get_eligible_players(self) -> List[Player]:
+    def get_eligible_players(self) -> list[Player]:
         """
         Get all players who are eligible to play.
 
@@ -236,20 +235,16 @@ class TurnManager:
             if self._is_player_eligible(player)
         ]
 
-    def get_passed_players(self) -> List[Player]:
+    def get_passed_players(self) -> list[Player]:
         """
         Get all players who have passed in the current round.
 
         Returns:
             List of players who have passed
         """
-        return [
-            player
-            for player in self._get_active_players()
-            if player.has_passed
-        ]
+        return [player for player in self._get_active_players() if player.has_passed]
 
-    def _is_player_eligible(self, player: Optional[Player]) -> bool:
+    def _is_player_eligible(self, player: Player | None) -> bool:
         """
         Check if a player is eligible to play.
 
@@ -276,7 +271,7 @@ class TurnManager:
 
         return True
 
-    def _get_active_players(self) -> List[Player]:
+    def _get_active_players(self) -> list[Player]:
         """
         Get all active players who still have pieces.
 

@@ -7,8 +7,7 @@ including winners, scores, and detailed score breakdown.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional, List, Dict
-from src.models.player import Player
+
 from src.game.winner_determiner import WinnerDeterminer
 
 
@@ -101,7 +100,14 @@ class GameResults(tk.Toplevel):
         self.scores_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
 
         # Create treeview for scores
-        columns = ("Rank", "Player", "Score", "Squares Placed", "Squares Remaining", "Bonus")
+        columns = (
+            "Rank",
+            "Player",
+            "Score",
+            "Squares Placed",
+            "Squares Remaining",
+            "Bonus",
+        )
         self.scores_tree = ttk.Treeview(
             self.scores_frame,
             columns=columns,
@@ -158,7 +164,7 @@ class GameResults(tk.Toplevel):
         self.close_button.pack(side=tk.LEFT)
 
         # Initialize callback
-        self.new_game_callback: Optional[callable] = None
+        self.new_game_callback: callable | None = None
 
     def display_results(self) -> None:
         """Display the game results in the window."""

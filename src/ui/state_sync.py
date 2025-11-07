@@ -5,13 +5,14 @@ This module provides the StateSynchronizer class which coordinates
 updates between UI components and the game state.
 """
 
-from typing import Optional, List, Callable
-from src.models.game_state import GameState
+from collections.abc import Callable
+
 from src.models.board import Board
+from src.models.game_state import GameState
 from src.models.player import Player
 from src.ui.current_player_indicator import CurrentPlayerIndicator
-from src.ui.scoreboard import Scoreboard
 from src.ui.piece_inventory import PieceInventory
+from src.ui.scoreboard import Scoreboard
 
 
 class StateSynchronizer:
@@ -25,16 +26,16 @@ class StateSynchronizer:
             game_state: Game state to synchronize with
         """
         self.game_state = game_state
-        self.board: Optional[Board] = None
-        self.players: List[Player] = []
+        self.board: Board | None = None
+        self.players: list[Player] = []
 
         # UI components
-        self.current_player_indicator: Optional[CurrentPlayerIndicator] = None
-        self.scoreboard: Optional[Scoreboard] = None
-        self.piece_inventory: Optional[PieceInventory] = None
+        self.current_player_indicator: CurrentPlayerIndicator | None = None
+        self.scoreboard: Scoreboard | None = None
+        self.piece_inventory: PieceInventory | None = None
 
         # Update callbacks
-        self.update_callbacks: List[Callable[[], None]] = []
+        self.update_callbacks: list[Callable[[], None]] = []
 
     def attach_current_player_indicator(
         self, indicator: CurrentPlayerIndicator
@@ -84,7 +85,7 @@ class StateSynchronizer:
         """
         self.board = board
 
-    def set_players(self, players: List[Player]) -> None:
+    def set_players(self, players: list[Player]) -> None:
         """
         Set the game players.
 
@@ -198,7 +199,7 @@ class StateSynchronizer:
                 # Log error but don't crash
                 print(f"Error in update callback: {e}")
 
-    def get_current_player(self) -> Optional[Player]:
+    def get_current_player(self) -> Player | None:
         """
         Get the current player.
 
@@ -207,7 +208,7 @@ class StateSynchronizer:
         """
         return self.game_state.get_current_player()
 
-    def get_leader(self) -> Optional[Player]:
+    def get_leader(self) -> Player | None:
         """
         Get the current leader.
 

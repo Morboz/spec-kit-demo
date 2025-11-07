@@ -12,17 +12,14 @@ It shows:
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional
 
+from src.game.rules import BlokusRules
 from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
-from src.game.rules import BlokusRules, ValidationResult
-
+from src.models.player import Player
+from src.ui.current_player_indicator import CurrentPlayerIndicator
 from src.ui.error_display import ErrorDisplay
 from src.ui.placement_preview import PlacementPreview
-from src.ui.piece_display import PieceDisplay
-from src.ui.current_player_indicator import CurrentPlayerIndicator
 
 
 class RuleEnforcementGameUI(ttk.Frame):
@@ -209,7 +206,9 @@ class RuleEnforcementGameUI(ttk.Frame):
 
         if piece and not piece.is_placed:
             self.selected_piece = piece
-            self.error_display.show_info(f"Selected {piece_name}. Hover over board to preview.")
+            self.error_display.show_info(
+                f"Selected {piece_name}. Hover over board to preview."
+            )
 
             # Activate placement preview
             self.placement_preview.activate(piece, self.current_player_id)
@@ -280,10 +279,12 @@ class RuleEnforcementGameUI(ttk.Frame):
 
         if result.is_valid:
             # Place the piece
-            self.board.place_piece(self.selected_piece, row, col, self.current_player_id)
+            self.board.place_piece(
+                self.selected_piece, row, col, self.current_player_id
+            )
             self.selected_piece.place_at(row, col)
 
-            self.error_display.show(f"Piece placed successfully!")
+            self.error_display.show("Piece placed successfully!")
 
             # Clear selection
             self.selected_piece = None
@@ -328,11 +329,7 @@ class RuleEnforcementGameUI(ttk.Frame):
         Returns:
             Current player
         """
-        return (
-            self.player1
-            if self.current_player_id == 1
-            else self.player2
-        )
+        return self.player1 if self.current_player_id == 1 else self.player2
 
 
 def main():

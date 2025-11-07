@@ -9,9 +9,9 @@ This is a demonstration/example file showing the integration pattern.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional
-from src.models.game_state import GameState
+
 from src.game.game_loop import GameLoop
+from src.models.game_state import GameState
 from src.ui.game_results import GameResults
 
 
@@ -31,8 +31,8 @@ class BlokusGameUI(ttk.Frame):
             parent: Parent widget
         """
         super().__init__(parent)
-        self.game_state: Optional[GameState] = None
-        self.game_loop: Optional[GameLoop] = None
+        self.game_state: GameState | None = None
+        self.game_loop: GameLoop | None = None
 
         # Create UI
         self._create_ui()

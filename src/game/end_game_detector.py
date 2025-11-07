@@ -5,7 +5,6 @@ This module provides functionality for detecting when a Blokus game should end.
 It wraps the game state logic to provide a clean interface for game end detection.
 """
 
-from typing import Optional
 from src.models.game_state import GameState
 
 
@@ -39,7 +38,7 @@ class EndGameDetector:
         """
         return self.game_state.should_end_round()
 
-    def get_end_game_reason(self) -> Optional[str]:
+    def get_end_game_reason(self) -> str | None:
         """
         Get a human-readable reason for why the game should end.
 

@@ -2,12 +2,12 @@
 Tests for Game Mode Selector UI functionality.
 """
 
-import unittest
-from unittest.mock import Mock, patch, MagicMock
 import tkinter as tk
-from src.ui.game_mode_selector import GameModeSelector
-from src.models.game_mode import GameMode, GameModeType
+import unittest
+from unittest.mock import Mock, patch
+
 from src.models.ai_config import Difficulty
+from src.ui.game_mode_selector import GameModeSelector
 
 
 class TestGameModeSelector(unittest.TestCase):
@@ -22,8 +22,9 @@ class TestGameModeSelector(unittest.TestCase):
         except Exception:
             # On systems without display (CI/CD), skip Tk initialization
             import pytest
+
             pytest.skip("Tkinter not available in this environment")
-        
+
         # Use real Tk window as parent
         self.parent = self.root
 
@@ -49,7 +50,7 @@ class TestGameModeSelector(unittest.TestCase):
         self.assertEqual(selector.callback, self.callback)
         self.assertIsNone(selector.result)
 
-    @patch('src.models.game_mode.GameMode.get_difficulty_preference')
+    @patch("src.models.game_mode.GameMode.get_difficulty_preference")
     def test_loads_saved_difficulty(self, mock_get_pref):
         """Test that saved difficulty preference is loaded."""
         # Setup mock to return Hard difficulty
@@ -62,7 +63,9 @@ class TestGameModeSelector(unittest.TestCase):
 
     def test_fallback_to_default_on_error(self):
         """Test fallback to default difficulty if loading fails."""
-        with patch('src.models.game_mode.GameMode.get_difficulty_preference') as mock_get_pref:
+        with patch(
+            "src.models.game_mode.GameMode.get_difficulty_preference"
+        ) as mock_get_pref:
             # Simulate exception during loading
             mock_get_pref.side_effect = Exception("File not found")
 
@@ -84,7 +87,7 @@ class TestGameModeSelector(unittest.TestCase):
         selector.dialog.destroy = Mock()
 
         # Patch the imports that happen inside _on_start_clicked method
-        with patch('src.models.game_mode.GameMode') as mock_game_mode_class:
+        with patch("src.models.game_mode.GameMode") as mock_game_mode_class:
             mock_save = Mock()
             mock_game_mode_instance = Mock()
             mock_game_mode_instance.save_difficulty_preference = mock_save
@@ -96,7 +99,7 @@ class TestGameModeSelector(unittest.TestCase):
             # Verify save was called twice (once for SINGLE_AI, once for THREE_AI)
             self.assertEqual(mock_save.call_count, 2)
 
-    @patch('src.ui.game_mode_selector.GameMode')
+    @patch("src.ui.game_mode_selector.GameMode")
     def test_no_save_for_spectate_mode(self, mock_game_mode_class):
         """Test that difficulty is not saved for spectate mode."""
         mock_save = Mock()
@@ -122,9 +125,33 @@ class TestGameModeSelector(unittest.TestCase):
     def test_on_start_clicks_creates_correct_config(self):
         """Test that correct configuration is created for each mode."""
         test_cases = [
-            ("single_ai", "Hard", {"mode_type": "single_ai", "difficulty": "Hard", "description": "Human vs Hard AI"}),
-            ("three_ai", "Easy", {"mode_type": "three_ai", "difficulty": "Easy", "description": "Human vs Easy AI"}),
-            ("spectate", None, {"mode_type": "spectate", "difficulty": None, "description": "Spectate AI vs AI match"}),
+            (
+                "single_ai",
+                "Hard",
+                {
+                    "mode_type": "single_ai",
+                    "difficulty": "Hard",
+                    "description": "Human vs Hard AI",
+                },
+            ),
+            (
+                "three_ai",
+                "Easy",
+                {
+                    "mode_type": "three_ai",
+                    "difficulty": "Easy",
+                    "description": "Human vs Easy AI",
+                },
+            ),
+            (
+                "spectate",
+                None,
+                {
+                    "mode_type": "spectate",
+                    "difficulty": None,
+                    "description": "Spectate AI vs AI match",
+                },
+            ),
         ]
 
         for mode, difficulty, expected_config in test_cases:
@@ -160,9 +187,9 @@ class TestGameModeSelector(unittest.TestCase):
         # Check a sample widget (radiobutton)
         for widget in selector.difficulty_frame.winfo_children():
             if isinstance(widget, tk.Radiobutton):
-                self.assertEqual(str(widget.cget('state')), 'disabled')
-        
-        self.assertIn("mixed difficulty", selector.hint_label.cget('text'))
+                self.assertEqual(str(widget.cget("state")), "disabled")
+
+        self.assertIn("mixed difficulty", selector.hint_label.cget("text"))
 
         # Clean up
         selector.dialog.destroy()
@@ -181,9 +208,9 @@ class TestGameModeSelector(unittest.TestCase):
         # Verify difficulty frame widgets are enabled
         for widget in selector.difficulty_frame.winfo_children():
             if isinstance(widget, tk.Radiobutton):
-                self.assertEqual(str(widget.cget('state')), 'normal')
-        
-        self.assertIn("Choose AI difficulty", selector.hint_label.cget('text'))
+                self.assertEqual(str(widget.cget("state")), "normal")
+
+        self.assertIn("Choose AI difficulty", selector.hint_label.cget("text"))
 
         # Clean up
         selector.dialog.destroy()
@@ -199,7 +226,7 @@ class TestGameModeSelector(unittest.TestCase):
         self.assertIsNone(selector.result)
         selector.dialog.destroy.assert_called_once()
 
-    @patch('src.ui.game_mode_selector.messagebox')
+    @patch("src.ui.game_mode_selector.messagebox")
     def test_callback_invoked_on_start(self, mock_messagebox):
         """Test that callback is invoked when starting game."""
         selector = GameModeSelector(self.parent, self.callback)
@@ -231,7 +258,7 @@ class TestGameModeSelector(unittest.TestCase):
         selector.dialog.destroy = Mock()
 
         # Patch messagebox to avoid popup
-        with patch('src.ui.game_mode_selector.messagebox') as mock_messagebox:
+        with patch("src.ui.game_mode_selector.messagebox") as mock_messagebox:
             # Call _on_start_clicked - should not raise exception
             selector._on_start_clicked()
 
@@ -241,7 +268,7 @@ class TestGameModeSelector(unittest.TestCase):
     def test_create_game_mode_factory_method(self):
         """Test the static factory method for creating game modes."""
         # Test single_ai
-        with patch('src.ui.game_mode_selector.GameMode') as mock_game_mode:
+        with patch("src.ui.game_mode_selector.GameMode") as mock_game_mode:
             mock_instance = Mock()
             mock_game_mode.single_ai.return_value = mock_instance
 
@@ -256,7 +283,7 @@ class TestGameModeSelector(unittest.TestCase):
         """Test the convenience show_game_mode_selector function."""
         from src.ui.game_mode_selector import show_game_mode_selector
 
-        with patch('src.ui.game_mode_selector.GameModeSelector') as mock_selector_class:
+        with patch("src.ui.game_mode_selector.GameModeSelector") as mock_selector_class:
             mock_instance = Mock()
             mock_selector_class.return_value = mock_instance
             mock_instance.show.return_value = {"mode_type": "single_ai"}
@@ -269,5 +296,5 @@ class TestGameModeSelector(unittest.TestCase):
             self.assertEqual(result, {"mode_type": "single_ai"})
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

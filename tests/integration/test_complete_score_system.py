@@ -8,17 +8,17 @@ This test verifies that the entire score tracking system works together:
 - Game loop integration
 """
 
-import pytest
 import tkinter as tk
-from src.models.player import Player
+
+from src.config.pieces import PIECE_DEFINITIONS
+from src.game.game_loop import GameLoop
+from src.game.score_history import ScoreHistory
+from src.game.scoring import ScoringSystem
 from src.models.board import Board
 from src.models.game_state import GameState
-from src.game.scoring import ScoringSystem
-from src.game.score_history import ScoreHistory
-from src.game.game_loop import GameLoop
-from src.ui.scoreboard import Scoreboard
+from src.models.player import Player
 from src.ui.score_breakdown import ScoreBreakdown
-from src.config.pieces import PIECE_DEFINITIONS
+from src.ui.scoreboard import Scoreboard
 
 
 class TestCompleteScoreSystem:
@@ -260,7 +260,9 @@ class TestCompleteScoreSystem:
 
             # All should match
             assert player.score == breakdown["final_score"]
-            assert player.score == breakdown["base_score"] + breakdown["all_pieces_bonus"]
+            assert (
+                player.score == breakdown["base_score"] + breakdown["all_pieces_bonus"]
+            )
             assert breakdown["placed_squares"] + breakdown["unplaced_squares"] == 88
 
             # Board squares should match placed squares
@@ -300,4 +302,6 @@ class TestCompleteScoreSystem:
         original_summary = history.get_summary()
         imported_summary = new_history.get_summary()
         assert original_summary["total_entries"] == imported_summary["total_entries"]
-        assert original_summary["players_tracked"] == imported_summary["players_tracked"]
+        assert (
+            original_summary["players_tracked"] == imported_summary["players_tracked"]
+        )

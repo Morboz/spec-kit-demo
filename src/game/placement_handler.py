@@ -5,13 +5,14 @@ This module provides the PlacementHandler class which orchestrates the piece
 placement workflow, coordinating between UI components and game logic.
 """
 
-from typing import Optional, Callable
+from collections.abc import Callable
+
+from src.game.error_handler import get_error_handler
+from src.game.rules import BlokusRules
 from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
 from src.models.piece import Piece
-from src.game.rules import BlokusRules
-from src.game.error_handler import get_error_handler
+from src.models.player import Player
 
 
 class PlacementHandler:
@@ -33,13 +34,13 @@ class PlacementHandler:
         self.current_player = current_player
 
         # Selected piece state
-        self.selected_piece: Optional[Piece] = None
+        self.selected_piece: Piece | None = None
         self.rotation_count: int = 0
         self.is_flipped: bool = False
 
         # Callbacks
-        self.on_piece_placed: Optional[Callable[[str], None]] = None
-        self.on_placement_error: Optional[Callable[[str], None]] = None
+        self.on_piece_placed: Callable[[str], None] | None = None
+        self.on_placement_error: Callable[[str], None] | None = None
 
     def select_piece(self, piece_name: str) -> bool:
         """
@@ -82,7 +83,7 @@ class PlacementHandler:
             self.selected_piece = self.selected_piece.flip()
             self.is_flipped = not self.is_flipped
 
-    def place_piece(self, row: int, col: int) -> tuple[bool, Optional[str]]:
+    def place_piece(self, row: int, col: int) -> tuple[bool, str | None]:
         """
         Place the selected piece at the given position.
 
@@ -185,7 +186,7 @@ class PlacementHandler:
         self.rotation_count = 0
         self.is_flipped = False
 
-    def get_selected_piece(self) -> Optional[Piece]:
+    def get_selected_piece(self) -> Piece | None:
         """
         Get the currently selected piece.
 
@@ -196,8 +197,8 @@ class PlacementHandler:
 
     def set_callbacks(
         self,
-        on_piece_placed: Optional[Callable[[str], None]] = None,
-        on_placement_error: Optional[Callable[[str], None]] = None,
+        on_piece_placed: Callable[[str], None] | None = None,
+        on_placement_error: Callable[[str], None] | None = None,
     ) -> None:
         """
         Set event callbacks.

@@ -14,28 +14,29 @@ Phase 10: Complete application with:
 
 import tkinter as tk
 from tkinter import messagebox, ttk
-from typing import Optional, Dict, Any, List
-from src.ui.setup_window import SetupWindow
-from src.ui.game_mode_selector import show_game_mode_selector, GameModeSelector
+from typing import Any
+
+from src.config.game_config import GameConfig, create_config_from_preset
+from src.game.error_handler import get_error_handler, setup_error_handling
 from src.game.game_setup import GameSetup
 from src.game.placement_handler import PlacementHandler
-from src.ui.piece_selector import PieceSelector
-from src.ui.piece_display import PieceDisplay
-from src.ui.current_player_indicator import CurrentPlayerIndicator
-from src.ui.scoreboard import Scoreboard
-from src.ui.piece_inventory import PieceInventory
-from src.ui.state_sync import StateSynchronizer
-from src.ui.keyboard_shortcuts import GameKeyboardHandler
-from src.ui.restart_button import RestartButton, GameRestartDialog
-from src.ui.board_renderer import OptimizedBoardRenderer
-from src.ui.placement_preview import PlacementPreview
-from src.ui.skip_turn_button import SkipTurnButton
-from src.config.game_config import GameConfig, create_config_from_preset
-from src.game.error_handler import setup_error_handling, get_error_handler
-from src.models.ai_config import AIConfig, Difficulty
+from src.models.ai_config import Difficulty
 from src.models.ai_player import AIPlayer
 from src.models.game_mode import GameMode
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
+from src.ui.board_renderer import OptimizedBoardRenderer
+from src.ui.current_player_indicator import CurrentPlayerIndicator
+from src.ui.game_mode_selector import GameModeSelector, show_game_mode_selector
+from src.ui.keyboard_shortcuts import GameKeyboardHandler
+from src.ui.piece_display import PieceDisplay
+from src.ui.piece_inventory import PieceInventory
+from src.ui.piece_selector import PieceSelector
+from src.ui.placement_preview import PlacementPreview
+from src.ui.restart_button import GameRestartDialog, RestartButton
+from src.ui.scoreboard import Scoreboard
+from src.ui.setup_window import SetupWindow
+from src.ui.skip_turn_button import SkipTurnButton
+from src.ui.state_sync import StateSynchronizer
 
 
 class BlokusApp:
@@ -52,36 +53,36 @@ class BlokusApp:
         self.root.geometry("1200x800")
 
         # Game configuration
-        self.game_config: Optional[GameConfig] = None
-        self.game_mode: Optional[GameMode] = None
+        self.game_config: GameConfig | None = None
+        self.game_mode: GameMode | None = None
 
         # AI-related
-        self.game_setup: Optional[GameSetup] = None
+        self.game_setup: GameSetup | None = None
         self.game_state = None
-        self.placement_handler: Optional[PlacementHandler] = None
-        self.state_synchronizer: Optional[StateSynchronizer] = None
+        self.placement_handler: PlacementHandler | None = None
+        self.state_synchronizer: StateSynchronizer | None = None
 
         # Setup window
-        self.setup_window: Optional[SetupWindow] = None
+        self.setup_window: SetupWindow | None = None
 
         # UI components
-        self.game_window: Optional[tk.Toplevel] = None
-        self.board_canvas: Optional[tk.Canvas] = None
-        self.board_renderer: Optional[OptimizedBoardRenderer] = None
-        self.piece_selector: Optional[PieceSelector] = None
-        self.piece_display: Optional[PieceDisplay] = None
-        self.current_player_indicator: Optional[CurrentPlayerIndicator] = None
-        self.scoreboard: Optional[Scoreboard] = None
-        self.piece_inventory: Optional[PieceInventory] = None
-        self.placement_preview: Optional[PlacementPreview] = None
-        self.skip_turn_button: Optional[SkipTurnButton] = None
+        self.game_window: tk.Toplevel | None = None
+        self.board_canvas: tk.Canvas | None = None
+        self.board_renderer: OptimizedBoardRenderer | None = None
+        self.piece_selector: PieceSelector | None = None
+        self.piece_display: PieceDisplay | None = None
+        self.current_player_indicator: CurrentPlayerIndicator | None = None
+        self.scoreboard: Scoreboard | None = None
+        self.piece_inventory: PieceInventory | None = None
+        self.placement_preview: PlacementPreview | None = None
+        self.skip_turn_button: SkipTurnButton | None = None
 
         # Phase 10 additions
-        self.keyboard_handler: Optional[GameKeyboardHandler] = None
-        self.restart_button: Optional[RestartButton] = None
+        self.keyboard_handler: GameKeyboardHandler | None = None
+        self.restart_button: RestartButton | None = None
 
         # Performance metrics
-        self.performance_metrics: Dict[str, Any] = {}
+        self.performance_metrics: dict[str, Any] = {}
 
         # If True, skip interactive setup and start Spectate AI mode
         self.auto_spectate = auto_spectate
@@ -141,8 +142,7 @@ class BlokusApp:
             # Create game mode from selection
             try:
                 self.game_mode = GameModeSelector.create_game_mode(
-                    result["mode_type"],
-                    result.get("difficulty")
+                    result["mode_type"], result.get("difficulty")
                 )
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to create game mode: {e}")
@@ -197,7 +197,7 @@ class BlokusApp:
                 error_handler.handle_error(e, show_user_message=True)
                 self.root.quit()
 
-    def _choose_preset(self, preset_names: list) -> Optional[str]:
+    def _choose_preset(self, preset_names: list) -> str | None:
         """
         Choose a preset configuration.
 
@@ -216,10 +216,9 @@ class BlokusApp:
         selected_preset = {"name": None}
 
         # Center window
-        preset_window.geometry("+%d+%d" % (
-            self.root.winfo_rootx() + 50,
-            self.root.winfo_rooty() + 50
-        ))
+        preset_window.geometry(
+            "+%d+%d" % (self.root.winfo_rootx() + 50, self.root.winfo_rooty() + 50)
+        )
 
         # Preset descriptions
         descriptions = {
@@ -236,7 +235,9 @@ class BlokusApp:
             btn = tk.Button(
                 frame,
                 text=preset_name.title(),
-                command=lambda n=preset_name: self._select_preset(n, preset_window, selected_preset),
+                command=lambda n=preset_name: self._select_preset(
+                    n, preset_window, selected_preset
+                ),
                 font=("Arial", 12, "bold"),
                 pady=10,
             )
@@ -276,7 +277,7 @@ class BlokusApp:
         self.game_setup = GameSetup()
         self.game_state = self.game_setup.setup_game(
             num_players=len(self.game_config.players),
-            player_names=[p.name for p in self.game_config.players]
+            player_names=[p.name for p in self.game_config.players],
         )
 
         # Initialize placement handler (but don't setup callbacks yet)
@@ -304,8 +305,12 @@ class BlokusApp:
         # Add human player if specified
         if self.game_mode.human_player_position:
             player_name = "Human"
-            color = self.game_config.get_player_color(self.game_mode.human_player_position)
-            self.game_config.add_player(self.game_mode.human_player_position, player_name, color)
+            color = self.game_config.get_player_color(
+                self.game_mode.human_player_position
+            )
+            self.game_config.add_player(
+                self.game_mode.human_player_position, player_name, color
+            )
 
         # Create AI players
         ai_players = []
@@ -326,22 +331,20 @@ class BlokusApp:
                 # Ensure AI names are unique and contain only allowed characters
                 # Allowed: letters, numbers, spaces, underscores, hyphens, apostrophes
                 # Use format like: "AI EASY P3" (no parentheses or '#')
-                name=f"AI {ai_config.difficulty.name} P{ai_config.position}"
+                name=f"AI {ai_config.difficulty.name} P{ai_config.position}",
             )
             ai_players.append(ai_player)
 
             # Add to game config
             self.game_config.add_player(
-                ai_config.position,
-                ai_player.name,
-                ai_player.color
+                ai_config.position, ai_player.name, ai_player.color
             )
 
         # Setup the game
         self.game_setup = GameSetup()
         self.game_state = self.game_setup.setup_game(
             num_players=self.game_mode.get_player_count(),
-            player_names=[p.name for p in self.game_config.players]
+            player_names=[p.name for p in self.game_config.players],
         )
 
         # Replace AI player placeholders with actual AIPlayer instances
@@ -364,7 +367,7 @@ class BlokusApp:
         # Setup callbacks
         if current_player:
             self._setup_ai_callbacks()
-            
+
             # If the first player is AI, trigger the first move
             if self.game_mode and self.game_mode.is_ai_turn(current_player.player_id):
                 self.root.after(500, lambda: self._trigger_ai_move(current_player))
@@ -435,16 +438,18 @@ class BlokusApp:
                     return
 
                 # Check if it's an AI turn and trigger AI move
-                if self.game_mode and self.game_mode.is_ai_turn(current_player.player_id):
+                if self.game_mode and self.game_mode.is_ai_turn(
+                    current_player.player_id
+                ):
                     # Force UI update before scheduling next AI move
                     self.root.update_idletasks()
-                    # Use after() to schedule AI move with sufficient delay for rendering
+                    # Use after() to schedule AI move with delay for rendering
                     self.root.after(500, lambda: self._trigger_ai_move(current_player))
                 else:
                     # Only show message for human players
                     messagebox.showinfo(
                         "Piece Placed",
-                        f"{piece_name} placed successfully! Turn passes to next player.",
+                        f"{piece_name} placed! Turn passes to next player.",
                     )
 
         # Set callback for placement errors - check if current player is AI or human
@@ -453,7 +458,9 @@ class BlokusApp:
             current_player = self.game_state.get_current_player()
             if current_player:
                 # Check if current player is AI
-                if self.game_mode and self.game_mode.is_ai_turn(current_player.player_id):
+                if self.game_mode and self.game_mode.is_ai_turn(
+                    current_player.player_id
+                ):
                     # For AI mode, just print to console instead of showing error popup
                     print(f"AI placement error: {error_msg}")
                 else:
@@ -468,10 +475,10 @@ class BlokusApp:
             on_piece_placed=on_piece_placed, on_placement_error=on_placement_error
         )
 
-    def _convert_board_to_2d_array(self) -> List[List[int]]:
+    def _convert_board_to_2d_array(self) -> list[list[int]]:
         """
         Convert board.grid dict to 2D array format expected by AI strategies.
-        
+
         Returns:
             20x20 2D list where board[row][col] = player_id (0 if empty)
         """
@@ -490,7 +497,7 @@ class BlokusApp:
         # Force UI update before AI calculation
         if self.root:
             self.root.update_idletasks()
-        
+
         # Show AI thinking indicator
         if self.current_player_indicator:
             self.current_player_indicator.show_ai_thinking()
@@ -533,18 +540,20 @@ class BlokusApp:
                 if not success:
                     print(f"AI placement failed: {error_msg}")
                     self._pass_turn()
-                else:
-                    # Force UI update after successful placement
-                    if self.root:
-                        self.root.update_idletasks()
+                # Force UI update after successful placement
+                elif self.root:
+                    self.root.update_idletasks()
             else:
                 # No valid moves or pass action
-                print(f"AI Player {ai_player.player_id} has no valid moves, passing turn")
+                print(
+                    f"AI Player {ai_player.player_id} has no valid moves, passing turn"
+                )
                 self._pass_turn()
 
         except Exception as e:
             print(f"AI calculation error: {e}")
             import traceback
+
             traceback.print_exc()
             # Pass turn on error
             self._pass_turn()
@@ -559,25 +568,25 @@ class BlokusApp:
     def _pass_turn(self):
         """Pass the current player's turn."""
         from src.game.turn_manager import TurnManager
-        
+
         current_player = self.game_state.get_current_player()
         if current_player:
             current_player.pass_turn()
-            
+
             # Check if all players have passed (game should end)
             if self.game_state.should_end_game():
                 self._end_game()
                 return
-            
-            # Use TurnManager to advance to next active player (skips already-passed players)
+
+            # Use TurnManager to advance to next active player (skips passed players)
             turn_manager = TurnManager(self.game_state)
             next_player = turn_manager.advance_to_next_active_player()
-            
+
             # CRITICAL: Update placement handler's current player
             if next_player and self.placement_handler:
                 self.placement_handler.current_player = next_player
                 self.placement_handler.clear_selection()
-            
+
             # Update UI
             self._render_board()
             if self.state_synchronizer:
@@ -595,7 +604,11 @@ class BlokusApp:
             if self.root:
                 self.root.update_idletasks()
             # Check if next player is AI
-            if next_player and self.game_mode and self.game_mode.is_ai_turn(next_player.player_id):
+            if (
+                next_player
+                and self.game_mode
+                and self.game_mode.is_ai_turn(next_player.player_id)
+            ):
                 # Use after() to schedule AI move with sufficient delay
                 self.root.after(500, lambda: self._trigger_ai_move(next_player))
 
@@ -617,7 +630,7 @@ class BlokusApp:
             """Handle successful piece placement."""
             # Re-render board to show the new piece
             self._render_board()
-            
+
             # Deactivate placement preview
             if self.placement_preview:
                 self.placement_preview.deactivate()
@@ -695,7 +708,8 @@ class BlokusApp:
         self.game_window.title("Blokus - Game")
         self.game_window.geometry(
             f"{self.game_config.window_width}x{self.game_config.window_height}"
-            if self.game_config else "1400x900"
+            if self.game_config
+            else "1400x900"
         )
         self.game_window.resizable(True, True)
 
@@ -725,12 +739,11 @@ class BlokusApp:
 
         # Skip turn button - placed right after current player indicator
         self.skip_turn_button = SkipTurnButton(
-            current_player_frame,
-            on_skip_turn=self._on_skip_turn_clicked
+            current_player_frame, on_skip_turn=self._on_skip_turn_clicked
         )
         self.skip_turn_button.pack(fill=tk.X, pady=(10, 0))
 
-        # Center of top panel - Restart button (create temporary frame, will initialize button later)
+        # Center of top panel - Restart button (temp frame, init button later)
         restart_frame = ttk.Frame(top_panel)
         restart_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
 
@@ -766,7 +779,7 @@ class BlokusApp:
         )
         self.piece_display.pack(fill=tk.X)
 
-        # Create middle-right panel (piece inventory) - increased width for better display
+        # Create middle-right panel (piece inventory) - increased width
         middle_right_panel = ttk.Frame(main_frame, width=350)
         middle_right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, padx=(10, 0))
         middle_right_panel.pack_propagate(False)
@@ -847,7 +860,9 @@ class BlokusApp:
             metrics_btn.pack(side=tk.LEFT, padx=(10, 0))
 
         # Close button
-        close_btn = ttk.Button(status_frame, text="Quit (Ctrl+Q)", command=self._quit_game)
+        close_btn = ttk.Button(
+            status_frame, text="Quit (Ctrl+Q)", command=self._quit_game
+        )
         close_btn.pack(side=tk.RIGHT)
 
         # Setup restart button and add to the restart frame created earlier
@@ -860,7 +875,7 @@ class BlokusApp:
         )
         restart_button_widget = self.restart_button.create_button(
             text="New Game (Ctrl+N)",
-            tooltip="Start a new game with current or different settings"
+            tooltip="Start a new game with current or different settings",
         )
         restart_button_widget.pack(expand=True)
 
@@ -876,7 +891,7 @@ class BlokusApp:
         cell_size = self.game_config.cell_size if self.game_config else 30
         board_size = self.game_config.board_size if self.game_config else 20
         self.placement_preview = PlacementPreview(
-            self.board_canvas, 
+            self.board_canvas,
             self.game_state,
             cell_size=cell_size,
             board_size=board_size,
@@ -908,12 +923,14 @@ class BlokusApp:
             board_state=board_state,
             pieces=None,
             show_grid=self.game_config.show_grid_lines if self.game_config else True,
-            show_coordinates=self.game_config.show_coordinates if self.game_config else False,
+            show_coordinates=(
+                self.game_config.show_coordinates if self.game_config else False
+            ),
         )
 
         # Store metrics
         self.performance_metrics["board_render"] = metrics
-        
+
         # Force UI update after board render
         if self.root:
             self.root.update_idletasks()
@@ -945,7 +962,9 @@ class BlokusApp:
 
             # Validate position
             if not self.game_state.board.is_position_valid(board_row, board_col):
-                messagebox.showerror("Invalid Position", "Position is outside board bounds")
+                messagebox.showerror(
+                    "Invalid Position", "Position is outside board bounds"
+                )
                 return
 
             # Attempt to place piece
@@ -953,11 +972,16 @@ class BlokusApp:
                 # Use placement handler to place piece
                 # Note: place_piece returns (success, error_message) tuple
                 # The placement_handler will call on_piece_placed callback if successful
-                success, error_msg = self.placement_handler.place_piece(board_row, board_col)
+                success, error_msg = self.placement_handler.place_piece(
+                    board_row, board_col
+                )
 
                 if not success:
                     # Show error message (success case is handled by callback)
-                    messagebox.showerror("Invalid Move", error_msg or "Cannot place piece at this position")
+                    messagebox.showerror(
+                        "Invalid Move",
+                        error_msg or "Cannot place piece at this position",
+                    )
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to place piece: {str(e)}")
 
@@ -1038,8 +1062,7 @@ class BlokusApp:
                 current_player = self.game_state.get_current_player()
                 if current_player:
                     self.placement_preview.activate(
-                        piece=selected_piece,
-                        player_id=current_player.player_id
+                        piece=selected_piece, player_id=current_player.player_id
                     )
 
     def _on_rotate_piece(self) -> None:
@@ -1060,8 +1083,7 @@ class BlokusApp:
             current_player = self.game_state.get_current_player()
             if current_player:
                 self.placement_preview.activate(
-                    piece=selected_piece,
-                    player_id=current_player.player_id
+                    piece=selected_piece, player_id=current_player.player_id
                 )
 
     def _on_flip_piece(self) -> None:
@@ -1082,23 +1104,23 @@ class BlokusApp:
             current_player = self.game_state.get_current_player()
             if current_player:
                 self.placement_preview.activate(
-                    piece=selected_piece,
-                    player_id=current_player.player_id
+                    piece=selected_piece, player_id=current_player.player_id
                 )
 
     def _end_game(self) -> None:
         """End the game and display results."""
         # Transition to game over state
         self.game_state.end_game()
-        
+
         # Calculate final scores using the ScoringSystem
         from src.game.scoring import ScoringSystem
+
         final_scores = ScoringSystem.calculate_final_scores(self.game_state)
-        
+
         # Update each player's score
         for player in self.game_state.players:
             player.score = final_scores[player.player_id]
-        
+
         # Show game results
         self._show_game_results()
 
@@ -1109,26 +1131,24 @@ class BlokusApp:
 
         # Get winners
         winners = self.game_state.get_winners()
-        
+
         # Build results message with better formatting
         results_msg = "╔" + "═" * 48 + "╗\n"
         results_msg += "║" + " " * 16 + "游戏结束" + " " * 16 + "║\n"
         results_msg += "╚" + "═" * 48 + "╝\n\n"
-        
+
         results_msg += "📊 最终得分排名:\n"
         results_msg += "─" * 50 + "\n"
-        
+
         # Sort players by score (descending)
         sorted_players = sorted(
-            self.game_state.players, 
-            key=lambda p: p.score, 
-            reverse=True
+            self.game_state.players, key=lambda p: p.score, reverse=True
         )
-        
+
         for i, player in enumerate(sorted_players, 1):
             remaining_squares = player.get_remaining_squares()
             placed_squares = sum(piece.size for piece in player.get_placed_pieces())
-            
+
             # Add medal emoji for top 3
             medal = ""
             if i == 1:
@@ -1137,15 +1157,15 @@ class BlokusApp:
                 medal = "🥈 "
             elif i == 3:
                 medal = "🥉 "
-            
+
             results_msg += f"{medal}{i}. {player.name}:\n"
             results_msg += f"   得分: {player.score} 分\n"
             results_msg += f"   已放置: {placed_squares} 个方块\n"
             results_msg += f"   剩余: {remaining_squares} 个方块\n"
             results_msg += "─" * 50 + "\n"
-        
+
         results_msg += "\n"
-        
+
         # Display winner(s)
         if len(winners) == 1:
             results_msg += f"🏆 获胜者: {winners[0].name}!\n"
@@ -1155,17 +1175,15 @@ class BlokusApp:
             results_msg += "🏆 平局!\n"
             results_msg += f"获胜者: {winner_names}\n"
             results_msg += f"得分: {winners[0].score} 分"
-        
+
         # Show results in message box with larger window
         messagebox.showinfo("🎮 游戏结束", results_msg)
-        
+
         # Ask if user wants to play again
         play_again = messagebox.askyesno(
-            "再来一局?",
-            "是否开始新游戏?",
-            icon="question"
+            "再来一局?", "是否开始新游戏?", icon="question"
         )
-        
+
         if play_again:
             # Close current game window if exists
             if self.game_window:
@@ -1175,7 +1193,6 @@ class BlokusApp:
             self._show_setup()
         else:
             self.root.quit()
-
 
 
 def main() -> None:

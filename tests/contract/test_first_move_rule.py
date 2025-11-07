@@ -4,12 +4,10 @@ This test validates that the first move must be placed in the player's
 starting corner as per official Blokus rules.
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
-from src.models.piece import Piece
-from src.models.game_state import GameState
 from src.game.rules import BlokusRules
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestFirstMoveCornerRule:
@@ -33,9 +31,7 @@ class TestFirstMoveCornerRule:
         piece = player.get_piece("I2")
 
         # When: Piece is placed with one square in corner
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 0, 0)
 
         # Then: Move is valid (I2 at (0,0) covers (0,0) and (1,0))
         assert result.is_valid is True
@@ -56,9 +52,7 @@ class TestFirstMoveCornerRule:
 
         # When: Piece is placed away from corner
         piece = player.get_piece("I2")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 5, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 5, 5)
 
         # Then: Move is invalid
         assert result.is_valid is False
@@ -81,9 +75,7 @@ class TestFirstMoveCornerRule:
 
         # When: Trying to place at (0, 0)
         piece = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 0, 0)
 
         # Then: Valid
         assert result.is_valid is True
@@ -104,9 +96,7 @@ class TestFirstMoveCornerRule:
 
         # When: Trying to place at (0, 19) with I1 at corner
         piece = player.get_piece("I1")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 0, 19
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 0, 19)
 
         # Then: Valid (I1 at (0, 19) covers the corner)
         assert result.is_valid is True
@@ -127,9 +117,7 @@ class TestFirstMoveCornerRule:
 
         # When: Trying to place at (19, 19) with I1 at corner
         piece = player.get_piece("I1")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 19, 19
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 19, 19)
 
         # Then: Valid (I1 at (19, 19) covers the corner)
         assert result.is_valid is True
@@ -150,9 +138,7 @@ class TestFirstMoveCornerRule:
 
         # When: Trying to place at (19, 0) with I1 at corner
         piece = player.get_piece("I1")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 19, 0
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 19, 0)
 
         # Then: Valid (I1 at (19, 0) covers the corner)
         assert result.is_valid is True
@@ -203,9 +189,7 @@ class TestFirstMoveCornerRule:
 
         # When: L4 piece placed with corner at (0, 0)
         piece = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 0, 0)
 
         # Then: Valid
         assert result.is_valid is True
@@ -226,9 +210,7 @@ class TestFirstMoveCornerRule:
 
         # When: Invalid first move
         piece = player.get_piece("I2")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 10, 10
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 10, 10)
 
         # Then: Error message includes correct corner
         assert result.is_valid is False
@@ -251,9 +233,7 @@ class TestFirstMoveCornerRule:
 
         # When: L4 piece placed with corner at (0, 0)
         piece = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 0, 0)
 
         # Then: Valid (L4 at (0,0) covers (0,0))
         assert result.is_valid is True
@@ -274,9 +254,7 @@ class TestFirstMoveCornerRule:
 
         # When: First move at position far from corner
         piece = player.get_piece("I2")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 3, 3
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 3, 3)
 
         # Then: Invalid with descriptive error
         assert result.is_valid is False

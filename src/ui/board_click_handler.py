@@ -5,10 +5,11 @@ This module provides the BoardClickHandler class which manages click events
 on the game board for piece placement.
 """
 
-from typing import Optional, Callable, Tuple
+from collections.abc import Callable
+
 from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class BoardClickHandler:
@@ -28,8 +29,8 @@ class BoardClickHandler:
         self.board = board
         self.game_state = game_state
         self.current_player = current_player
-        self.selected_piece: Optional[str] = None
-        self.on_placement_attempt: Optional[Callable[[str, int, int], None]] = None
+        self.selected_piece: str | None = None
+        self.on_placement_attempt: Callable[[str, int, int], None] | None = None
 
     def set_selected_piece(self, piece_name: str) -> None:
         """
@@ -40,7 +41,7 @@ class BoardClickHandler:
         """
         self.selected_piece = piece_name
 
-    def handle_click(self, row: int, col: int) -> Tuple[bool, Optional[str]]:
+    def handle_click(self, row: int, col: int) -> tuple[bool, str | None]:
         """
         Handle a click on the board.
 
@@ -93,7 +94,7 @@ class BoardClickHandler:
             # Validation failed
             return False, str(e)
 
-    def get_current_piece(self) -> Optional[str]:
+    def get_current_piece(self) -> str | None:
         """
         Get the currently selected piece name.
 

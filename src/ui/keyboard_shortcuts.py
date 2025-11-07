@@ -12,7 +12,8 @@ allowing users to:
 """
 
 import tkinter as tk
-from typing import Callable, Optional, Dict, Any
+from collections.abc import Callable
+from typing import Any
 
 
 class KeyboardShortcuts:
@@ -25,7 +26,6 @@ class KeyboardShortcuts:
         "R": "rotate_counterclockwise",
         "f": "flip_piece",
         "F": "flip_piece",
-
         # Piece selection
         "1": "select_piece_1",
         "2": "select_piece_2",
@@ -37,24 +37,20 @@ class KeyboardShortcuts:
         "8": "select_piece_8",
         "9": "select_piece_9",
         "0": "select_piece_0",
-
         # Game actions
         "space": "skip_turn",
         "Return": "place_piece",
         "Escape": "cancel_action",
-
         # Game control
         "n": "new_game",
         "q": "quit",
         "h": "show_help",
         "?": "show_help",
-
         # Navigation
         "Left": "move_cursor_left",
         "Right": "move_cursor_right",
         "Up": "move_cursor_up",
         "Down": "move_cursor_down",
-
         # Game mode selection (AI Battle Mode)
         "F1": "show_help_dialog",
         "F2": "select_single_ai_mode",
@@ -70,12 +66,12 @@ class KeyboardShortcuts:
             root: The Tkinter root window
         """
         self.root = root
-        self.bindings: Dict[str, str] = self.DEFAULT_BINDINGS.copy()
-        self.callbacks: Dict[str, Callable] = {}
+        self.bindings: dict[str, str] = self.DEFAULT_BINDINGS.copy()
+        self.callbacks: dict[str, Callable] = {}
         self.enabled: bool = True
 
         # Store the widget that currently has focus
-        self._focus_widget: Optional[tk.Widget] = None
+        self._focus_widget: tk.Widget | None = None
 
     def register_callback(self, action: str, callback: Callable[[], None]):
         """
@@ -149,7 +145,7 @@ class KeyboardShortcuts:
             except Exception as e:
                 print(f"Error executing action '{action}': {e}")
 
-    def get_action_for_key(self, key: str) -> Optional[str]:
+    def get_action_for_key(self, key: str) -> str | None:
         """
         Get the action associated with a key.
 
@@ -194,11 +190,11 @@ class KeyboardShortcuts:
             self.root.unbind(binding)
             del self.bindings[key]
 
-    def get_all_bindings(self) -> Dict[str, str]:
+    def get_all_bindings(self) -> dict[str, str]:
         """Get all current key bindings."""
         return self.bindings.copy()
 
-    def load_custom_bindings(self, bindings: Dict[str, str]):
+    def load_custom_bindings(self, bindings: dict[str, str]):
         """
         Load custom key bindings.
 
@@ -220,10 +216,10 @@ class GameKeyboardHandler:
         game_state: Any,
         board: Any,
         piece_display: Any,
-        on_rotate: Optional[Callable[[], None]] = None,
-        on_flip: Optional[Callable[[], None]] = None,
-        on_mode_select: Optional[Callable[[str], None]] = None,
-        on_show_help: Optional[Callable[[], None]] = None,
+        on_rotate: Callable[[], None] | None = None,
+        on_flip: Callable[[], None] | None = None,
+        on_mode_select: Callable[[str], None] | None = None,
+        on_show_help: Callable[[], None] | None = None,
     ):
         """
         Initialize game keyboard handler.
@@ -262,12 +258,16 @@ class GameKeyboardHandler:
         """Setup keyboard shortcut callbacks."""
         # Piece manipulation
         self.keyboard.register_callback("rotate_clockwise", self._rotate_clockwise)
-        self.keyboard.register_callback("rotate_counterclockwise", self._rotate_counterclockwise)
+        self.keyboard.register_callback(
+            "rotate_counterclockwise", self._rotate_counterclockwise
+        )
         self.keyboard.register_callback("flip_piece", self._flip_piece)
 
         # Piece selection
         for i in range(1, 10):
-            self.keyboard.register_callback(f"select_piece_{i}", lambda i=i: self._select_piece(i - 1))
+            self.keyboard.register_callback(
+                f"select_piece_{i}", lambda i=i: self._select_piece(i - 1)
+            )
         self.keyboard.register_callback("select_piece_0", lambda: self._select_piece(9))
 
         # Game actions
@@ -288,9 +288,15 @@ class GameKeyboardHandler:
 
         # Game mode selection (AI Battle Mode)
         self.keyboard.register_callback("show_help_dialog", self._show_help_dialog)
-        self.keyboard.register_callback("select_single_ai_mode", lambda: self._select_game_mode("single_ai"))
-        self.keyboard.register_callback("select_three_ai_mode", lambda: self._select_game_mode("three_ai"))
-        self.keyboard.register_callback("select_spectate_mode", lambda: self._select_game_mode("spectate"))
+        self.keyboard.register_callback(
+            "select_single_ai_mode", lambda: self._select_game_mode("single_ai")
+        )
+        self.keyboard.register_callback(
+            "select_three_ai_mode", lambda: self._select_game_mode("three_ai")
+        )
+        self.keyboard.register_callback(
+            "select_spectate_mode", lambda: self._select_game_mode("spectate")
+        )
 
     def _rotate_clockwise(self):
         """Rotate current piece clockwise."""
@@ -400,16 +406,13 @@ class GameKeyboardHandler:
         text_widget.config(state=tk.DISABLED)
 
         # Close button
-        close_button = tk.Button(
-            help_window, text="Close", command=help_window.destroy
-        )
+        close_button = tk.Button(help_window, text="Close", command=help_window.destroy)
         close_button.pack(pady=10)
 
         # Center window
-        help_window.geometry("+%d+%d" % (
-            self.root.winfo_rootx() + 50,
-            self.root.winfo_rooty() + 50
-        ))
+        help_window.geometry(
+            "+%d+%d" % (self.root.winfo_rootx() + 50, self.root.winfo_rooty() + 50)
+        )
 
     def _show_help_dialog(self):
         """Show help dialog for AI battle mode."""
@@ -538,7 +541,7 @@ class KeyboardShortcutConfig:
     }
 
     @classmethod
-    def get_preset(cls, name: str) -> Dict[str, str]:
+    def get_preset(cls, name: str) -> dict[str, str]:
         """Get a keyboard shortcut preset by name."""
         if name not in cls.PRESETS:
             raise ValueError(f"Unknown preset: {name}")

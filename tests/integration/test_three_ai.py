@@ -6,11 +6,11 @@ including multi-AI turn management, independent AI decision making, and game com
 """
 
 import pytest
-import tkinter as tk
-from src.models.game_mode import GameMode, GameModeType
+
 from src.models.ai_config import Difficulty
 from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+from src.models.game_mode import GameMode, GameModeType
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 
 
 class TestThreeAIMode:
@@ -37,9 +37,9 @@ class TestThreeAIMode:
 
         # Test is_ai_turn
         assert game_mode.is_ai_turn(1) is False  # Human player
-        assert game_mode.is_ai_turn(2) is True   # AI player
-        assert game_mode.is_ai_turn(3) is True   # AI player
-        assert game_mode.is_ai_turn(4) is True   # AI player
+        assert game_mode.is_ai_turn(2) is True  # AI player
+        assert game_mode.is_ai_turn(3) is True  # AI player
+        assert game_mode.is_ai_turn(4) is True  # AI player
 
     def test_three_ai_turn_progression(self):
         """Test turn progression in Three AI mode."""
@@ -81,10 +81,7 @@ class TestThreeAIMode:
                 color = "green"
 
             ai_player = AIPlayer(
-                player_id=ai_config.position,
-                strategy=strategy,
-                color=color,
-                name=name
+                player_id=ai_config.position, strategy=strategy, color=color, name=name
             )
             ai_players.append(ai_player)
 
@@ -109,9 +106,13 @@ class TestThreeAIMode:
     def test_ai_players_independence(self):
         """Test that AI players operate independently."""
         # Create three AI players
-        ai1 = AIPlayer(player_id=2, strategy=RandomStrategy(), color="blue", name="AI-1")
+        ai1 = AIPlayer(
+            player_id=2, strategy=RandomStrategy(), color="blue", name="AI-1"
+        )
         ai2 = AIPlayer(player_id=3, strategy=CornerStrategy(), color="red", name="AI-2")
-        ai3 = AIPlayer(player_id=4, strategy=StrategicStrategy(), color="green", name="AI-3")
+        ai3 = AIPlayer(
+            player_id=4, strategy=StrategicStrategy(), color="green", name="AI-3"
+        )
 
         # Create empty board
         board = [[0 for _ in range(20)] for _ in range(20)]
@@ -159,7 +160,7 @@ class TestThreeAIMode:
                 player_id=ai_config.position,
                 strategy=strategies[i],
                 color=colors[i],
-                name=names[i]
+                name=names[i],
             )
             ai_players.append(ai_player)
 
@@ -214,7 +215,7 @@ class TestThreeAIMode:
                 player_id=ai_config.position,
                 strategy=RandomStrategy(),
                 color=colors[i],
-                name=names[i]
+                name=names[i],
             )
             ai_players.append(ai_player)
 
@@ -231,8 +232,8 @@ class TestThreeAIIntegrationFlow:
     @pytest.fixture
     def three_ai_game(self):
         """Create a Three AI game for testing."""
-        from src.models.player import Player
         from src.models.board import Board
+        from src.models.player import Player
 
         game_mode = GameMode.three_ai(Difficulty.MEDIUM)
 
@@ -264,9 +265,7 @@ class TestThreeAIIntegrationFlow:
         assert current == 1
 
         # Advance through all players
-        next_players = [
-            game_mode.get_next_player(current) for _ in range(8)
-        ]
+        next_players = [game_mode.get_next_player(current) for _ in range(8)]
 
         # Should cycle through all 4 players
         assert next_players == [2, 3, 4, 1, 2, 3, 4, 1]
@@ -307,9 +306,15 @@ class TestThreeAIIntegrationFlow:
 
         # Create AI players with different strategies
         ai_players = {
-            2: AIPlayer(player_id=2, strategy=RandomStrategy(), color="blue", name="AI-2"),
-            3: AIPlayer(player_id=3, strategy=CornerStrategy(), color="red", name="AI-3"),
-            4: AIPlayer(player_id=4, strategy=StrategicStrategy(), color="green", name="AI-4"),
+            2: AIPlayer(
+                player_id=2, strategy=RandomStrategy(), color="blue", name="AI-2"
+            ),
+            3: AIPlayer(
+                player_id=3, strategy=CornerStrategy(), color="red", name="AI-3"
+            ),
+            4: AIPlayer(
+                player_id=4, strategy=StrategicStrategy(), color="green", name="AI-4"
+            ),
         }
 
         # Each AI should operate independently

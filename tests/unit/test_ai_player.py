@@ -1,9 +1,10 @@
 """Unit tests for AI Player model."""
 
 import pytest
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+
 from src.config.pieces import get_piece
+from src.models.ai_player import AIPlayer
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 
 
 class TestAIPlayer:
@@ -231,11 +232,7 @@ class TestAIPlayer:
 
     def test_different_strategies_produce_different_behavior(self):
         """Test that different strategies can be used interchangeably."""
-        strategies = [
-            RandomStrategy(),
-            CornerStrategy(),
-            StrategicStrategy()
-        ]
+        strategies = [RandomStrategy(), CornerStrategy(), StrategicStrategy()]
 
         board = [[0] * 20 for _ in range(20)]
         pieces = [get_piece("I5")]
@@ -248,7 +245,6 @@ class TestAIPlayer:
 
     def test_switch_strategy(self):
         """Test switching AI player's strategy at runtime."""
-        from src.services.ai_strategy import AIStrategy
 
         # Create player with initial strategy
         initial_strategy = RandomStrategy()
@@ -278,7 +274,6 @@ class TestAIPlayer:
 
     def test_switch_to_difficulty(self):
         """Test switching to difficulty level by string."""
-        from src.models.ai_config import Difficulty
 
         # Create player with initial strategy
         strategy = RandomStrategy()
@@ -345,7 +340,6 @@ class TestAIPlayer:
 
     def test_multiple_strategy_switches(self):
         """Test multiple consecutive strategy switches."""
-        from src.models.ai_config import Difficulty
 
         strategy = RandomStrategy()
         ai_player = AIPlayer(1, strategy, "blue")

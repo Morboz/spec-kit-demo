@@ -4,11 +4,10 @@ This test validates that all pieces must be placed within the 20x20
 board boundaries.
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
-from src.models.game_state import GameState
 from src.game.rules import BlokusRules
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestBoardBounds:
@@ -35,9 +34,7 @@ class TestBoardBounds:
 
         # When: Second piece placed with diagonal contact at (2, 1)
         piece = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 2, 1
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 2, 1)
 
         # Then: Valid
         assert result.is_valid is True
@@ -63,13 +60,10 @@ class TestBoardBounds:
 
         # When: Second piece placed with diagonal contact at (2, 1)
         piece = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 2, 1
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 2, 1)
 
         # Then: Valid
         assert result.is_valid is True
-
 
     def test_piece_at_left_boundary_is_valid(self):
         """Contract: Piece at left boundary (col 0) is valid.
@@ -92,13 +86,10 @@ class TestBoardBounds:
 
         # When: Second piece placed with diagonal contact at (2, 1)
         piece = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 2, 1
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 2, 1)
 
         # Then: Valid
         assert result.is_valid is True
-
 
     def test_piece_extending_beyond_top_is_invalid(self):
         """Contract: Piece extending beyond top boundary is invalid.
@@ -116,9 +107,7 @@ class TestBoardBounds:
 
         # When: Piece anchor at negative row
         piece = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, -1, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, -1, 5)
 
         # Then: Invalid
         assert result.is_valid is False
@@ -140,9 +129,7 @@ class TestBoardBounds:
 
         # When: Piece anchor at row 19 (would extend to 21)
         piece = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 19, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 19, 5)
 
         # Then: Invalid
         assert result.is_valid is False
@@ -164,9 +151,7 @@ class TestBoardBounds:
 
         # When: Piece anchor at negative col
         piece = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 5, -1
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 5, -1)
 
         # Then: Invalid
         assert result.is_valid is False
@@ -188,14 +173,11 @@ class TestBoardBounds:
 
         # When: Piece anchor at col 19 (would extend to 22)
         piece = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 5, 19
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 5, 19)
 
         # Then: Invalid
         assert result.is_valid is False
         assert "bounds" in result.reason.lower() or "outside" in result.reason.lower()
-
 
     def test_error_message_includes_invalid_position(self):
         """Contract: Error message specifies which position is out of bounds.
@@ -213,9 +195,7 @@ class TestBoardBounds:
 
         # When: Piece extends beyond bottom
         piece = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 19, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 19, 5)
 
         # Then: Error includes position
         assert result.is_valid is False
@@ -238,13 +218,10 @@ class TestBoardBounds:
 
         # When: I5 piece placed with end out of bounds
         piece = player.get_piece("I5")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 17, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 17, 5)
 
         # Then: Invalid (extends beyond row 19)
         assert result.is_valid is False
-
 
     def test_rotated_piece_extending_beyond_bounds(self):
         """Contract: Rotated piece extending beyond bounds is invalid.
@@ -262,9 +239,7 @@ class TestBoardBounds:
 
         # When: Rotated L4 piece placed near edge (extends out)
         piece = player.get_piece("L4").rotate(90)
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 18, 18
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 18, 18)
 
         # Then: Invalid
         assert result.is_valid is False
@@ -296,9 +271,7 @@ class TestBoardBounds:
         piece = player.get_piece("I5")
 
         # When: Get valid moves
-        valid_moves = BlokusRules.get_valid_moves(
-            game_state, player.player_id, piece
-        )
+        valid_moves = BlokusRules.get_valid_moves(game_state, player.player_id, piece)
 
         # Then: All moves are within bounds
         for row, col in valid_moves:

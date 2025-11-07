@@ -4,10 +4,8 @@ This test validates that players take turns in the correct sequence
 and that the game properly advances through multiple rounds.
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestTurnSequenceContract:

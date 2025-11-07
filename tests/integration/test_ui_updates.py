@@ -4,11 +4,8 @@ This test validates that UI components properly synchronize with game state
 changes and update in real-time as the game progresses.
 """
 
-import pytest
 from src.game.game_setup import GameSetup
 from src.game.placement_handler import PlacementHandler
-from src.models.game_state import GameState
-from src.models.board import Board
 from src.models.piece import Piece
 
 

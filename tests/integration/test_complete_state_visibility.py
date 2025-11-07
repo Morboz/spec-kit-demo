@@ -4,14 +4,8 @@ This test validates that all UI components correctly display and synchronize
 game state information in a real game scenario.
 """
 
-import pytest
 from src.game.game_setup import GameSetup
-from src.game.placement_handler import PlacementHandler
-from src.ui.current_player_indicator import CurrentPlayerIndicator
-from src.ui.scoreboard import Scoreboard
-from src.ui.piece_inventory import PieceInventory
 from src.ui.state_sync import StateSynchronizer
-from src.models.game_state import GameState
 
 
 class TestCompleteStateVisibility:
@@ -310,9 +304,7 @@ class TestCompleteStateVisibility:
         """
         # Given: 4-player game
         setup = GameSetup()
-        game_state = setup.setup_game(
-            4, ["Alice", "Bob", "Charlie", "Diana"]
-        )
+        game_state = setup.setup_game(4, ["Alice", "Bob", "Charlie", "Diana"])
         board = setup.get_board()
 
         # When: All players place pieces

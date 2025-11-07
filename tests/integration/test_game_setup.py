@@ -4,10 +4,9 @@ This test validates the entire game setup process from initialization
 to a ready-to-play game state.
 """
 
-import pytest
 from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestGameSetupFlow:

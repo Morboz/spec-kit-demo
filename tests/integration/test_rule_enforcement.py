@@ -4,11 +4,10 @@ This test validates that all Blokus rules are enforced together
 in realistic gameplay scenarios.
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
-from src.models.game_state import GameState
 from src.game.rules import BlokusRules
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestRuleEnforcementIntegration:
@@ -32,18 +31,14 @@ class TestRuleEnforcementIntegration:
 
         # When: Valid first move in corner
         piece = player1.get_piece("I2")
-        result = BlokusRules.validate_move(
-            game_state, player1.player_id, piece, 0, 0
-        )
+        result = BlokusRules.validate_move(game_state, player1.player_id, piece, 0, 0)
 
         # Then: Valid
         assert result.is_valid is True
 
         # When: Invalid first move (not in corner)
         piece = player1.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player1.player_id, piece, 5, 5
-        )
+        result = BlokusRules.validate_move(game_state, player1.player_id, piece, 5, 5)
 
         # Then: Invalid due to corner rule
         assert result.is_valid is False
@@ -73,9 +68,7 @@ class TestRuleEnforcementIntegration:
         # L4 at (2,1): occupies [(2,1), (2,2), (2,3), (3,3)]
         # This has diagonal contact with (1,0) at position (2,1)
         piece2 = player1.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player1.player_id, piece2, 2, 1
-        )
+        result = BlokusRules.validate_move(game_state, player1.player_id, piece2, 2, 1)
 
         # Then: Valid
         assert result.is_valid is True
@@ -261,9 +254,7 @@ class TestRuleEnforcementIntegration:
         # I2 at (0,0) occupies [(0,0), (1,0)]
         # Use I3 at (2,1) instead which has diagonal contact
         piece_i3 = player.get_piece("I3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece_i3, 2, 1
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece_i3, 2, 1)
 
         # Then: Valid if all rules satisfied
         assert result.is_valid is True
@@ -295,9 +286,7 @@ class TestRuleEnforcementIntegration:
 
         # When: First move not in corner
         piece = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece, 5, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece, 5, 5)
 
         # Then: Error message is clear
         assert result.is_valid is False
@@ -306,9 +295,7 @@ class TestRuleEnforcementIntegration:
 
         # When: Out of bounds
         piece2 = player.get_piece("V3")
-        result2 = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, -1, 5
-        )
+        result2 = BlokusRules.validate_move(game_state, player.player_id, piece2, -1, 5)
 
         # Then: Clear error about bounds
         assert result2.is_valid is False
@@ -334,9 +321,7 @@ class TestRuleEnforcementIntegration:
         # When: Move that could violate multiple rules
         # (e.g., overlap AND edge contact)
         piece2 = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 5, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 5, 5)
 
         # Then: One rule violation is reported (consistent order)
         assert result.is_valid is False
@@ -432,15 +417,11 @@ class TestRuleEnforcementIntegration:
 
         # When: Multiple invalid moves validated
         piece2 = player.get_piece("L4")
-        result1 = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 0, 0
-        )
+        result1 = BlokusRules.validate_move(game_state, player.player_id, piece2, 0, 0)
         result2 = BlokusRules.validate_move(
             game_state, player.player_id, piece2, -1, -1
         )
-        result3 = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 1, 0
-        )
+        result3 = BlokusRules.validate_move(game_state, player.player_id, piece2, 1, 0)
 
         # Then: Game state unchanged
         assert board.get_occupied_positions() == initial_state

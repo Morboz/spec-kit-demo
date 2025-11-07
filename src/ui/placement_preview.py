@@ -8,11 +8,9 @@ preview of valid/invalid placement with visual indicators.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional, List, Tuple, Dict
-from src.models.board import Board
-from src.models.player import Player
-from src.models.game_state import GameState
+
 from src.game.rules import BlokusRules, ValidationResult
+from src.models.game_state import GameState
 
 
 class PlacementPreview:
@@ -31,7 +29,7 @@ class PlacementPreview:
         game_state: GameState,
         cell_size: int = 30,
         board_size: int = 20,
-        error_display: Optional[ttk.Frame] = None,
+        error_display: ttk.Frame | None = None,
     ):
         """
         Initialize the placement preview.
@@ -50,10 +48,10 @@ class PlacementPreview:
         self.board_size = board_size
 
         # Current preview state
-        self.current_piece: Optional[object] = None
-        self.current_player_id: Optional[int] = None
-        self.preview_positions: List[Tuple[int, int]] = []
-        self.preview_rectangles: List[int] = []
+        self.current_piece: object | None = None
+        self.current_player_id: int | None = None
+        self.preview_positions: list[tuple[int, int]] = []
+        self.preview_rectangles: list[int] = []
         self.is_active = False
 
         # Visual settings
@@ -66,7 +64,7 @@ class PlacementPreview:
         self.board_canvas.bind("<Leave>", self.on_mouse_leave)
 
     def activate(
-        self, piece: object, player_id: int, rotated_piece: Optional[object] = None
+        self, piece: object, player_id: int, rotated_piece: object | None = None
     ):
         """
         Activate preview mode for a piece.
@@ -133,7 +131,7 @@ class PlacementPreview:
         if self.error_display:
             self.error_display.hide()
 
-    def get_board_position(self, x: int, y: int) -> Tuple[Optional[int], Optional[int]]:
+    def get_board_position(self, x: int, y: int) -> tuple[int | None, int | None]:
         """
         Convert canvas coordinates to board position.
 
@@ -155,9 +153,7 @@ class PlacementPreview:
 
         return None, None
 
-    def show_preview(
-        self, row: int, col: int, validation_result: ValidationResult
-    ):
+    def show_preview(self, row: int, col: int, validation_result: ValidationResult):
         """
         Show preview of piece at specified position.
 
@@ -193,7 +189,10 @@ class PlacementPreview:
 
             # Draw filled rectangle with stipple for transparency effect
             rect_id = self.board_canvas.create_rectangle(
-                x1 + 1, y1 + 1, x2 - 1, y2 - 1,
+                x1 + 1,
+                y1 + 1,
+                x2 - 1,
+                y2 - 1,
                 fill=fill_color,
                 outline=outline_color,
                 width=2,
@@ -203,7 +202,10 @@ class PlacementPreview:
 
             # Add a second layer for better visibility
             inner_rect = self.board_canvas.create_rectangle(
-                x1 + 3, y1 + 3, x2 - 3, y2 - 3,
+                x1 + 3,
+                y1 + 3,
+                x2 - 3,
+                y2 - 3,
                 fill="",
                 outline=outline_color,
                 width=1,
@@ -218,7 +220,7 @@ class PlacementPreview:
         self.preview_rectangles.clear()
         self.preview_positions.clear()
 
-    def _get_rule_type(self, reason: str) -> Optional[str]:
+    def _get_rule_type(self, reason: str) -> str | None:
         """
         Determine rule type from error message.
 
@@ -241,7 +243,9 @@ class PlacementPreview:
 
         return None
 
-    def get_valid_moves(self, piece: object, player_id: int) -> Dict[Tuple[int, int], str]:
+    def get_valid_moves(
+        self, piece: object, player_id: int
+    ) -> dict[tuple[int, int], str]:
         """
         Get all valid moves for a piece with reasons for invalid moves.
 
@@ -274,7 +278,7 @@ class PlacementPreview:
 
         return result.is_valid
 
-    def get_validation_result(self, row: int, col: int) -> Optional[ValidationResult]:
+    def get_validation_result(self, row: int, col: int) -> ValidationResult | None:
         """
         Get validation result for current piece at position.
 

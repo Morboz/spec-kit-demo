@@ -7,9 +7,9 @@ score breakdown for a player in the game.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional, Dict
-from src.models.player import Player
+
 from src.game.scoring import ScoringSystem
+from src.models.player import Player
 
 
 class ScoreBreakdown(ttk.Frame):
@@ -18,7 +18,7 @@ class ScoreBreakdown(ttk.Frame):
     def __init__(
         self,
         parent: tk.Widget,
-        player: Optional[Player] = None,
+        player: Player | None = None,
     ) -> None:
         """
         Initialize the score breakdown component.
@@ -29,7 +29,7 @@ class ScoreBreakdown(ttk.Frame):
         """
         super().__init__(parent)
         self.player = player
-        self.score_vars: Dict[str, tk.StringVar] = {}
+        self.score_vars: dict[str, tk.StringVar] = {}
 
         # Create widget
         self._create_widgets()
@@ -42,9 +42,7 @@ class ScoreBreakdown(ttk.Frame):
         """Create and arrange UI widgets."""
         # Title
         title_label = ttk.Label(
-            self,
-            text="Score Breakdown",
-            font=("Arial", 12, "bold")
+            self, text="Score Breakdown", font=("Arial", 12, "bold")
         )
         title_label.pack(pady=(0, 10))
 
@@ -77,18 +75,14 @@ class ScoreBreakdown(ttk.Frame):
             component_frame.pack(fill=tk.X, pady=2)
 
             # Label
-            label = ttk.Label(
-                component_frame,
-                text=label_text,
-                font=("Arial", 10)
-            )
+            label = ttk.Label(component_frame, text=label_text, font=("Arial", 10))
             label.pack(side=tk.LEFT, padx=(0, 10))
 
             # Value
             value_label = ttk.Label(
                 component_frame,
                 textvariable=self.score_vars[key],
-                font=("Arial", 10, "bold")
+                font=("Arial", 10, "bold"),
             )
             value_label.pack(side=tk.RIGHT)
 
@@ -123,7 +117,7 @@ class ScoreBreakdown(ttk.Frame):
         self.score_vars["all_pieces_bonus"].set(str(breakdown["all_pieces_bonus"]))
         self.score_vars["final_score"].set(str(breakdown["final_score"]))
 
-    def get_current_breakdown(self) -> Optional[Dict[str, int]]:
+    def get_current_breakdown(self) -> dict[str, int] | None:
         """
         Get the current breakdown values.
 

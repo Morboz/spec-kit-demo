@@ -5,11 +5,9 @@ This module provides the ScoreHistory class which tracks score changes
 throughout the game for analysis and display purposes.
 """
 
-from typing import List, Dict, Optional
 from datetime import datetime
-from src.models.player import Player
+
 from src.models.game_state import GameState
-from src.game.scoring import ScoringSystem
 
 
 class ScoreEntry:
@@ -22,7 +20,7 @@ class ScoreEntry:
         score: int,
         turn_number: int,
         round_number: int,
-        timestamp: Optional[datetime] = None,
+        timestamp: datetime | None = None,
     ) -> None:
         """
         Initialize a score entry.
@@ -42,7 +40,7 @@ class ScoreEntry:
         self.round_number = round_number
         self.timestamp = timestamp or datetime.now()
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """
         Convert to dictionary representation.
 
@@ -72,7 +70,7 @@ class ScoreEntry:
 class ScoreHistory:
     """Tracks score changes throughout the game."""
 
-    def __init__(self, game_state: Optional[GameState] = None) -> None:
+    def __init__(self, game_state: GameState | None = None) -> None:
         """
         Initialize score history tracker.
 
@@ -80,8 +78,8 @@ class ScoreHistory:
             game_state: Game state to track (optional)
         """
         self.game_state = game_state
-        self.entries: List[ScoreEntry] = []
-        self.last_recorded_scores: Dict[int, int] = {}
+        self.entries: list[ScoreEntry] = []
+        self.last_recorded_scores: dict[int, int] = {}
 
     def set_game_state(self, game_state: GameState) -> None:
         """
@@ -119,7 +117,7 @@ class ScoreHistory:
                 self.entries.append(entry)
                 self.last_recorded_scores[player.player_id] = current_score
 
-    def get_player_history(self, player_id: int) -> List[ScoreEntry]:
+    def get_player_history(self, player_id: int) -> list[ScoreEntry]:
         """
         Get score history for a specific player.
 
@@ -131,21 +129,21 @@ class ScoreHistory:
         """
         return [entry for entry in self.entries if entry.player_id == player_id]
 
-    def get_all_histories(self) -> Dict[int, List[ScoreEntry]]:
+    def get_all_histories(self) -> dict[int, list[ScoreEntry]]:
         """
         Get score history for all players.
 
         Returns:
             Dictionary mapping player_id to list of score entries
         """
-        histories: Dict[int, List[ScoreEntry]] = {}
+        histories: dict[int, list[ScoreEntry]] = {}
         for entry in self.entries:
             if entry.player_id not in histories:
                 histories[entry.player_id] = []
             histories[entry.player_id].append(entry)
         return histories
 
-    def get_score_changes(self) -> List[Dict]:
+    def get_score_changes(self) -> list[dict]:
         """
         Get all score changes with details.
 
@@ -164,20 +162,22 @@ class ScoreHistory:
                 curr_entry = player_entries[i]
                 change = curr_entry.score - prev_entry.score
 
-                changes.append({
-                    "player_id": player_id,
-                    "player_name": curr_entry.player_name,
-                    "from_score": prev_entry.score,
-                    "to_score": curr_entry.score,
-                    "change": change,
-                    "turn": curr_entry.turn_number,
-                    "round": curr_entry.round_number,
-                    "timestamp": curr_entry.timestamp,
-                })
+                changes.append(
+                    {
+                        "player_id": player_id,
+                        "player_name": curr_entry.player_name,
+                        "from_score": prev_entry.score,
+                        "to_score": curr_entry.score,
+                        "change": change,
+                        "turn": curr_entry.turn_number,
+                        "round": curr_entry.round_number,
+                        "timestamp": curr_entry.timestamp,
+                    }
+                )
 
         return changes
 
-    def get_final_rankings(self) -> List[Dict]:
+    def get_final_rankings(self) -> list[dict]:
         """
         Get final score rankings.
 
@@ -188,7 +188,7 @@ class ScoreHistory:
             return []
 
         # Get latest entry for each player
-        latest_scores: Dict[int, ScoreEntry] = {}
+        latest_scores: dict[int, ScoreEntry] = {}
         for entry in self.entries:
             if entry.player_id not in latest_scores:
                 latest_scores[entry.player_id] = entry
@@ -197,9 +197,7 @@ class ScoreHistory:
 
         # Sort by score (descending)
         sorted_players = sorted(
-            latest_scores.values(),
-            key=lambda e: e.score,
-            reverse=True
+            latest_scores.values(), key=lambda e: e.score, reverse=True
         )
 
         # Assign ranks
@@ -211,12 +209,14 @@ class ScoreHistory:
             if previous_score is not None and entry.score < previous_score:
                 current_rank = len(rankings) + 1
 
-            rankings.append({
-                "rank": current_rank,
-                "player_id": entry.player_id,
-                "player_name": entry.player_name,
-                "final_score": entry.score,
-            })
+            rankings.append(
+                {
+                    "rank": current_rank,
+                    "player_id": entry.player_id,
+                    "player_name": entry.player_name,
+                    "final_score": entry.score,
+                }
+            )
 
             previous_score = entry.score
 
@@ -227,7 +227,7 @@ class ScoreHistory:
         self.entries.clear()
         self.last_recorded_scores.clear()
 
-    def export_to_dict(self) -> Dict:
+    def export_to_dict(self) -> dict:
         """
         Export history to dictionary.
 
@@ -239,7 +239,7 @@ class ScoreHistory:
             "last_recorded_scores": self.last_recorded_scores.copy(),
         }
 
-    def import_from_dict(self, data: Dict) -> None:
+    def import_from_dict(self, data: dict) -> None:
         """
         Import history from dictionary.
 
@@ -250,7 +250,11 @@ class ScoreHistory:
         for entry_data in data.get("entries", []):
             # Reconstruct datetime
             timestamp_str = entry_data.get("timestamp")
-            timestamp = datetime.fromisoformat(timestamp_str) if timestamp_str else datetime.now()
+            timestamp = (
+                datetime.fromisoformat(timestamp_str)
+                if timestamp_str
+                else datetime.now()
+            )
 
             entry = ScoreEntry(
                 player_id=entry_data["player_id"],
@@ -264,7 +268,7 @@ class ScoreHistory:
 
         self.last_recorded_scores = data.get("last_recorded_scores", {})
 
-    def get_summary(self) -> Dict:
+    def get_summary(self) -> dict:
         """
         Get summary of score history.
 

@@ -6,13 +6,12 @@ including move validation, AI turn management, and game completion.
 """
 
 import pytest
-import tkinter as tk
-from src.models.game_mode import GameMode, GameModeType
+
 from src.models.ai_config import Difficulty
 from src.models.ai_player import AIPlayer
-from src.models.game_state import GameState, GamePhase
-from src.game.game_setup import GameSetup
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+from src.models.game_mode import GameMode, GameModeType
+from src.models.game_state import GamePhase, GameState
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 
 
 class TestSingleAIMode:
@@ -38,7 +37,7 @@ class TestSingleAIMode:
 
         # Test is_ai_turn
         assert game_mode.is_ai_turn(1) is False  # Human player
-        assert game_mode.is_ai_turn(3) is True   # AI player
+        assert game_mode.is_ai_turn(3) is True  # AI player
         assert game_mode.is_ai_turn(2) is False  # Inactive position
         assert game_mode.is_ai_turn(4) is False  # Inactive position
 
@@ -59,30 +58,21 @@ class TestSingleAIMode:
         """Test creating AI players with different strategies."""
         # Easy AI with RandomStrategy
         easy_ai = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue",
-            name="Easy AI"
+            player_id=2, strategy=RandomStrategy(), color="blue", name="Easy AI"
         )
         assert easy_ai.difficulty == "Easy"
         assert easy_ai.player_id == 2
 
         # Medium AI with CornerStrategy
         medium_ai = AIPlayer(
-            player_id=3,
-            strategy=CornerStrategy(),
-            color="red",
-            name="Medium AI"
+            player_id=3, strategy=CornerStrategy(), color="red", name="Medium AI"
         )
         assert medium_ai.difficulty == "Medium"
         assert medium_ai.player_id == 3
 
         # Hard AI with StrategicStrategy
         hard_ai = AIPlayer(
-            player_id=4,
-            strategy=StrategicStrategy(),
-            color="green",
-            name="Hard AI"
+            player_id=4, strategy=StrategicStrategy(), color="green", name="Hard AI"
         )
         assert hard_ai.difficulty == "Hard"
         assert hard_ai.player_id == 4
@@ -92,11 +82,7 @@ class TestSingleAIMode:
         from src.config.pieces import get_full_piece_set
 
         # Create AI player
-        ai_player = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue"
-        )
+        ai_player = AIPlayer(player_id=2, strategy=RandomStrategy(), color="blue")
 
         # Create empty board
         board = [[0 for _ in range(20)] for _ in range(20)]
@@ -121,7 +107,7 @@ class TestSingleAIMode:
         ai_player = AIPlayer(
             player_id=2,
             strategy=StrategicStrategy(),  # Has longer timeout
-            color="blue"
+            color="blue",
         )
 
         # Create board with some pieces
@@ -142,12 +128,16 @@ class TestSingleAIMode:
         # Create AI players
         ai_players = []
         for ai_config in game_mode.ai_players:
-            strategy = RandomStrategy() if ai_config.difficulty == Difficulty.EASY else CornerStrategy()
+            strategy = (
+                RandomStrategy()
+                if ai_config.difficulty == Difficulty.EASY
+                else CornerStrategy()
+            )
             ai_player = AIPlayer(
                 player_id=ai_config.position,
                 strategy=strategy,
                 color="red",
-                name=f"AI ({ai_config.difficulty.name})"
+                name=f"AI ({ai_config.difficulty.name})",
             )
             ai_players.append(ai_player)
 
@@ -169,11 +159,7 @@ class TestSingleAIMode:
 
     def test_ai_player_state_management(self):
         """Test AI player state (passed, calculating, etc.)."""
-        ai_player = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue"
-        )
+        ai_player = AIPlayer(player_id=2, strategy=RandomStrategy(), color="blue")
 
         # Initial state
         assert not ai_player.has_passed
@@ -198,11 +184,7 @@ class TestSingleAIMode:
 
     def test_ai_thinking_indicator_state(self):
         """Test AI thinking state is tracked correctly."""
-        ai_player = AIPlayer(
-            player_id=2,
-            strategy=CornerStrategy(),
-            color="blue"
-        )
+        ai_player = AIPlayer(player_id=2, strategy=CornerStrategy(), color="blue")
 
         # Start calculation
         assert not ai_player.is_calculating
@@ -217,11 +199,7 @@ class TestSingleAIMode:
 
     def test_ai_elapsed_calculation_time(self):
         """Test tracking elapsed calculation time."""
-        ai_player = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue"
-        )
+        ai_player = AIPlayer(player_id=2, strategy=RandomStrategy(), color="blue")
 
         # Not calculating yet
         elapsed = ai_player.get_elapsed_calculation_time()
@@ -242,11 +220,11 @@ class TestSingleAIIntegrationFlow:
     @pytest.fixture
     def single_ai_game(self):
         """Create a Single AI game for testing."""
-        from src.models.player import Player
         from src.models.board import Board
-        
+        from src.models.player import Player
+
         game_mode = GameMode.single_ai(Difficulty.MEDIUM)
-        
+
         # Create game state with correct player positions for SINGLE_AI mode
         # SINGLE_AI mode uses positions 1 (human) and 3 (AI)
         board = Board()
@@ -256,7 +234,7 @@ class TestSingleAIIntegrationFlow:
         ]
         game_state = GameState(board=board, players=players)
         game_state.start_game()
-        
+
         return game_mode, game_state
 
     def test_game_initialization(self, single_ai_game):

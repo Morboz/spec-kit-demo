@@ -7,9 +7,9 @@ for all players in the game.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional, List, Dict
-from src.models.player import Player
+
 from src.models.board import Board
+from src.models.player import Player
 from src.ui.score_breakdown import ScoreBreakdown
 
 
@@ -19,8 +19,8 @@ class Scoreboard(ttk.Frame):
     def __init__(
         self,
         parent: tk.Widget,
-        board: Optional[Board] = None,
-        players: Optional[List[Player]] = None,
+        board: Board | None = None,
+        players: list[Player] | None = None,
     ) -> None:
         """
         Initialize the scoreboard.
@@ -33,7 +33,7 @@ class Scoreboard(ttk.Frame):
         super().__init__(parent)
         self.board = board
         self.players = players or []
-        self.score_vars: Dict[int, tk.StringVar] = {}
+        self.score_vars: dict[int, tk.StringVar] = {}
 
         # Create widget
         self._create_widgets()
@@ -79,7 +79,7 @@ class Scoreboard(ttk.Frame):
         self.board = board
         self.update_scores()
 
-    def set_players(self, players: List[Player]) -> None:
+    def set_players(self, players: list[Player]) -> None:
         """
         Set the players to display.
 
@@ -127,7 +127,7 @@ class Scoreboard(ttk.Frame):
             return 0
         return self.board.count_player_squares(player_id)
 
-    def get_leader(self) -> Optional[Player]:
+    def get_leader(self) -> Player | None:
         """
         Get the current leader (player with highest score).
 
@@ -168,7 +168,7 @@ class Scoreboard(ttk.Frame):
         self.players = []
         self.board = None
 
-    def show_score_breakdown(self, player_id: int) -> Optional[ScoreBreakdown]:
+    def show_score_breakdown(self, player_id: int) -> ScoreBreakdown | None:
         """
         Show detailed score breakdown for a specific player.
 
@@ -194,7 +194,7 @@ class Scoreboard(ttk.Frame):
 
         return breakdown
 
-    def get_player_detailed_info(self, player_id: int) -> Optional[Dict]:
+    def get_player_detailed_info(self, player_id: int) -> dict | None:
         """
         Get detailed information about a player's score.
 

@@ -6,12 +6,13 @@ skip their turn when they have no valid moves available.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
-from typing import Optional, Callable, List
-from src.models.player import Player
-from src.models.game_state import GameState
+from collections.abc import Callable
+from tkinter import messagebox, ttk
+
 from src.game.turn_manager import TurnManager
 from src.game.turn_validator import TurnValidator
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class SkipTurnButton(ttk.Frame):
@@ -20,8 +21,8 @@ class SkipTurnButton(ttk.Frame):
     def __init__(
         self,
         parent: tk.Widget,
-        game_state: Optional[GameState] = None,
-        on_skip_turn: Optional[Callable[[], None]] = None,
+        game_state: GameState | None = None,
+        on_skip_turn: Callable[[], None] | None = None,
     ) -> None:
         """
         Initialize the skip turn button.
@@ -34,9 +35,9 @@ class SkipTurnButton(ttk.Frame):
         super().__init__(parent)
         self.game_state = game_state
         self.on_skip_turn = on_skip_turn
-        self.turn_manager: Optional[TurnManager] = None
-        self.turn_validator: Optional[TurnValidator] = None
-        self.current_player: Optional[Player] = None
+        self.turn_manager: TurnManager | None = None
+        self.turn_validator: TurnValidator | None = None
+        self.current_player: Player | None = None
 
         # Create widget
         self._create_widgets()
@@ -48,9 +49,7 @@ class SkipTurnButton(ttk.Frame):
     def _create_widgets(self) -> None:
         """Create and arrange UI widgets."""
         # Title
-        title_label = ttk.Label(
-            self, text="Turn Actions", font=("Arial", 12, "bold")
-        )
+        title_label = ttk.Label(self, text="Turn Actions", font=("Arial", 12, "bold"))
         title_label.pack(pady=(0, 10))
 
         # Skip turn button
@@ -130,21 +129,18 @@ class SkipTurnButton(ttk.Frame):
             )
 
             if has_valid_moves:
-                self._set_button_state(
-                    False, "You have valid moves available"
-                )
+                self._set_button_state(False, "You have valid moves available")
             else:
                 self._set_button_state(
                     True,
                     "You have no valid moves.\nClick Skip Turn.",
                     warning="No valid moves available",
                 )
+        # Player cannot move for some reason
+        elif error_msg:
+            self._set_button_state(False, error_msg)
         else:
-            # Player cannot move for some reason
-            if error_msg:
-                self._set_button_state(False, error_msg)
-            else:
-                self._set_button_state(False, "Cannot skip turn")
+            self._set_button_state(False, "Cannot skip turn")
 
     def _set_button_state(
         self, enabled: bool, info_text: str, warning: str = ""
@@ -175,8 +171,11 @@ class SkipTurnButton(ttk.Frame):
             return
 
         # Confirm skip if player has valid moves
-        has_valid_moves = self.turn_validator and self.turn_validator.player_has_any_valid_move(
-            self.current_player.player_id
+        has_valid_moves = (
+            self.turn_validator
+            and self.turn_validator.player_has_any_valid_move(
+                self.current_player.player_id
+            )
         )
 
         if has_valid_moves:
@@ -201,7 +200,7 @@ class SkipTurnButton(ttk.Frame):
         # Update display
         self.update_from_game_state()
 
-    def get_turn_manager(self) -> Optional[TurnManager]:
+    def get_turn_manager(self) -> TurnManager | None:
         """
         Get the turn manager.
 
@@ -210,7 +209,7 @@ class SkipTurnButton(ttk.Frame):
         """
         return self.turn_manager
 
-    def get_turn_validator(self) -> Optional[TurnValidator]:
+    def get_turn_validator(self) -> TurnValidator | None:
         """
         Get the turn validator.
 

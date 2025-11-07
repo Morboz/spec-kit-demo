@@ -1,8 +1,9 @@
 """Unit tests for GameState model."""
 
 import pytest
-from src.models.game_state import GameState, GamePhase
+
 from src.models.board import Board
+from src.models.game_state import GameState
 from src.models.player import Player
 
 
@@ -333,7 +334,6 @@ class TestGameState:
         game.start_game()
 
         # Place a piece
-        from src.models.piece import Piece
 
         piece = player1.get_piece("I2")
         game.board.place_piece(piece, 5, 5, 1)

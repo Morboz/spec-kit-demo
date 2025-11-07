@@ -1,11 +1,10 @@
 """Integration tests for basic AI functionality."""
 
-import pytest
-from src.models.game_mode import GameMode, GameModeType, Difficulty
 from src.models.ai_config import AIConfig
 from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import AIStrategy, RandomStrategy, CornerStrategy, StrategicStrategy
+from src.models.game_mode import Difficulty, GameMode, GameModeType
 from src.models.turn_controller import TurnController, TurnState
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 from src.ui.game_mode_selector import GameModeSelector
 
 
@@ -261,7 +260,9 @@ class TestAIGameInitializerIntegration:
         from src.game.ai_game_initializer import AIGameInitializer
 
         # Single AI
-        ai_players = AIGameInitializer.create_ai_players_from_config("single_ai", "Medium")
+        ai_players = AIGameInitializer.create_ai_players_from_config(
+            "single_ai", "Medium"
+        )
         assert len(ai_players) == 1
         assert ai_players[0].player_id == 3
 
@@ -333,7 +334,9 @@ class TestEndToEndAIWorkflow:
 
         # 3. Verify mixed difficulties
         difficulties = {ai.difficulty for ai in ai_players}
-        assert "Easy" in difficulties or "Medium" in difficulties or "Hard" in difficulties
+        assert (
+            "Easy" in difficulties or "Medium" in difficulties or "Hard" in difficulties
+        )
 
         # 4. All turns are AI turns
         controller = TurnController(game_mode)

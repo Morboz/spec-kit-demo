@@ -8,7 +8,6 @@ understand why their moves are invalid.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional
 
 
 class ErrorDisplay(ttk.Frame):
@@ -60,7 +59,7 @@ class ErrorDisplay(ttk.Frame):
         self.error_message_var.set("")
         self.hide()
 
-    def show_validation_error(self, reason: str, rule_type: Optional[str] = None):
+    def show_validation_error(self, reason: str, rule_type: str | None = None):
         """
         Show a formatted validation error.
 

@@ -5,12 +5,13 @@ This module tests various edge cases and failure scenarios for AI players,
 including timeouts, exceptions, fallback behavior, and error recovery.
 """
 
-import pytest
 import time
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
+
+import pytest
+
 from src.models.ai_player import AIPlayer
-from src.models.ai_config import Difficulty
-from src.services.ai_strategy import AIStrategy, Move
+from src.services.ai_strategy import AIStrategy
 
 
 class SlowStrategy(AIStrategy):
@@ -29,7 +30,6 @@ class SlowStrategy(AIStrategy):
 
     def calculate_move(self, board, pieces, player_id, time_limit=None):
         time.sleep(self.delay_seconds)  # Deliberately exceed timeout
-        return None
 
 
 class ErrorStrategy(AIStrategy):
@@ -131,7 +131,7 @@ class TestAITimeoutHandling:
         pieces = []
 
         # Mock get_available_moves to return empty list
-        with patch.object(strategy, 'get_available_moves', return_value=[]):
+        with patch.object(strategy, "get_available_moves", return_value=[]):
             start = time.time()
             move = ai.calculate_move(board, pieces, time_limit=0.5)
             elapsed = time.time() - start
@@ -169,7 +169,7 @@ class TestAITimeoutHandling:
         pieces = []
 
         # Mock get_available_moves to return empty list
-        with patch.object(strategy, 'get_available_moves', return_value=[]):
+        with patch.object(strategy, "get_available_moves", return_value=[]):
             move = ai.calculate_move(board, pieces)
 
             # Should return None when no fallback available
@@ -189,7 +189,7 @@ class TestAITimeoutHandling:
         move.piece = Mock()
         move.piece.name = "NonExistentPiece"
 
-        with patch.object(strategy, 'calculate_move', return_value=move):
+        with patch.object(strategy, "calculate_move", return_value=move):
             result = ai.calculate_move(board, pieces)
 
             # Should fallback to valid move
@@ -285,7 +285,7 @@ class TestAITimeoutHandling:
         move.is_pass = True
         move.piece = None
 
-        with patch.object(strategy, 'calculate_move', return_value=move):
+        with patch.object(strategy, "calculate_move", return_value=move):
             result = ai.calculate_move(board, pieces)
 
             # Should accept pass move
@@ -318,7 +318,9 @@ class TestAITimeoutHandling:
         pieces = []
 
         # Mock get_available_moves to also raise exception
-        with patch.object(strategy, 'get_available_moves', side_effect=Exception("Fallback error")):
+        with patch.object(
+            strategy, "get_available_moves", side_effect=Exception("Fallback error")
+        ):
             move = ai.calculate_move(board, pieces)
 
             # Should return None when both strategy and fallback fail
@@ -330,8 +332,8 @@ class TestTurnControllerEdgeCases:
 
     def test_check_game_over_all_passed(self):
         """Test game over detection when all players pass."""
+        from src.models.game_mode import GameMode
         from src.models.turn_controller import TurnController, TurnState
-        from src.models.game_mode import GameMode, GameModeType
 
         game_mode = GameMode.spectate_ai()
         controller = TurnController(game_mode, initial_player=1)
@@ -350,8 +352,8 @@ class TestTurnControllerEdgeCases:
 
     def test_check_consecutive_passes(self):
         """Test counting consecutive passes."""
-        from src.models.turn_controller import TurnController, TurnState
         from src.models.game_mode import GameMode
+        from src.models.turn_controller import TurnController, TurnState
 
         game_mode = GameMode.spectate_ai()
         controller = TurnController(game_mode, initial_player=1)
@@ -369,8 +371,8 @@ class TestTurnControllerEdgeCases:
 
     def test_should_end_due_to_no_moves(self):
         """Test detection of no moves scenario."""
-        from src.models.turn_controller import TurnController
         from src.models.game_mode import GameMode
+        from src.models.turn_controller import TurnController
 
         game_mode = GameMode.spectate_ai()
         controller = TurnController(game_mode, initial_player=1)
@@ -383,7 +385,7 @@ class TestTurnControllerEdgeCases:
 class TestLoggingEdgeCases:
     """Test logging behavior in edge cases."""
 
-    @patch('src.models.ai_player.ai_logger')
+    @patch("src.models.ai_player.ai_logger")
     def test_timeout_logging(self, mock_logger):
         """Test that timeouts are logged correctly."""
         strategy = SlowStrategy(delay_seconds=1.0)
@@ -395,9 +397,13 @@ class TestLoggingEdgeCases:
         move = ai.calculate_move(board, pieces, time_limit=0.5)
 
         # Verify logging was called
-        assert mock_logger.debug.called or mock_logger.info.called or mock_logger.warning.called
+        assert (
+            mock_logger.debug.called
+            or mock_logger.info.called
+            or mock_logger.warning.called
+        )
 
-    @patch('src.models.ai_player.ai_logger')
+    @patch("src.models.ai_player.ai_logger")
     def test_exception_logging(self, mock_logger):
         """Test that exceptions are logged correctly."""
         strategy = ErrorStrategy("Test error")
@@ -417,7 +423,7 @@ class TestLoggingEdgeCases:
         # Verify error was logged
         assert mock_logger.error.called
 
-    @patch('src.models.ai_player.ai_logger')
+    @patch("src.models.ai_player.ai_logger")
     def test_successful_calculation_logging(self, mock_logger):
         """Test that successful calculations are logged."""
         strategy = ValidMoveStrategy()

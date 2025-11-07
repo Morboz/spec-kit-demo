@@ -9,14 +9,12 @@ This test verifies that all Phase 8 rule enforcement components work together:
 This test validates the complete Phase 8 implementation.
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock
-from src.models.board import Board
-from src.models.player import Player
-from src.models.piece import Piece
-from src.models.game_state import GameState
-from src.game.rules import BlokusRules, ValidationResult
+from unittest.mock import Mock
 
+from src.game.rules import BlokusRules, ValidationResult
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 from src.ui.error_display import ErrorDisplay
 from src.ui.placement_preview import PlacementPreview
 
@@ -179,9 +177,7 @@ class TestPhase8CompleteRuleEnforcement:
 
         # When: Get invalid positions for new piece
         piece2 = player.get_piece("L4")
-        invalid_positions = BlokusRules.get_invalid_positions(
-            game_state, 1, piece2
-        )
+        invalid_positions = BlokusRules.get_invalid_positions(game_state, 1, piece2)
 
         # Then: Contains multiple invalid positions with reasons
         assert len(invalid_positions) > 0

@@ -6,10 +6,10 @@ including skipping inactive positions and tracking turn state.
 """
 
 import pytest
-import time
-from src.models.turn_controller import TurnController, TurnState
-from src.models.game_mode import GameMode, GameModeType
+
 from src.models.ai_config import Difficulty
+from src.models.game_mode import GameMode
+from src.models.turn_controller import TurnController, TurnState
 
 
 class TestTurnControllerMultiAI:
@@ -316,7 +316,7 @@ class TestSpectatorModeAutomatedFlow:
 
         for i, expected in enumerate(expected_sequence):
             assert current == expected
-            
+
             # Don't advance on the last iteration
             if i < len(expected_sequence) - 1:
                 current = controller.get_next_player(current)
@@ -394,7 +394,7 @@ class TestSpectatorModeAutomatedFlow:
 
         # Simulate move handling - this will call end_turn() which transitions to TRANSITION_AUTO
         controller.handle_ai_move(None)  # Simulating a pass/move
-        
+
         # After handle_ai_move, end_turn is called, so state should be TRANSITION_AUTO
         assert controller.current_state == TurnState.TRANSITION_AUTO
 
@@ -486,7 +486,7 @@ class TestSpectatorModeAutomatedFlow:
 
         # After handling move - handle_ai_move calls end_turn internally
         controller.handle_ai_move(None)
-        
+
         # After handle_ai_move completes, state should be TRANSITION_AUTO (from end_turn)
         assert controller.current_state == TurnState.TRANSITION_AUTO
 

@@ -10,8 +10,9 @@ options to:
 """
 
 import tkinter as tk
+from collections.abc import Callable
 from tkinter import messagebox
-from typing import Optional, Callable, Any
+from typing import Any
 
 
 class RestartButton:
@@ -22,7 +23,7 @@ class RestartButton:
         parent: tk.Widget,
         game_state: Any,
         board: Any,
-        on_restart: Optional[Callable[[], None]] = None,
+        on_restart: Callable[[], None] | None = None,
         preserve_stats: bool = True,
     ):
         """
@@ -41,7 +42,7 @@ class RestartButton:
         self.on_restart = on_restart
         self.preserve_stats = preserve_stats
 
-        self.button: Optional[tk.Button] = None
+        self.button: tk.Button | None = None
 
     def create_button(
         self,
@@ -186,6 +187,7 @@ class RestartButton:
             widget: Widget to add tooltip to
             text: Tooltip text
         """
+
         def on_enter(event):
             tooltip = tk.Toplevel()
             tooltip.wm_overrideredirect(True)
@@ -238,10 +240,10 @@ class GameRestartDialog:
             parent: Parent widget
         """
         self.parent = parent
-        self.result: Optional[dict] = None
-        self.dialog: Optional[tk.Toplevel] = None
+        self.result: dict | None = None
+        self.dialog: tk.Toplevel | None = None
 
-    def show(self) -> Optional[dict]:
+    def show(self) -> dict | None:
         """
         Show the restart dialog and return configuration.
 
@@ -255,10 +257,9 @@ class GameRestartDialog:
         self.dialog.grab_set()
 
         # Center the dialog
-        self.dialog.geometry("+%d+%d" % (
-            self.parent.winfo_rootx() + 50,
-            self.parent.winfo_rooty() + 50
-        ))
+        self.dialog.geometry(
+            "+%d+%d" % (self.parent.winfo_rootx() + 50, self.parent.winfo_rooty() + 50)
+        )
 
         # Store result
         self.result = {}
@@ -431,7 +432,7 @@ class GameRestartDialog:
 
         self.dialog.destroy()
 
-    def get_config(self) -> Optional[dict]:
+    def get_config(self) -> dict | None:
         """
         Get the configuration from dialog.
 

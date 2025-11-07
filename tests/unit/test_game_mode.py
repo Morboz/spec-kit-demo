@@ -1,8 +1,9 @@
 """Unit tests for Game Mode configuration."""
 
 import pytest
-from src.models.game_mode import GameMode, GameModeType
+
 from src.models.ai_config import AIConfig, Difficulty
+from src.models.game_mode import GameMode, GameModeType
 
 
 class TestGameMode:
@@ -230,6 +231,6 @@ class TestGameMode:
         mode.difficulty = Difficulty.MEDIUM
         mode.human_player_position = 1
         mode.ai_players = []
-        
+
         # validate() should return False for invalid mode_type
         assert not mode.validate()

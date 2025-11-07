@@ -7,9 +7,9 @@ remaining pieces for all players with visual piece representations.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional, List, Dict
-from src.models.player import Player
+
 from src.config.pieces import PIECE_DEFINITIONS
+from src.models.player import Player
 
 
 class PieceInventory(ttk.Frame):
@@ -18,7 +18,7 @@ class PieceInventory(ttk.Frame):
     def __init__(
         self,
         parent: tk.Widget,
-        players: Optional[List[Player]] = None,
+        players: list[Player] | None = None,
     ) -> None:
         """
         Initialize the piece inventory.
@@ -29,8 +29,8 @@ class PieceInventory(ttk.Frame):
         """
         super().__init__(parent)
         self.players = players or []
-        self.selected_piece: Optional[str] = None
-        self.on_piece_selected: Optional[callable] = None
+        self.selected_piece: str | None = None
+        self.on_piece_selected: callable | None = None
 
         # Create widget
         self._create_widgets()
@@ -48,7 +48,7 @@ class PieceInventory(ttk.Frame):
         self.notebook.pack(fill=tk.BOTH, expand=True)
 
         # Dictionary to store player tabs
-        self.player_tabs: Dict[int, ttk.Frame] = {}
+        self.player_tabs: dict[int, ttk.Frame] = {}
 
         # Create initial tabs
         if self.players:
@@ -87,12 +87,14 @@ class PieceInventory(ttk.Frame):
         scrollable_frame.bind("<Configure>", _on_frame_configure)
 
         # Create window inside canvas
-        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        
+        canvas_window = canvas.create_window(
+            (0, 0), window=scrollable_frame, anchor="nw"
+        )
+
         # Make the scrollable frame fill the canvas width
         def _on_canvas_configure(event):
             canvas.itemconfig(canvas_window, width=event.width)
-        
+
         canvas.bind("<Configure>", _on_canvas_configure)
         canvas.configure(yscrollcommand=scrollbar.set)
 
@@ -110,8 +112,8 @@ class PieceInventory(ttk.Frame):
         # Bind mousewheel only when entering/leaving this canvas
         def _bind_mousewheel(event):
             canvas.bind_all("<MouseWheel>", _on_mousewheel)  # Windows/macOS
-            canvas.bind_all("<Button-4>", _on_mousewheel)    # Linux scroll up
-            canvas.bind_all("<Button-5>", _on_mousewheel)    # Linux scroll down
+            canvas.bind_all("<Button-4>", _on_mousewheel)  # Linux scroll up
+            canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux scroll down
 
         def _unbind_mousewheel(event):
             canvas.unbind_all("<MouseWheel>")
@@ -127,7 +129,7 @@ class PieceInventory(ttk.Frame):
 
         # Display player's pieces
         self._display_player_pieces(scrollable_frame, player)
-        
+
         # Force initial scroll region update
         tab_frame.update_idletasks()
         canvas.configure(scrollregion=canvas.bbox("all"))
@@ -168,13 +170,15 @@ class PieceInventory(ttk.Frame):
             current_size = None
             for piece_name in remaining_pieces:
                 piece_size = len(PIECE_DEFINITIONS[piece_name])
-                
+
                 # Add size separator
                 if current_size != piece_size:
                     if current_size is not None:
-                        ttk.Separator(parent, orient='horizontal').pack(fill=tk.X, pady=5)
+                        ttk.Separator(parent, orient="horizontal").pack(
+                            fill=tk.X, pady=5
+                        )
                     current_size = piece_size
-                
+
                 # Create piece frame with visual representation
                 piece_frame = ttk.Frame(parent)
                 piece_frame.pack(fill=tk.X, pady=3, padx=5)
@@ -187,32 +191,32 @@ class PieceInventory(ttk.Frame):
                     bg="white",
                     highlightthickness=1,
                     highlightbackground="gray",
-                    cursor="hand2"
+                    cursor="hand2",
                 )
                 canvas.pack(side=tk.LEFT, padx=(0, 10))
-                
+
                 # Draw the piece
                 self._draw_piece_on_canvas(canvas, piece_name, player)
-                
+
                 # Make canvas clickable
-                canvas.bind("<Button-1>", lambda e, pn=piece_name: self._on_piece_click(pn))
-                
+                canvas.bind(
+                    "<Button-1>", lambda e, pn=piece_name: self._on_piece_click(pn)
+                )
+
                 # Info label
                 info_frame = ttk.Frame(piece_frame)
                 info_frame.pack(side=tk.LEFT, fill=tk.Y)
-                
+
                 name_label = ttk.Label(
-                    info_frame,
-                    text=piece_name,
-                    font=("Arial", 11, "bold")
+                    info_frame, text=piece_name, font=("Arial", 11, "bold")
                 )
                 name_label.pack(anchor=tk.W)
-                
+
                 size_label = ttk.Label(
                     info_frame,
                     text=f"{piece_size} square{'s' if piece_size > 1 else ''}",
                     font=("Arial", 9),
-                    foreground="gray"
+                    foreground="gray",
                 )
                 size_label.pack(anchor=tk.W)
 
@@ -233,11 +237,11 @@ class PieceInventory(ttk.Frame):
                 text=placed_text,
                 font=("Arial", 9),
                 foreground="gray",
-                wraplength=250
+                wraplength=250,
             )
             placed_info.pack(pady=(0, 5), padx=10)
 
-    def _get_all_piece_names_sorted_by_size(self) -> List[str]:
+    def _get_all_piece_names_sorted_by_size(self) -> list[str]:
         """
         Get list of all piece names sorted by size (number of squares).
 
@@ -248,17 +252,14 @@ class PieceInventory(ttk.Frame):
         pieces = []
         for name, coords in PIECE_DEFINITIONS.items():
             pieces.append((name, len(coords)))
-        
+
         # Sort by size, then by name
         pieces.sort(key=lambda x: (x[1], x[0]))
-        
+
         return [name for name, _ in pieces]
-    
+
     def _draw_piece_on_canvas(
-        self, 
-        canvas: tk.Canvas, 
-        piece_name: str, 
-        player: Player
+        self, canvas: tk.Canvas, piece_name: str, player: Player
     ) -> None:
         """
         Draw a visual representation of a piece on canvas.
@@ -270,59 +271,55 @@ class PieceInventory(ttk.Frame):
         """
         if piece_name not in PIECE_DEFINITIONS:
             return
-        
+
         coords = PIECE_DEFINITIONS[piece_name]
-        
+
         # Calculate bounds
         rows = [r for r, c in coords]
         cols = [c for r, c in coords]
         min_row, max_row = min(rows), max(rows)
         min_col, max_col = min(cols), max(cols)
-        
+
         piece_height = max_row - min_row + 1
         piece_width = max_col - min_col + 1
-        
+
         # Calculate cell size to fit in canvas (with padding)
         canvas_width = 100
         canvas_height = 100
         padding = 10
-        
+
         cell_size = min(
             (canvas_width - 2 * padding) // max(piece_width, 1),
-            (canvas_height - 2 * padding) // max(piece_height, 1)
+            (canvas_height - 2 * padding) // max(piece_height, 1),
         )
         cell_size = min(cell_size, 25)  # Max cell size
-        
+
         # Calculate offset to center the piece
         total_width = piece_width * cell_size
         total_height = piece_height * cell_size
         offset_x = (canvas_width - total_width) // 2
         offset_y = (canvas_height - total_height) // 2
-        
+
         # Get player color from player object
         color = player.color
-        
+
         # Draw each square
         for row, col in coords:
             x = offset_x + (col - min_col) * cell_size
             y = offset_y + (row - min_row) * cell_size
-            
+
             # Draw filled rectangle
             canvas.create_rectangle(
-                x, y,
-                x + cell_size, y + cell_size,
-                fill=color,
-                outline="black",
-                width=2
+                x, y, x + cell_size, y + cell_size, fill=color, outline="black", width=2
             )
-        
+
         # Draw piece name below
         canvas.create_text(
             canvas_width // 2,
             canvas_height - 5,
             text=piece_name,
             font=("Arial", 8, "bold"),
-            fill="black"
+            fill="black",
         )
 
     def _on_piece_click(self, piece_name: str) -> None:
@@ -336,7 +333,7 @@ class PieceInventory(ttk.Frame):
         if self.on_piece_selected:
             self.on_piece_selected(piece_name)
 
-    def set_players(self, players: List[Player]) -> None:
+    def set_players(self, players: list[Player]) -> None:
         """
         Set the players to display.
 
@@ -384,7 +381,7 @@ class PieceInventory(ttk.Frame):
                 self.notebook.select(i)
                 break
 
-    def get_selected_piece(self) -> Optional[str]:
+    def get_selected_piece(self) -> str | None:
         """
         Get the currently selected piece.
 

@@ -5,12 +5,13 @@ This module provides integration between AI game modes and the main game initial
 It handles spawning AI players and configuring the game for AI battles.
 """
 
-from typing import Optional, Dict, Any, List
 import tkinter as tk
 from tkinter import messagebox
-from src.models.game_mode import GameMode, Difficulty
+from typing import Any
+
 from src.models.ai_config import AIConfig
 from src.models.ai_player import AIPlayer
+from src.models.game_mode import GameMode
 from src.ui.game_mode_selector import GameModeSelector
 
 
@@ -24,7 +25,7 @@ class AIGameInitializer:
     - Configure game for AI battles
     """
 
-    def __init__(self, parent_window: Optional[tk.Widget] = None):
+    def __init__(self, parent_window: tk.Widget | None = None):
         """
         Initialize AI game initializer.
 
@@ -32,9 +33,9 @@ class AIGameInitializer:
             parent_window: Parent tkinter window for dialogs
         """
         self.parent_window = parent_window
-        self.selected_mode: Optional[str] = None
-        self.selected_difficulty: Optional[str] = None
-        self.game_mode: Optional[GameMode] = None
+        self.selected_mode: str | None = None
+        self.selected_difficulty: str | None = None
+        self.game_mode: GameMode | None = None
 
     def show_ai_mode_selector(self) -> bool:
         """
@@ -43,6 +44,7 @@ class AIGameInitializer:
         Returns:
             True if mode was selected, False if cancelled
         """
+
         def on_mode_selected(mode_type: str, difficulty: str):
             """Callback for mode selection."""
             self.selected_mode = mode_type
@@ -59,18 +61,14 @@ class AIGameInitializer:
         # Create GameMode from selection
         try:
             self.game_mode = GameModeSelector.create_game_mode(
-                self.selected_mode,
-                self.selected_difficulty
+                self.selected_mode, self.selected_difficulty
             )
             return True
         except Exception as e:
-            messagebox.showerror(
-                "Error",
-                f"Failed to create game mode: {e}"
-            )
+            messagebox.showerror("Error", f"Failed to create game mode: {e}")
             return False
 
-    def spawn_ai_players(self) -> List[AIPlayer]:
+    def spawn_ai_players(self) -> list[AIPlayer]:
         """
         Spawn AI players based on selected mode.
 
@@ -81,9 +79,11 @@ class AIGameInitializer:
             ValueError: If no game mode is configured
         """
         if self.game_mode is None:
-            raise ValueError("No game mode configured. Call show_ai_mode_selector() first.")
+            raise ValueError(
+                "No game mode configured. Call show_ai_mode_selector() first."
+            )
 
-        ai_players: List[AIPlayer] = []
+        ai_players: list[AIPlayer] = []
 
         for config in self.game_mode.ai_players:
             try:
@@ -97,12 +97,12 @@ class AIGameInitializer:
             except Exception as e:
                 messagebox.showwarning(
                     "AI Player Error",
-                    f"Failed to create AI player at position {config.position}: {e}"
+                    f"Failed to create AI player at position {config.position}: {e}",
                 )
 
         return ai_players
 
-    def get_human_player_position(self) -> Optional[int]:
+    def get_human_player_position(self) -> int | None:
         """
         Get position of human player.
 
@@ -113,7 +113,7 @@ class AIGameInitializer:
             return None
         return self.game_mode.human_player_position
 
-    def get_ai_players(self) -> List[AIConfig]:
+    def get_ai_players(self) -> list[AIConfig]:
         """
         Get AI player configurations.
 
@@ -158,8 +158,7 @@ class AIGameInitializer:
 
         except Exception as e:
             messagebox.showerror(
-                "Configuration Error",
-                f"Failed to configure game: {e}"
+                "Configuration Error", f"Failed to configure game: {e}"
             )
             return False
 
@@ -176,7 +175,7 @@ class AIGameInitializer:
         descriptions = {
             "single_ai": "Single AI Battle",
             "three_ai": "Three AI Battle",
-            "spectate": "AI vs AI Spectator"
+            "spectate": "AI vs AI Spectator",
         }
 
         base_desc = descriptions.get(self.selected_mode, "Unknown Mode")
@@ -189,7 +188,7 @@ class AIGameInitializer:
             return base_desc
 
     @staticmethod
-    def integrate_with_main_menu(parent_window: tk.Widget) -> Optional[Dict[str, Any]]:
+    def integrate_with_main_menu(parent_window: tk.Widget) -> dict[str, Any] | None:
         """
         Integrate AI mode selector with main menu.
 
@@ -212,16 +211,15 @@ class AIGameInitializer:
             "game_mode": initializer.game_mode,
             "ai_players": initializer.spawn_ai_players(),
             "human_position": initializer.get_human_player_position(),
-            "description": initializer.get_mode_description()
+            "description": initializer.get_mode_description(),
         }
 
         return result
 
     @staticmethod
     def create_ai_players_from_config(
-        mode_type: str,
-        difficulty: Optional[str] = None
-    ) -> List[AIPlayer]:
+        mode_type: str, difficulty: str | None = None
+    ) -> list[AIPlayer]:
         """
         Create AI players from mode configuration.
 
@@ -234,7 +232,7 @@ class AIGameInitializer:
         """
         game_mode = GameModeSelector.create_game_mode(mode_type, difficulty)
 
-        ai_players: List[AIPlayer] = []
+        ai_players: list[AIPlayer] = []
         for config in game_mode.ai_players:
             try:
                 strategy = config._create_strategy()
@@ -247,7 +245,7 @@ class AIGameInitializer:
 
 
 # Example integration with main menu
-def show_ai_battle_mode(parent_window: tk.Widget) -> Optional[Dict[str, Any]]:
+def show_ai_battle_mode(parent_window: tk.Widget) -> dict[str, Any] | None:
     """
     Show AI battle mode selector dialog.
 
@@ -272,7 +270,7 @@ def show_ai_battle_mode(parent_window: tk.Widget) -> Optional[Dict[str, Any]]:
         "game_mode": initializer.game_mode,
         "ai_players": ai_players,
         "human_position": initializer.get_human_player_position(),
-        "description": initializer.get_mode_description()
+        "description": initializer.get_mode_description(),
     }
 
 
@@ -290,7 +288,7 @@ if __name__ == "__main__":
         print(f"  Human Position: {config['human_position']}")
         print(f"  AI Players: {len(config['ai_players'])}")
 
-        for ai in config['ai_players']:
+        for ai in config["ai_players"]:
             print(f"    - {ai}")
     else:
         print("Cancelled")

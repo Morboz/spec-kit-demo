@@ -6,19 +6,20 @@ concurrently, including resource management, isolation between games,
 and system stability under high load.
 """
 
-import pytest
+import gc
+import queue
 import threading
 import time
-import queue
-import gc
-from typing import List, Dict, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from src.models.game_mode import GameMode, GameModeType
+
+import pytest
+
 from src.models.ai_config import Difficulty
 from src.models.ai_player import AIPlayer
+from src.models.game_mode import GameMode, GameModeType
 from src.models.game_state import GameState
 from src.models.player import Player
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+from src.services.ai_strategy import RandomStrategy
 
 
 class TestAIStress:
@@ -28,9 +29,9 @@ class TestAIStress:
     def stress_config(self):
         """Configuration for stress tests."""
         return {
-            'num_concurrent_games': 5,
-            'turns_per_game': 15,
-            'max_workers': 3,
+            "num_concurrent_games": 5,
+            "turns_per_game": 15,
+            "max_workers": 3,
         }
 
     def test_multiple_singletai_games_concurrent(self, stress_config):
@@ -38,7 +39,7 @@ class TestAIStress:
         results = []
         errors = []
 
-        def run_single_ai_game(game_id: int) -> Tuple[int, float, str]:
+        def run_single_ai_game(game_id: int) -> tuple[int, float, str]:
             """Run a Single AI game and return results."""
             try:
                 start_time = time.time()
@@ -57,7 +58,7 @@ class TestAIStress:
                 game_state.start_game()
 
                 # Simulate game turns
-                for turn in range(stress_config['turns_per_game']):
+                for turn in range(stress_config["turns_per_game"]):
                     current_player = game_state.get_current_player()
 
                     # Simulate AI work
@@ -76,10 +77,10 @@ class TestAIStress:
                 return (game_id, 0, f"ERROR: {str(e)}")
 
         # Run multiple games concurrently
-        with ThreadPoolExecutor(max_workers=stress_config['max_workers']) as executor:
+        with ThreadPoolExecutor(max_workers=stress_config["max_workers"]) as executor:
             futures = [
                 executor.submit(run_single_ai_game, i)
-                for i in range(stress_config['num_concurrent_games'])
+                for i in range(stress_config["num_concurrent_games"])
             ]
 
             for future in as_completed(futures):
@@ -89,14 +90,14 @@ class TestAIStress:
         assert len(errors) == 0, f"Errors occurred: {errors}"
 
         successful_games = [r for r in results if r[2] == "SUCCESS"]
-        assert len(successful_games) == stress_config['num_concurrent_games']
+        assert len(successful_games) == stress_config["num_concurrent_games"]
 
         # Verify games completed within reasonable time
         for game_id, duration, status in successful_games:
             assert duration < 5.0, f"Game {game_id} took too long: {duration:.2f}s"
             assert duration > 0, f"Game {game_id} had invalid duration"
 
-        print(f"Concurrent Single AI Games:")
+        print("Concurrent Single AI Games:")
         print(f"  Games run: {len(successful_games)}")
         print(f"  Errors: {len(errors)}")
         avg_duration = sum(r[1] for r in successful_games) / len(successful_games)
@@ -107,7 +108,7 @@ class TestAIStress:
         difficulties = [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD]
         results = []
 
-        def run_game_with_difficulty(game_id: int, difficulty: Difficulty) -> Dict:
+        def run_game_with_difficulty(game_id: int, difficulty: Difficulty) -> dict:
             """Run a game with specific difficulty."""
             start_time = time.time()
             ai_times = []
@@ -134,17 +135,21 @@ class TestAIStress:
                 human_player = Player(1, "Human")
                 game_state.add_player(human_player)
                 for pos in [2, 3, 4]:
-                    ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                    ai_player = AIPlayer(
+                        pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}"
+                    )
                     game_state.add_player(ai_player)
             else:  # SPECTATE
                 # All 4 AI players
                 for pos in [1, 2, 3, 4]:
-                    ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                    ai_player = AIPlayer(
+                        pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}"
+                    )
                     game_state.add_player(ai_player)
 
             game_state.start_game()
 
-            for turn in range(stress_config['turns_per_game']):
+            for turn in range(stress_config["turns_per_game"]):
                 current_player = game_state.get_current_player()
 
                 if game_mode.is_ai_turn(current_player.player_id):
@@ -164,18 +169,18 @@ class TestAIStress:
             end_time = time.time()
 
             return {
-                'game_id': game_id,
-                'difficulty': difficulty.value,
-                'mode': game_mode.mode_type.value,
-                'duration': end_time - start_time,
-                'avg_ai_time': sum(ai_times) / len(ai_times) if ai_times else 0,
-                'ai_turns': len(ai_times),
+                "game_id": game_id,
+                "difficulty": difficulty.value,
+                "mode": game_mode.mode_type.value,
+                "duration": end_time - start_time,
+                "avg_ai_time": sum(ai_times) / len(ai_times) if ai_times else 0,
+                "ai_turns": len(ai_times),
             }
 
         # Run games with different difficulties
-        with ThreadPoolExecutor(max_workers=stress_config['max_workers']) as executor:
+        with ThreadPoolExecutor(max_workers=stress_config["max_workers"]) as executor:
             futures = []
-            for i in range(stress_config['num_concurrent_games']):
+            for i in range(stress_config["num_concurrent_games"]):
                 difficulty = difficulties[i % len(difficulties)]
                 future = executor.submit(run_game_with_difficulty, i, difficulty)
                 futures.append(future)
@@ -184,23 +189,29 @@ class TestAIStress:
                 results.append(future.result())
 
         # Verify all games completed
-        assert len(results) == stress_config['num_concurrent_games']
+        assert len(results) == stress_config["num_concurrent_games"]
 
         # Verify difficulty-based performance
         for result in results:
-            if result['difficulty'] == 'Easy':
-                assert result['avg_ai_time'] < 0.1
-            elif result['difficulty'] == 'Medium':
-                assert result['avg_ai_time'] < 0.2
+            if result["difficulty"] == "Easy":
+                assert result["avg_ai_time"] < 0.1
+            elif result["difficulty"] == "Medium":
+                assert result["avg_ai_time"] < 0.2
             else:  # Hard
-                assert result['avg_ai_time'] < 0.3
+                assert result["avg_ai_time"] < 0.3
 
-        print(f"Mixed Difficulty Concurrent Games:")
+        print("Mixed Difficulty Concurrent Games:")
         for difficulty in difficulties:
-            difficulty_games = [r for r in results if r['difficulty'] == difficulty.value]
+            difficulty_games = [
+                r for r in results if r["difficulty"] == difficulty.value
+            ]
             if difficulty_games:
-                avg_duration = sum(g['duration'] for g in difficulty_games) / len(difficulty_games)
-                print(f"  {difficulty.value}: {len(difficulty_games)} games, avg {avg_duration:.2f}s")
+                avg_duration = sum(g["duration"] for g in difficulty_games) / len(
+                    difficulty_games
+                )
+                print(
+                    f"  {difficulty.value}: {len(difficulty_games)} games, avg {avg_duration:.2f}s"
+                )
 
     def test_max_concurrent_load(self):
         """Test system under maximum concurrent load."""
@@ -237,12 +248,16 @@ class TestAIStress:
                     human_player = Player(1, "Human")
                     game_state.add_player(human_player)
                     for pos in [2, 3, 4]:
-                        ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                        ai_player = AIPlayer(
+                            pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}"
+                        )
                         game_state.add_player(ai_player)
                 else:  # SPECTATE
                     # All 4 AI players
                     for pos in [1, 2, 3, 4]:
-                        ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                        ai_player = AIPlayer(
+                            pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}"
+                        )
                         game_state.add_player(ai_player)
 
                 game_state.start_game()
@@ -282,17 +297,23 @@ class TestAIStress:
             error_list.append(errors.get())
 
         # Verify system handled load
-        assert len(successful_games) == max_concurrent, f"Only {len(successful_games)}/{max_concurrent} games completed"
+        assert (
+            len(successful_games) == max_concurrent
+        ), f"Only {len(successful_games)}/{max_concurrent} games completed"
         assert len(error_list) == 0, f"Errors: {error_list}"
 
         # Verify reasonable completion time under load
         max_duration = max(game[1] for game in successful_games)
         avg_duration = sum(game[1] for game in successful_games) / len(successful_games)
 
-        assert max_duration < 10.0, f"Max duration under load too high: {max_duration:.2f}s"
-        assert avg_duration < 5.0, f"Avg duration under load too high: {avg_duration:.2f}s"
+        assert (
+            max_duration < 10.0
+        ), f"Max duration under load too high: {max_duration:.2f}s"
+        assert (
+            avg_duration < 5.0
+        ), f"Avg duration under load too high: {avg_duration:.2f}s"
 
-        print(f"Max Concurrent Load Test:")
+        print("Max Concurrent Load Test:")
         print(f"  Concurrent games: {max_concurrent}")
         print(f"  Successful: {len(successful_games)}")
         print(f"  Errors: {len(error_list)}")
@@ -339,12 +360,16 @@ class TestAIStress:
                     human_player = Player(1, "Human")
                     game_state.add_player(human_player)
                     for pos in [2, 3, 4]:
-                        ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                        ai_player = AIPlayer(
+                            pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}"
+                        )
                         game_state.add_player(ai_player)
                 else:  # SPECTATE
                     # All 4 AI players
                     for pos in [1, 2, 3, 4]:
-                        ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                        ai_player = AIPlayer(
+                            pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}"
+                        )
                         game_state.add_player(ai_player)
 
                 game_state.start_game()
@@ -370,9 +395,11 @@ class TestAIStress:
         avg_destruction = sum(destruction_times) / len(destruction_times)
 
         assert avg_creation < 0.1, f"Avg creation time too high: {avg_creation:.3f}s"
-        assert avg_destruction < 0.1, f"Avg destruction time too high: {avg_destruction:.3f}s"
+        assert (
+            avg_destruction < 0.1
+        ), f"Avg destruction time too high: {avg_destruction:.3f}s"
 
-        print(f"Rapid Game Creation/Destruction:")
+        print("Rapid Game Creation/Destruction:")
         print(f"  Cycles: {num_cycles}")
         print(f"  Games per cycle: {games_per_cycle}")
         print(f"  Avg creation: {avg_creation:.4f}s")
@@ -385,10 +412,11 @@ class TestAIStress:
         # Track memory usage
         memory_snapshots = []
 
-        def run_isolated_game(game_id: int) -> Dict:
+        def run_isolated_game(game_id: int) -> dict:
             """Run a game with memory tracking."""
-            import psutil
             import os
+
+            import psutil
 
             process = psutil.Process(os.getpid())
             initial_memory = process.memory_info().rss
@@ -403,7 +431,9 @@ class TestAIStress:
             human_player = Player(1, "Human")
             game_state.add_player(human_player)
             for pos in [2, 3, 4]:
-                ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                ai_player = AIPlayer(
+                    pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}"
+                )
                 game_state.add_player(ai_player)
 
             game_state.start_game()
@@ -429,12 +459,12 @@ class TestAIStress:
             final_memory = process.memory_info().rss
 
             return {
-                'game_id': game_id,
-                'initial': initial_memory,
-                'mid': mid_memory,
-                'final': final_memory,
-                'peak_increase': mid_memory - initial_memory,
-                'cleanup_effective': final_memory < mid_memory,
+                "game_id": game_id,
+                "initial": initial_memory,
+                "mid": mid_memory,
+                "final": final_memory,
+                "peak_increase": mid_memory - initial_memory,
+                "cleanup_effective": final_memory < mid_memory,
             }
 
         # Run games concurrently
@@ -445,23 +475,30 @@ class TestAIStress:
         # Verify isolation
         for result in results:
             # Each game should have reasonable memory usage
-            assert result['peak_increase'] < 20 * 1024 * 1024, f"Game {result['game_id']} used too much memory"
+            assert (
+                result["peak_increase"] < 20 * 1024 * 1024
+            ), f"Game {result['game_id']} used too much memory"
 
             # Cleanup should be effective
-            assert result['cleanup_effective'] or result['final'] < result['mid'] + 1024 * 1024
+            assert (
+                result["cleanup_effective"]
+                or result["final"] < result["mid"] + 1024 * 1024
+            )
 
-        print(f"Memory Isolation Test:")
+        print("Memory Isolation Test:")
         for result in results:
-            print(f"  Game {result['game_id']}: "
-                  f"peak +{result['peak_increase']/1024/1024:.1f}MB, "
-                  f"cleanup: {result['cleanup_effective']}")
+            print(
+                f"  Game {result['game_id']}: "
+                f"peak +{result['peak_increase']/1024/1024:.1f}MB, "
+                f"cleanup: {result['cleanup_effective']}"
+            )
 
     def test_concurrent_ai_calculation_isolation(self):
         """Test that AI calculations don't interfere between concurrent games."""
         num_games = 5
         calculation_results = []
 
-        def run_ai_calculation_game(game_id: int) -> Dict:
+        def run_ai_calculation_game(game_id: int) -> dict:
             """Run game with isolated AI calculations."""
             # Create game with specific AI
             game_mode = GameMode.three_ai(Difficulty.MEDIUM)
@@ -481,35 +518,41 @@ class TestAIStress:
                     calc_times.append(end - start)
 
                 ai_calculations[ai_config.position] = {
-                    'times': calc_times,
-                    'avg': sum(calc_times) / len(calc_times),
-                    'min': min(calc_times),
-                    'max': max(calc_times),
+                    "times": calc_times,
+                    "avg": sum(calc_times) / len(calc_times),
+                    "min": min(calc_times),
+                    "max": max(calc_times),
                 }
 
             return {
-                'game_id': game_id,
-                'ai_calculations': ai_calculations,
+                "game_id": game_id,
+                "ai_calculations": ai_calculations,
             }
 
         # Run games concurrently
         with ThreadPoolExecutor(max_workers=num_games) as executor:
-            futures = [executor.submit(run_ai_calculation_game, i) for i in range(num_games)]
+            futures = [
+                executor.submit(run_ai_calculation_game, i) for i in range(num_games)
+            ]
             results = [future.result() for future in as_completed(futures)]
 
         # Verify isolation - each game should have consistent calculations
         for result in results:
-            for ai_id, calc_data in result['ai_calculations'].items():
+            for ai_id, calc_data in result["ai_calculations"].items():
                 # Consistency check
-                variance = calc_data['max'] - calc_data['min']
-                assert variance < 0.05, f"Game {result['game_id']} AI {ai_id} calculation variance too high"
+                variance = calc_data["max"] - calc_data["min"]
+                assert (
+                    variance < 0.05
+                ), f"Game {result['game_id']} AI {ai_id} calculation variance too high"
 
-        print(f"AI Calculation Isolation Test:")
+        print("AI Calculation Isolation Test:")
         for result in results:
             print(f"  Game {result['game_id']}:")
-            for ai_id, calc_data in result['ai_calculations'].items():
-                variance = calc_data['max'] - calc_data['min']
-                print(f"    AI {ai_id}: avg={calc_data['avg']*1000:.1f}ms, variance={variance*1000:.1f}ms")
+            for ai_id, calc_data in result["ai_calculations"].items():
+                variance = calc_data["max"] - calc_data["min"]
+                print(
+                    f"    AI {ai_id}: avg={calc_data['avg']*1000:.1f}ms, variance={variance*1000:.1f}ms"
+                )
 
     def test_system_stability_under_prolonged_load(self):
         """Test system stability under prolonged concurrent load."""
@@ -517,14 +560,15 @@ class TestAIStress:
         max_concurrent = 3
 
         start_time = time.time()
-        games_completed = {'count': 0}
+        games_completed = {"count": 0}
         errors = []
 
         while (time.time() - start_time) < duration_seconds:
+
             def run_quick_game():
                 try:
-                    game_id = games_completed['count']
-                    games_completed['count'] += 1
+                    game_id = games_completed["count"]
+                    games_completed["count"] += 1
 
                     # Random mode selection
                     if game_id % 3 == 0:
@@ -541,26 +585,40 @@ class TestAIStress:
                         # Player 1 human, Player 3 AI
                         human_player = Player(1, "Human")
                         game_state.add_player(human_player)
-                        ai_player = AIPlayer(3, RandomStrategy(), "#FF0000", "AI Player")
+                        ai_player = AIPlayer(
+                            3, RandomStrategy(), "#FF0000", "AI Player"
+                        )
                         game_state.add_player(ai_player)
                     elif game_mode.mode_type == GameModeType.THREE_AI:
                         # Player 1 human, Players 2,3,4 AI
                         human_player = Player(1, "Human")
                         game_state.add_player(human_player)
                         for pos in [2, 3, 4]:
-                            ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                            ai_player = AIPlayer(
+                                pos,
+                                RandomStrategy(),
+                                f"#{pos:02x}0000",
+                                f"AI Player {pos}",
+                            )
                             game_state.add_player(ai_player)
                     else:  # SPECTATE
                         # All 4 AI players
                         for pos in [1, 2, 3, 4]:
-                            ai_player = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI Player {pos}")
+                            ai_player = AIPlayer(
+                                pos,
+                                RandomStrategy(),
+                                f"#{pos:02x}0000",
+                                f"AI Player {pos}",
+                            )
                             game_state.add_player(ai_player)
 
                     game_state.start_game()
 
                     # Quick gameplay
                     for _ in range(5):
-                        if game_mode.is_ai_turn(game_state.get_current_player().player_id):
+                        if game_mode.is_ai_turn(
+                            game_state.get_current_player().player_id
+                        ):
                             time.sleep(0.02)
                         game_state.next_turn()
 
@@ -572,7 +630,9 @@ class TestAIStress:
 
             # Run batch of concurrent games
             with ThreadPoolExecutor(max_workers=max_concurrent) as executor:
-                futures = [executor.submit(run_quick_game) for _ in range(max_concurrent)]
+                futures = [
+                    executor.submit(run_quick_game) for _ in range(max_concurrent)
+                ]
                 for future in as_completed(futures):
                     future.result()  # Wait for completion
 
@@ -581,13 +641,13 @@ class TestAIStress:
 
         # Verify system stability
         assert len(errors) == 0, f"Errors during prolonged load: {errors}"
-        assert games_completed['count'] > 0, "No games completed"
+        assert games_completed["count"] > 0, "No games completed"
 
-        print(f"Prolonged Load Stability Test:")
+        print("Prolonged Load Stability Test:")
         print(f"  Duration: {actual_duration:.2f}s")
         print(f"  Games completed: {games_completed['count']}")
         print(f"  Games/second: {games_completed['count']/actual_duration:.1f}")
         print(f"  Errors: {len(errors)}")
 
         # Should maintain reasonable throughput
-        assert (games_completed['count'] / actual_duration) > 1.0, "Throughput too low"
+        assert (games_completed["count"] / actual_duration) > 1.0, "Throughput too low"

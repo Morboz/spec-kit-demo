@@ -4,7 +4,6 @@ This test validates that Players can be properly created during game setup,
 ensuring each player has all necessary components for gameplay.
 """
 
-import pytest
 from src.models.player import Player
 
 

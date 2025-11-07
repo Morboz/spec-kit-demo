@@ -5,10 +5,9 @@ This module provides functionality for determining the winner(s) of a Blokus gam
 It wraps the scoring system logic to provide a clean interface for winner determination.
 """
 
-from typing import List, Dict, Tuple
+from src.game.scoring import ScoringSystem
 from src.models.game_state import GameState
 from src.models.player import Player
-from src.game.scoring import ScoringSystem
 
 
 class WinnerDeterminer:
@@ -23,7 +22,7 @@ class WinnerDeterminer:
         """
         self.game_state = game_state
 
-    def get_winners(self) -> List[Player]:
+    def get_winners(self) -> list[Player]:
         """
         Get the winner(s) of the game.
 
@@ -40,7 +39,7 @@ class WinnerDeterminer:
         # Use ScoringSystem to determine winners
         return ScoringSystem.determine_winner(self.game_state)
 
-    def get_winner_names(self) -> List[str]:
+    def get_winner_names(self) -> list[str]:
         """
         Get the names of the winner(s).
 
@@ -50,7 +49,7 @@ class WinnerDeterminer:
         winners = self.get_winners()
         return [player.name for player in winners]
 
-    def get_winner_ids(self) -> List[int]:
+    def get_winner_ids(self) -> list[int]:
         """
         Get the IDs of the winner(s).
 
@@ -60,7 +59,7 @@ class WinnerDeterminer:
         winners = self.get_winners()
         return [player.player_id for player in winners]
 
-    def calculate_final_scores(self) -> Dict[int, int]:
+    def calculate_final_scores(self) -> dict[int, int]:
         """
         Calculate final scores for all players.
 
@@ -82,7 +81,7 @@ class WinnerDeterminer:
         scores = self.calculate_final_scores()
         return scores.get(player_id, 0)
 
-    def rank_players(self) -> List[Tuple[int, int, str]]:
+    def rank_players(self) -> list[tuple[int, int, str]]:
         """
         Rank all players by their final scores.
 
@@ -91,7 +90,7 @@ class WinnerDeterminer:
         """
         return ScoringSystem.rank_players(self.game_state)
 
-    def get_score_breakdown(self, player: Player) -> Dict[str, int]:
+    def get_score_breakdown(self, player: Player) -> dict[str, int]:
         """
         Get detailed score breakdown for a player.
 
@@ -103,7 +102,7 @@ class WinnerDeterminer:
         """
         return ScoringSystem.get_score_breakdown(player)
 
-    def determine_winner(self) -> List[Player]:
+    def determine_winner(self) -> list[Player]:
         """
         Determine the winner(s) using the scoring system.
 

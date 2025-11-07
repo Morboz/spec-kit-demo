@@ -1,8 +1,9 @@
 """Unit tests for AI strategy components."""
 
 import pytest
-from src.services.ai_strategy import AIStrategy
+
 from src.config.pieces import get_piece
+from src.services.ai_strategy import AIStrategy
 
 
 class TestMove:
@@ -13,12 +14,7 @@ class TestMove:
         from src.services.ai_strategy import Move
 
         piece = get_piece("I5")
-        move = Move(
-            piece=piece,
-            position=(10, 10),
-            rotation=0,
-            player_id=1
-        )
+        move = Move(piece=piece, position=(10, 10), rotation=0, player_id=1)
 
         assert move.piece == piece
         assert move.position == (10, 10)
@@ -30,13 +26,7 @@ class TestMove:
         """Test creating a pass move."""
         from src.services.ai_strategy import Move
 
-        move = Move(
-            piece=None,
-            position=None,
-            rotation=0,
-            player_id=1,
-            is_pass=True
-        )
+        move = Move(piece=None, position=None, rotation=0, player_id=1, is_pass=True)
 
         assert move.is_pass
         assert move.piece is None

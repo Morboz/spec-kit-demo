@@ -7,12 +7,13 @@ next player (especially from AI to human player).
 """
 
 import pytest
+
+from src.game.turn_manager import TurnManager
+from src.models.ai_config import Difficulty
 from src.models.board import Board
+from src.models.game_mode import GameMode, GameModeType
 from src.models.game_state import GameState
 from src.models.player import Player
-from src.models.game_mode import GameMode, GameModeType
-from src.models.ai_config import Difficulty
-from src.game.turn_manager import TurnManager
 
 
 class TestAIPassTurnInventory:
@@ -36,29 +37,29 @@ class TestAIPassTurnInventory:
         # Given: Game state with multiple players
         board = Board()
         game_state = GameState(board=board)
-        
+
         player1 = Player(player_id=1, name="Human")
         player2 = Player(player_id=2, name="AI1")
         player3 = Player(player_id=3, name="AI2")
         player4 = Player(player_id=4, name="AI3")
-        
+
         game_state.add_player(player1)
         game_state.add_player(player2)
         game_state.add_player(player3)
         game_state.add_player(player4)
         game_state.start_game()
-        
+
         # Set current player to AI (player 2)
         game_state.current_player_index = 1  # Player 2
-        
+
         # When: AI player passes turn
         current_player = game_state.get_current_player()
         assert current_player.player_id == 2
         current_player.pass_turn()
-        
+
         turn_manager = TurnManager(game_state)
         next_player = turn_manager.advance_to_next_active_player()
-        
+
         # Then: Turn advances to player 3
         assert next_player is not None
         assert next_player.player_id == 3
@@ -68,32 +69,32 @@ class TestAIPassTurnInventory:
         # Given: Game state where some players have already passed
         board = Board()
         game_state = GameState(board=board)
-        
+
         player1 = Player(player_id=1, name="Human")
         player2 = Player(player_id=2, name="AI1")
         player3 = Player(player_id=3, name="AI2")
         player4 = Player(player_id=4, name="AI3")
-        
+
         game_state.add_player(player1)
         game_state.add_player(player2)
         game_state.add_player(player3)
         game_state.add_player(player4)
         game_state.start_game()
-        
+
         # Player 3 and 4 have already passed
         player3.pass_turn()
         player4.pass_turn()
-        
+
         # Current player is AI (player 2)
         game_state.current_player_index = 1  # Player 2
         current_player = game_state.get_current_player()
         assert current_player.player_id == 2
         current_player.pass_turn()
-        
+
         # When: Advance to next active player
         turn_manager = TurnManager(game_state)
         next_player = turn_manager.advance_to_next_active_player()
-        
+
         # Then: Should skip player 3 and 4 (already passed) and go to player 1
         assert next_player is not None
         assert next_player.player_id == 1
@@ -104,32 +105,32 @@ class TestAIPassTurnInventory:
         # Given: Three AI mode game state
         board = Board()
         game_state = GameState(board=board)
-        
+
         player1 = Player(player_id=1, name="Human")
         player2 = Player(player_id=2, name="AI1")
         player3 = Player(player_id=3, name="AI2")
         player4 = Player(player_id=4, name="AI3")
-        
+
         game_state.add_player(player1)
         game_state.add_player(player2)
         game_state.add_player(player3)
         game_state.add_player(player4)
         game_state.start_game()
-        
+
         game_mode = GameMode.three_ai(Difficulty.MEDIUM)
-        
+
         # AI players 2, 3, 4 have all passed
         player2.pass_turn()
         player3.pass_turn()
         player4.pass_turn()
-        
+
         # Current player is AI (player 4)
         game_state.current_player_index = 3  # Player 4
-        
+
         # When: Advance to next player
         turn_manager = TurnManager(game_state)
         next_player = turn_manager.advance_to_next_active_player()
-        
+
         # Then: Should advance to human player (player 1)
         assert next_player is not None
         assert next_player.player_id == 1
@@ -141,23 +142,23 @@ class TestAIPassTurnInventory:
         # Given: Game state with players
         board = Board()
         game_state = GameState(board=board)
-        
+
         player1 = Player(player_id=1, name="Player1")
         player2 = Player(player_id=2, name="Player2")
-        
+
         game_state.add_player(player1)
         game_state.add_player(player2)
         game_state.start_game()
-        
+
         turn_manager = TurnManager(game_state)
-        
+
         # When: Player has not passed
         assert turn_manager._is_player_eligible(player1) is True
-        
+
         # When: Player has passed
         player1.pass_turn()
         assert turn_manager._is_player_eligible(player1) is False
-        
+
         # When: Player has no pieces remaining
         # Remove all pieces manually
         for piece in player2.pieces.values():
@@ -169,37 +170,37 @@ class TestAIPassTurnInventory:
         # Given: Three AI mode with all AIs having no moves
         board = Board()
         game_state = GameState(board=board)
-        
+
         player1 = Player(player_id=1, name="Human")
         player2 = Player(player_id=2, name="AI1")
         player3 = Player(player_id=3, name="AI2")
         player4 = Player(player_id=4, name="AI3")
-        
+
         game_state.add_player(player1)
         game_state.add_player(player2)
         game_state.add_player(player3)
         game_state.add_player(player4)
         game_state.start_game()
-        
+
         # Start from AI player 2
         game_state.current_player_index = 1  # Player 2
-        
+
         turn_manager = TurnManager(game_state)
-        
+
         # Simulate AI 2 passes
         player2.pass_turn()
         next_player = turn_manager.advance_to_next_active_player()
         assert next_player.player_id == 3
-        
+
         # Simulate AI 3 passes
         player3.pass_turn()
         next_player = turn_manager.advance_to_next_active_player()
         assert next_player.player_id == 4
-        
+
         # Simulate AI 4 passes
         player4.pass_turn()
         next_player = turn_manager.advance_to_next_active_player()
-        
+
         # Should reach human player 1
         assert next_player.player_id == 1
         assert not next_player.has_passed
@@ -209,28 +210,28 @@ class TestAIPassTurnInventory:
         # Given: Game state with some passed players
         board = Board()
         game_state = GameState(board=board)
-        
+
         player1 = Player(player_id=1, name="Player1")
         player2 = Player(player_id=2, name="Player2")
         player3 = Player(player_id=3, name="Player3")
-        
+
         game_state.add_player(player1)
         game_state.add_player(player2)
         game_state.add_player(player3)
         game_state.start_game()
-        
+
         turn_manager = TurnManager(game_state)
-        
+
         # When: No one has passed
         eligible = turn_manager.get_eligible_players()
         assert len(eligible) == 3
-        
+
         # When: One player passes
         player2.pass_turn()
         eligible = turn_manager.get_eligible_players()
         assert len(eligible) == 2
         assert player2 not in eligible
-        
+
         # When: All players pass
         player1.pass_turn()
         player3.pass_turn()
@@ -240,4 +241,3 @@ class TestAIPassTurnInventory:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

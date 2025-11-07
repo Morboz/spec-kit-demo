@@ -26,4 +26,3 @@ TBD - created by archiving change fix-unit-test-failures. Update Purpose after a
 - test_get_piece_positions_flip_then_rotate: MockPiece使用coordinates
 - test_get_piece_positions_flip_all_rotations: MockPiece使用coordinates
 - test_get_piece_positions_flip_with_simple_piece: MockPiece使用coordinates
-

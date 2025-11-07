@@ -10,18 +10,19 @@ allowing customization of:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
 from enum import Enum
 
 
 class GameMode(Enum):
     """Game mode enumeration."""
+
     LOCAL_MULTIPLAYER = "local_multiplayer"
     LOCAL_TWO_PLAYER = "local_two_player"
 
 
 class Difficulty(Enum):
     """AI difficulty levels (for future AI implementation)."""
+
     EASY = "easy"
     MEDIUM = "medium"
     HARD = "hard"
@@ -30,11 +31,12 @@ class Difficulty(Enum):
 @dataclass
 class PlayerConfig:
     """Configuration for a single player."""
+
     player_id: int
     name: str
     color: str
     is_human: bool = True
-    difficulty: Optional[Difficulty] = None
+    difficulty: Difficulty | None = None
 
 
 @dataclass
@@ -48,7 +50,7 @@ class GameConfig:
     max_players: int = 4
 
     # Player configurations
-    players: List[PlayerConfig] = field(default_factory=list)
+    players: list[PlayerConfig] = field(default_factory=list)
 
     # UI settings
     window_width: int = 1500
@@ -70,7 +72,7 @@ class GameConfig:
     show_score_history: bool = True
 
     # Color schemes
-    color_schemes: Dict[str, Dict[str, str]] = field(
+    color_schemes: dict[str, dict[str, str]] = field(
         default_factory=lambda: {
             "default": {
                 "player1": "blue",
@@ -119,18 +121,26 @@ class GameConfig:
         """Validate configuration after initialization."""
         # Validate board size
         if self.board_size < 10 or self.board_size > 50:
-            raise ValueError(f"Board size must be between 10 and 50, got {self.board_size}")
+            raise ValueError(
+                f"Board size must be between 10 and 50, got {self.board_size}"
+            )
 
         # Validate window dimensions
         if self.window_width < 800:
-            raise ValueError(f"Window width must be at least 800, got {self.window_width}")
+            raise ValueError(
+                f"Window width must be at least 800, got {self.window_width}"
+            )
 
         if self.window_height < 600:
-            raise ValueError(f"Window height must be at least 600, got {self.window_height}")
+            raise ValueError(
+                f"Window height must be at least 600, got {self.window_height}"
+            )
 
         # Validate cell size
         if self.cell_size < 10 or self.cell_size > 50:
-            raise ValueError(f"Cell size must be between 10 and 50, got {self.cell_size}")
+            raise ValueError(
+                f"Cell size must be between 10 and 50, got {self.cell_size}"
+            )
 
         # Validate player count (only if players are set)
         # This allows empty configurations for presets that will be filled later
@@ -138,7 +148,8 @@ class GameConfig:
         if player_count > 0:  # Only validate if players are set
             if player_count < self.min_players or player_count > self.max_players:
                 raise ValueError(
-                    f"Player count must be between {self.min_players} and {self.max_players}, got {player_count}"
+                    f"Player count must be between {self.min_players} and "
+                    f"{self.max_players}, got {player_count}"
                 )
 
         # Validate color scheme
@@ -147,7 +158,10 @@ class GameConfig:
 
         # Validate animation speed
         if self.animation_speed < 0 or self.animation_speed > 1000:
-            raise ValueError(f"Animation speed must be between 0 and 1000, got {self.animation_speed}")
+            raise ValueError(
+                f"Animation speed must be between 0 and 1000, "
+                f"got {self.animation_speed}"
+            )
 
     def get_player_color(self, player_id: int) -> str:
         """Get the color for a specific player."""
@@ -188,7 +202,7 @@ class GameConfig:
 
         self.players = [p for p in self.players if p.player_id != player_id]
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """
         Validate the configuration and return a list of issues.
 
@@ -219,7 +233,7 @@ class GameConfig:
 
         return errors
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Convert configuration to dictionary."""
         return {
             "game_mode": self.game_mode.value,
@@ -242,7 +256,7 @@ class GameConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict) -> "GameConfig":
+    def from_dict(cls, data: dict) -> "GameConfig":
         """Create configuration from dictionary."""
         config = cls()
 
@@ -330,7 +344,10 @@ CONFIG_PRESETS = {
 def create_config_from_preset(preset_name: str) -> GameConfig:
     """Create a configuration from a preset."""
     if preset_name not in CONFIG_PRESETS:
-        raise ValueError(f"Unknown preset: {preset_name}. Available presets: {list(CONFIG_PRESETS.keys())}")
+        raise ValueError(
+            f"Unknown preset: {preset_name}. "
+            f"Available presets: {list(CONFIG_PRESETS.keys())}"
+        )
 
     # Create new instance with default players
     if preset_name == "tournament":

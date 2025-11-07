@@ -4,7 +4,6 @@ This test validates that Board can be properly initialized during game setup,
 ensuring it meets the requirements for a new Blokus game.
 """
 
-import pytest
 from src.models.board import Board
 
 

@@ -5,7 +5,6 @@ This module defines the Board class which represents the 20x20 game board
 where players place their pieces.
 """
 
-from typing import Dict, List, Optional, Set, Tuple
 from src.models.piece import Piece
 
 
@@ -21,7 +20,7 @@ class Board:
         The board is represented as a dictionary mapping (row, col) tuples
         to player IDs who have occupied those positions.
         """
-        self.grid: Dict[Tuple[int, int], int] = {}
+        self.grid: dict[tuple[int, int], int] = {}
         self.size = self.BOARD_SIZE
 
     def is_position_valid(self, row: int, col: int) -> bool:
@@ -52,7 +51,7 @@ class Board:
 
     def place_piece(
         self, piece: Piece, anchor_row: int, anchor_col: int, player_id: int
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """
         Place a piece on the board at the specified anchor position.
 
@@ -86,7 +85,7 @@ class Board:
 
         return positions
 
-    def get_occupied_positions(self) -> Set[Tuple[int, int]]:
+    def get_occupied_positions(self) -> set[tuple[int, int]]:
         """
         Get all currently occupied positions on the board.
 
@@ -95,7 +94,7 @@ class Board:
         """
         return set(self.grid.keys())
 
-    def get_player_positions(self, player_id: int) -> Set[Tuple[int, int]]:
+    def get_player_positions(self, player_id: int) -> set[tuple[int, int]]:
         """
         Get all positions occupied by a specific player.
 
@@ -107,7 +106,7 @@ class Board:
         """
         return {pos for pos, pid in self.grid.items() if pid == player_id}
 
-    def get_occupant(self, row: int, col: int) -> Optional[int]:
+    def get_occupant(self, row: int, col: int) -> int | None:
         """
         Get the player ID occupying a specific position.
 
@@ -135,7 +134,7 @@ class Board:
 
     def get_adjacent_positions(
         self, row: int, col: int, include_diagonal: bool = False
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """
         Get all orthogonal (or diagonal) adjacent positions to a given cell.
 
@@ -175,7 +174,7 @@ class Board:
 
         return positions
 
-    def get_board_state(self) -> List[List[Optional[int]]]:
+    def get_board_state(self) -> list[list[int | None]]:
         """
         Get the complete board state as a 2D list.
 

@@ -6,17 +6,18 @@ including move calculation times, total game duration, memory usage,
 and AI decision-making efficiency across different difficulty levels.
 """
 
-import pytest
-import time
-import psutil
-import os
 import gc
-from typing import List, Dict
-from src.models.game_mode import GameMode, GameModeType
+import os
+import time
+
+import psutil
+import pytest
+
 from src.models.ai_config import Difficulty
 from src.models.ai_player import AIPlayer
+from src.models.game_mode import GameMode
 from src.models.game_state import GameState
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 
 
 class TestGamePerformance:
@@ -40,6 +41,7 @@ class TestGamePerformance:
         # Add players for Single AI (Player 1 human, Player 3 AI)
         from src.models.player import Player
         from src.services.ai_strategy import RandomStrategy
+
         human = Player(1, "Human")
         game_state.add_player(human)
         ai = AIPlayer(3, RandomStrategy(), "#FF0000", "AI")
@@ -93,7 +95,7 @@ class TestGamePerformance:
         # Memory should not grow excessively
         assert memory_used < 50 * 1024 * 1024  # Less than 50MB growth
 
-        print(f"Single AI Easy Performance:")
+        print("Single AI Easy Performance:")
         print(f"  Total time: {total_time:.2f}s")
         print(f"  Avg AI calculation: {avg_ai_time*1000:.2f}ms")
         print(f"  Memory used: {memory_used / 1024 / 1024:.2f}MB")
@@ -106,6 +108,7 @@ class TestGamePerformance:
         # Add players for Single AI (Player 1 human, Player 3 AI)
         from src.models.player import Player
         from src.services.ai_strategy import RandomStrategy
+
         human = Player(1, "Human")
         game_state.add_player(human)
         ai = AIPlayer(3, RandomStrategy(), "#FF0000", "AI")
@@ -148,7 +151,7 @@ class TestGamePerformance:
 
         assert total_time < 10.0  # Should complete within reasonable time
 
-        print(f"Single AI Hard Performance:")
+        print("Single AI Hard Performance:")
         print(f"  Total time: {total_time:.2f}s")
         print(f"  Avg AI calculation: {avg_ai_time*1000:.2f}ms")
 
@@ -190,7 +193,7 @@ class TestGamePerformance:
 
         assert total_time < 8.0  # Should complete within reasonable time
 
-        print(f"Three AI Performance:")
+        print("Three AI Performance:")
         print(f"  Total time: {total_time:.2f}s")
         for player_id, times in ai_times_by_player.items():
             if times:
@@ -203,8 +206,8 @@ class TestGamePerformance:
         game_state = GameState()
 
         # Add players for Spectate (All 4 AI)
-        from src.models.player import Player
         from src.services.ai_strategy import RandomStrategy
+
         for pos in [1, 2, 3, 4]:
             ai = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI {pos}")
             game_state.add_player(ai)
@@ -250,7 +253,7 @@ class TestGamePerformance:
 
         assert total_time < 30.0  # Should complete 20 turns under 30s
 
-        print(f"Spectate Mode Performance:")
+        print("Spectate Mode Performance:")
         print(f"  Total time: {total_time:.2f}s")
         print(f"  Avg AI calculation: {avg_ai_time*1000:.2f}ms")
         print(f"  Avg turn interval: {avg_turn_time*1000:.2f}ms")
@@ -259,9 +262,9 @@ class TestGamePerformance:
         """Test AI calculation times across difficulty levels."""
         difficulties = [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD]
         expected_times = {
-            Difficulty.EASY: 0.1,    # 100ms
+            Difficulty.EASY: 0.1,  # 100ms
             Difficulty.MEDIUM: 0.3,  # 300ms
-            Difficulty.HARD: 0.6,    # 600ms
+            Difficulty.HARD: 0.6,  # 600ms
         }
 
         for difficulty in difficulties:
@@ -327,11 +330,11 @@ class TestGamePerformance:
 
         # Memory samples should not show continuous growth
         for i in range(1, len(memory_samples)):
-            growth = memory_samples[i] - memory_samples[i-1]
+            growth = memory_samples[i] - memory_samples[i - 1]
             # Allow some fluctuation but not constant growth
             assert growth < 10 * 1024 * 1024  # Less than 10MB between samples
 
-        print(f"Memory Usage Stability:")
+        print("Memory Usage Stability:")
         print(f"  Initial: {initial_memory / 1024 / 1024:.2f}MB")
         print(f"  Final: {final_memory / 1024 / 1024:.2f}MB")
         print(f"  Growth: {memory_growth / 1024 / 1024:.2f}MB")
@@ -366,9 +369,11 @@ class TestGamePerformance:
             assert calc_time < expected_max
 
         total_time = sum(calculation_times)
-        print(f"Concurrent AI Calculations:")
+        print("Concurrent AI Calculations:")
         print(f"  Total time: {total_time:.2f}s")
-        for i, (ai, calc_time) in enumerate(zip(ai_players, calculation_times)):
+        for i, (ai, calc_time) in enumerate(
+            zip(ai_players, calculation_times, strict=False)
+        ):
             print(f"  {ai.name}: {calc_time:.2f}s")
 
     def test_full_game_throughput(self):
@@ -400,12 +405,14 @@ class TestGamePerformance:
         total_time_minutes = (end_time - start_time) / 60.0
 
         # Calculate actual throughput
-        moves_per_minute = turns_completed / total_time_minutes if total_time_minutes > 0 else 0
+        moves_per_minute = (
+            turns_completed / total_time_minutes if total_time_minutes > 0 else 0
+        )
 
         # Should meet or exceed target
         assert moves_per_minute >= target_moves_per_minute * 0.8  # Allow 20% variance
 
-        print(f"Game Throughput:")
+        print("Game Throughput:")
         print(f"  Target: {target_moves_per_minute} moves/minute")
         print(f"  Actual: {moves_per_minute:.1f} moves/minute")
         print(f"  Turns: {turns_completed}")
@@ -435,7 +442,7 @@ class TestGamePerformance:
         variance = max_time - min_time
         assert variance < avg_time * 0.5  # Variance less than 50% of average
 
-        print(f"AI Performance Consistency:")
+        print("AI Performance Consistency:")
         print(f"  Avg: {avg_time:.3f}s")
         print(f"  Min: {min_time:.3f}s")
         print(f"  Max: {max_time:.3f}s")
@@ -467,13 +474,15 @@ class TestGamePerformance:
 
         # Verify linear scaling
         for i in range(1, len(performance_data)):
-            prev_length, prev_total, prev_per_move = performance_data[i-1]
+            prev_length, prev_total, prev_per_move = performance_data[i - 1]
             curr_length, curr_total, curr_per_move = performance_data[i]
 
             # Time per move should remain relatively constant
             variance = abs(curr_per_move - prev_per_move)
             assert variance < 0.02  # Less than 20ms variance
 
-        print(f"Scalability Test:")
+        print("Scalability Test:")
         for length, total, per_move in performance_data:
-            print(f"  {length:3d} moves: {total:.2f}s total, {per_move*1000:.1f}ms/move")
+            print(
+                f"  {length:3d} moves: {total:.2f}s total, {per_move*1000:.1f}ms/move"
+            )

@@ -8,12 +8,9 @@ according to Blokus rules:
 - +15 points bonus for placing all pieces
 """
 
-import pytest
-from src.models.player import Player
-from src.models.board import Board
-from src.models.piece import Piece
-from src.game.scoring import ScoringSystem
 from src.config.pieces import PIECE_DEFINITIONS
+from src.game.scoring import ScoringSystem
+from src.models.player import Player
 
 
 class TestScoreCalculation:
@@ -73,7 +70,9 @@ class TestScoreCalculation:
             piece = player.get_piece(piece_name)
             piece.place_at(0, 0)
 
-        placed_count = sum(len(coords) for name, coords in list(PIECE_DEFINITIONS.items())[:5])
+        placed_count = sum(
+            len(coords) for name, coords in list(PIECE_DEFINITIONS.items())[:5]
+        )
         unplaced_count = 88 - placed_count
 
         breakdown = ScoringSystem.get_score_breakdown(player)
@@ -92,9 +91,9 @@ class TestScoreCalculation:
         assert ScoringSystem.calculate_squares_placed(player) == 0
 
         # Place a few pieces
-        piece1 = player.get_piece('I2')
+        piece1 = player.get_piece("I2")
         piece1.place_at(0, 0)  # 2 squares
-        piece2 = player.get_piece('I3')
+        piece2 = player.get_piece("I3")
         piece2.place_at(0, 0)  # 3 squares
 
         assert ScoringSystem.calculate_squares_placed(player) == 5
@@ -107,13 +106,12 @@ class TestScoreCalculation:
         assert ScoringSystem.calculate_squares_remaining(player) == 88
 
         # Place a few pieces
-        piece1 = player.get_piece('I2')
+        piece1 = player.get_piece("I2")
         piece1.place_at(0, 0)  # 2 squares
-        piece2 = player.get_piece('I3')
+        piece2 = player.get_piece("I3")
         piece2.place_at(0, 0)  # 3 squares
 
         assert ScoringSystem.calculate_squares_remaining(player) == 83
-
 
     def test_score_calculation_matches_breakdown(self):
         """Test that update_player_score produces same result as get_score_breakdown."""
@@ -134,7 +132,6 @@ class TestScoreCalculation:
 
         # Player's score should match breakdown
         assert player.score == expected_score
-
 
     def test_calculate_final_scores_consistency(self):
         """
@@ -231,4 +228,3 @@ class TestScoreCalculation:
 
         assert len(winners) == 1
         assert winners[0].player_id == 1
-

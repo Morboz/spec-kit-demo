@@ -6,16 +6,16 @@ and Spectate modes, ensuring all game modes work correctly together
 and can be seamlessly switched between during gameplay.
 """
 
-import pytest
 import time
-import threading
-from unittest.mock import Mock, patch, MagicMock
-from src.models.game_mode import GameMode, GameModeType
+
+import pytest
+
 from src.models.ai_config import Difficulty
 from src.models.ai_player import AIPlayer
-from src.models.game_state import GameState, GamePhase
+from src.models.game_mode import GameMode, GameModeType
+from src.models.game_state import GameState
 from src.models.player import Player
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 
 
 class TestAllGameModes:

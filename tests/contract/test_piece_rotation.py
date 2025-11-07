@@ -5,10 +5,10 @@ rotation transformations work properly for gameplay.
 """
 
 import pytest
-from src.models.piece import Piece
+
 from src.models.board import Board
+from src.models.piece import Piece
 from src.models.player import Player
-from src.models.game_state import GameState
 
 
 class TestPieceRotationContract:

@@ -9,18 +9,20 @@ This module provides:
 - Error statistics and tracking
 """
 
+import json
+import logging
 import sys
 import traceback
-import logging
-import json
-from typing import Optional, Dict, List, Callable, Any, Type
-from dataclasses import dataclass, field, asdict
-from enum import Enum
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from typing import Any
 
 
 class ErrorSeverity(Enum):
     """Error severity levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -29,6 +31,7 @@ class ErrorSeverity(Enum):
 
 class ErrorCategory(Enum):
     """Error categories for classification."""
+
     GAME_RULES = "game_rules"
     BOARD_OPERATION = "board_operation"
     PIECE_OPERATION = "piece_operation"
@@ -48,7 +51,7 @@ class BlokusException(Exception):
         message: str,
         category: ErrorCategory = ErrorCategory.UNKNOWN,
         severity: ErrorSeverity = ErrorSeverity.MEDIUM,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ):
         """
         Initialize Blokus exception.
@@ -75,7 +78,7 @@ class GameRuleException(BlokusException):
             message,
             category=ErrorCategory.GAME_RULES,
             severity=ErrorSeverity.HIGH,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -87,7 +90,7 @@ class BoardOperationException(BlokusException):
             message,
             category=ErrorCategory.BOARD_OPERATION,
             severity=ErrorSeverity.MEDIUM,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -99,7 +102,7 @@ class PieceOperationException(BlokusException):
             message,
             category=ErrorCategory.PIECE_OPERATION,
             severity=ErrorSeverity.MEDIUM,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -111,7 +114,7 @@ class UIRenderingException(BlokusException):
             message,
             category=ErrorCategory.UI_RENDERING,
             severity=ErrorSeverity.MEDIUM,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -123,28 +126,29 @@ class UserInputException(BlokusException):
             message,
             category=ErrorCategory.USER_INPUT,
             severity=ErrorSeverity.LOW,
-            **kwargs
+            **kwargs,
         )
 
 
 @dataclass
 class ErrorRecord:
     """Record of an error occurrence."""
+
     exception: Exception
     category: ErrorCategory
     severity: ErrorSeverity
     timestamp: datetime
     message: str
     traceback_str: str
-    context: Dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
     recovered: bool = False
-    recovery_action: Optional[str] = None
+    recovery_action: str | None = None
 
 
 class ErrorHandler:
     """Comprehensive error handling and recovery system."""
 
-    def __init__(self, enable_logging: bool = True, log_file: Optional[str] = None):
+    def __init__(self, enable_logging: bool = True, log_file: str | None = None):
         """
         Initialize error handler.
 
@@ -163,19 +167,19 @@ class ErrorHandler:
         self._setup_structured_logging()
 
         # Error tracking
-        self.error_history: List[ErrorRecord] = []
-        self.error_counts: Dict[str, int] = {}
-        self.error_stats: Dict[str, int] = {
+        self.error_history: list[ErrorRecord] = []
+        self.error_counts: dict[str, int] = {}
+        self.error_stats: dict[str, int] = {
             "total_errors": 0,
             "recovered_errors": 0,
             "fatal_errors": 0,
         }
 
         # Recovery handlers
-        self.recovery_handlers: Dict[Type[Exception], Callable] = {}
+        self.recovery_handlers: dict[type[Exception], Callable] = {}
 
         # Error callbacks
-        self.error_callbacks: List[Callable[[ErrorRecord], None]] = []
+        self.error_callbacks: list[Callable[[ErrorRecord], None]] = []
 
         # Global exception hook
         self._original_excepthook = sys.excepthook
@@ -213,7 +217,7 @@ class ErrorHandler:
 
     def register_recovery_handler(
         self,
-        exception_type: Type[Exception],
+        exception_type: type[Exception],
         handler: Callable[[Exception], bool],
     ):
         """
@@ -237,7 +241,7 @@ class ErrorHandler:
     def handle_error(
         self,
         exception: Exception,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
         show_user_message: bool = True,
     ) -> bool:
         """
@@ -469,7 +473,7 @@ class ErrorHandler:
             return exception_msg
 
         elif isinstance(exception, FileNotFoundError):
-            filename = getattr(exception, 'filename', 'unknown file')
+            filename = getattr(exception, "filename", "unknown file")
             return f"Required file not found: {filename}"
 
         else:
@@ -520,7 +524,7 @@ class ErrorHandler:
                 f.write(f"Traceback:\n{error_record.traceback_str}\n")
                 f.write("-" * 80 + "\n")
 
-    def get_error_statistics(self) -> Dict[str, Any]:
+    def get_error_statistics(self) -> dict[str, Any]:
         """
         Get error statistics.
 
@@ -528,7 +532,8 @@ class ErrorHandler:
             Dictionary with error statistics
         """
         recent_errors = [
-            e for e in self.error_history
+            e
+            for e in self.error_history
             if (datetime.now() - e.timestamp).seconds < 3600
         ]
 
@@ -549,7 +554,7 @@ class ErrorHandler:
 
     def _global_exception_handler(
         self,
-        exc_type: Type[Exception],
+        exc_type: type[Exception],
         exc_value: Exception,
         exc_traceback,
     ):
@@ -563,17 +568,18 @@ class ErrorHandler:
     def log_structured_event(
         self,
         event_type: str,
-        player_id: Optional[int] = None,
-        piece_name: Optional[str] = None,
-        position: Optional[tuple[int, int]] = None,
-        error_message: Optional[str] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
+        player_id: int | None = None,
+        piece_name: str | None = None,
+        position: tuple[int, int] | None = None,
+        error_message: str | None = None,
+        additional_data: dict[str, Any] | None = None,
     ) -> None:
         """
         Log a structured event to blokus_errors.log in JSON format.
 
         Args:
-            event_type: Type of event (piece_selected, placement_attempted, placement_failed, etc.)
+            event_type: Type of event (piece_selected, placement_attempted,
+                         placement_failed, etc.)
             player_id: ID of the player
             piece_name: Name of the piece
             position: Tuple of (row, col) position
@@ -604,7 +610,7 @@ class ErrorHandler:
 
 
 # Global error handler instance
-_global_error_handler: Optional[ErrorHandler] = None
+_global_error_handler: ErrorHandler | None = None
 
 
 def get_error_handler() -> ErrorHandler:
@@ -615,7 +621,7 @@ def get_error_handler() -> ErrorHandler:
     return _global_error_handler
 
 
-def setup_error_handling(log_file: Optional[str] = None):
+def setup_error_handling(log_file: str | None = None):
     """
     Setup global error handling.
 
@@ -629,7 +635,7 @@ def setup_error_handling(log_file: Optional[str] = None):
 
 def handle_error(
     exception: Exception,
-    context: Optional[Dict[str, Any]] = None,
+    context: dict[str, Any] | None = None,
     show_user_message: bool = True,
 ) -> bool:
     """
@@ -643,16 +649,14 @@ def handle_error(
     Returns:
         True if recovered, False otherwise
     """
-    return get_error_handler().handle_error(
-        exception, context, show_user_message
-    )
+    return get_error_handler().handle_error(exception, context, show_user_message)
 
 
 def safe_execute(
     func: Callable,
     *args,
     default_return: Any = None,
-    context: Optional[Dict[str, Any]] = None,
+    context: dict[str, Any] | None = None,
     **kwargs,
 ) -> Any:
     """

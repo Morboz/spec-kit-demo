@@ -5,11 +5,9 @@ This module contains integration tests that verify the complete flow from
 game play through game end detection, score calculation, and winner determination.
 """
 
-import pytest
-from src.models.game_state import GameState, GamePhase
-from src.models.player import Player
-from src.models.board import Board
 from src.game.scoring import ScoringSystem
+from src.models.game_state import GamePhase, GameState
+from src.models.player import Player
 
 
 class TestEndGameFlow:
@@ -272,8 +270,7 @@ class TestEndGameFlow:
             # Setup
             game_state = GameState()
             players = [
-                Player(j + 1, f"Player{j + 1}")
-                for j in range(scenario["players"])
+                Player(j + 1, f"Player{j + 1}") for j in range(scenario["players"])
             ]
             for player in players:
                 game_state.add_player(player)

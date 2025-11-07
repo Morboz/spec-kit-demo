@@ -4,12 +4,10 @@ This test validates that pieces cannot have edge-to-edge contact with
 own pieces (diagonal contact is allowed).
 """
 
-import pytest
-from src.models.board import Board
-from src.models.player import Player
-from src.models.piece import Piece
-from src.models.game_state import GameState
 from src.game.rules import BlokusRules
+from src.models.board import Board
+from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class TestAdjacencyRule:
@@ -242,9 +240,7 @@ class TestAdjacencyRule:
 
         # When: Third piece would touch second piece edge-to-edge
         piece3 = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece3, 6, 7
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece3, 6, 7)
 
         # Then: Invalid
         assert result.is_valid is False
@@ -299,9 +295,7 @@ class TestAdjacencyRule:
 
         # When: Try edge contact at (6, 5)
         piece2 = player.get_piece("V3")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 6, 5
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 6, 5)
 
         # Then: Error includes position
         assert result.is_valid is False
@@ -329,9 +323,7 @@ class TestAdjacencyRule:
 
         # When: Second piece has diagonal contact (as required by Blokus rules)
         piece2 = player.get_piece("L4")
-        result = BlokusRules.validate_move(
-            game_state, player.player_id, piece2, 2, 1
-        )
+        result = BlokusRules.validate_move(game_state, player.player_id, piece2, 2, 1)
 
         # Then: Valid
         assert result.is_valid is True

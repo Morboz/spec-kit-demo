@@ -6,10 +6,9 @@ of setting up a new Blokus game, including creating players, board,
 and game state.
 """
 
-from typing import List, Optional
 from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class GameSetup:
@@ -17,11 +16,11 @@ class GameSetup:
 
     def __init__(self) -> None:
         """Initialize the game setup orchestrator."""
-        self.board: Optional[Board] = None
-        self.game_state: Optional[GameState] = None
-        self.players: List[Player] = []
+        self.board: Board | None = None
+        self.game_state: GameState | None = None
+        self.players: list[Player] = []
 
-    def setup_game(self, num_players: int, player_names: List[str]) -> GameState:
+    def setup_game(self, num_players: int, player_names: list[str]) -> GameState:
         """
         Set up a new game with the specified configuration.
 
@@ -53,21 +52,19 @@ class GameSetup:
         self.players = []
         for i in range(num_players):
             player = Player(
-                player_id=i + 1,
-                name=player_names[i],
-                color=player_colors[i + 1]
+                player_id=i + 1, name=player_names[i], color=player_colors[i + 1]
             )
             self.players.append(player)
 
         # Create game state
         self.game_state = GameState(board=self.board, players=self.players)
-        
+
         # Start the game (transition to PLAYING phase)
         self.game_state.start_game()
 
         return self.game_state
 
-    def _validate_setup_config(self, num_players: int, player_names: List[str]) -> None:
+    def _validate_setup_config(self, num_players: int, player_names: list[str]) -> None:
         """
         Validate the game setup configuration.
 
@@ -131,7 +128,7 @@ class GameSetup:
                     "and apostrophes are allowed"
                 )
 
-    def get_game_state(self) -> Optional[GameState]:
+    def get_game_state(self) -> GameState | None:
         """
         Get the configured game state.
 
@@ -140,7 +137,7 @@ class GameSetup:
         """
         return self.game_state
 
-    def get_board(self) -> Optional[Board]:
+    def get_board(self) -> Board | None:
         """
         Get the configured board.
 
@@ -149,7 +146,7 @@ class GameSetup:
         """
         return self.board
 
-    def get_players(self) -> List[Player]:
+    def get_players(self) -> list[Player]:
         """
         Get the list of players.
 

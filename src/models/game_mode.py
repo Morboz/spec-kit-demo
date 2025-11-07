@@ -5,16 +5,16 @@ This module defines the GameMode class for configuring different AI battle modes
 and the Difficulty enum for AI difficulty levels.
 """
 
-from enum import Enum
-from typing import List, Optional, Dict, Any
 import json
-import os
+from enum import Enum
 from pathlib import Path
+
 from src.models.ai_config import AIConfig, Difficulty
 
 
 class GameModeType(Enum):
     """Supported game mode types."""
+
     SINGLE_AI = "single_ai"
     THREE_AI = "three_ai"
     SPECTATE = "spectate"
@@ -35,7 +35,7 @@ class GameMode:
         self,
         mode_type: GameModeType,
         difficulty: Difficulty = Difficulty.MEDIUM,
-        custom_ai_configs: Optional[List[AIConfig]] = None,
+        custom_ai_configs: list[AIConfig] | None = None,
     ):
         """
         Initialize game mode configuration.
@@ -51,7 +51,7 @@ class GameMode:
         self.mode_type = mode_type
         self.difficulty = difficulty
         self.human_player_position = None
-        self.ai_players: List[AIConfig] = []
+        self.ai_players: list[AIConfig] = []
 
         # Initialize based on mode type
         if custom_ai_configs:
@@ -87,9 +87,7 @@ class GameMode:
     def _init_single_ai(self):
         """Initialize single AI mode configuration."""
         self.human_player_position = 1
-        self.ai_players = [
-            AIConfig(position=3, difficulty=self.difficulty)
-        ]
+        self.ai_players = [AIConfig(position=3, difficulty=self.difficulty)]
 
     def _init_three_ai(self):
         """Initialize three AI mode configuration."""
@@ -140,7 +138,9 @@ class GameMode:
             Skips positions not used in this mode
         """
         # Determine active positions
-        active_positions = [self.human_player_position] if self.human_player_position else []
+        active_positions = (
+            [self.human_player_position] if self.human_player_position else []
+        )
         active_positions.extend([config.position for config in self.ai_players])
         active_positions.sort()
 
@@ -207,7 +207,7 @@ class GameMode:
         return len(positions) == 4 and self.human_player_position is None
 
     @classmethod
-    def single_ai(cls, difficulty: Optional[Difficulty] = None) -> "GameMode":
+    def single_ai(cls, difficulty: Difficulty | None = None) -> "GameMode":
         """
         Create single AI mode configuration.
 
@@ -222,7 +222,7 @@ class GameMode:
         return cls(GameModeType.SINGLE_AI, difficulty)
 
     @classmethod
-    def three_ai(cls, difficulty: Optional[Difficulty] = None) -> "GameMode":
+    def three_ai(cls, difficulty: Difficulty | None = None) -> "GameMode":
         """
         Create three AI mode configuration.
 
@@ -269,7 +269,10 @@ class GameMode:
 
     def __repr__(self):
         """String representation of game mode."""
-        return f"GameMode(type={self.mode_type.value}, players={self.get_player_count()}, ai={self.get_ai_count()})"
+        return (
+            f"GameMode(type={self.mode_type.value}, players={self.get_player_count()}, "
+            f"ai={self.get_ai_count()})"
+        )
 
     # Difficulty Persistence Methods
 
@@ -285,7 +288,9 @@ class GameMode:
         config_dir.mkdir(exist_ok=True)
         return config_dir
 
-    def save_difficulty_preference(self, mode_type: GameModeType, difficulty: Difficulty):
+    def save_difficulty_preference(
+        self, mode_type: GameModeType, difficulty: Difficulty
+    ):
         """
         Save difficulty preference for a game mode.
 
@@ -303,14 +308,14 @@ class GameMode:
             preferences[mode_type.value] = difficulty.value
 
             # Save to file
-            with open(config_file, 'w') as f:
+            with open(config_file, "w") as f:
                 json.dump(preferences, f, indent=2)
         except Exception as e:
             # Log error but don't crash
             print(f"Warning: Failed to save difficulty preference: {e}")
 
     @staticmethod
-    def _load_difficulty_preferences() -> Dict[str, str]:
+    def _load_difficulty_preferences() -> dict[str, str]:
         """
         Load difficulty preferences from file.
 
@@ -323,7 +328,7 @@ class GameMode:
             return {}
 
         try:
-            with open(config_file, 'r') as f:
+            with open(config_file) as f:
                 return json.load(f)
         except Exception:
             return {}

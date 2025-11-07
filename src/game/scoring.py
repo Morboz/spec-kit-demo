@@ -8,17 +8,15 @@ Players score points based on:
 - +15 points bonus for placing all pieces
 """
 
-from typing import List, Dict, Tuple
 from src.models.game_state import GameState
 from src.models.player import Player
-from src.models.board import Board
 
 
 class ScoringSystem:
     """Manages scoring for Blokus game."""
 
     @staticmethod
-    def calculate_final_scores(game_state: GameState) -> Dict[int, int]:
+    def calculate_final_scores(game_state: GameState) -> dict[int, int]:
         """
         Calculate final scores for all players.
 
@@ -117,7 +115,7 @@ class ScoringSystem:
         return player.get_remaining_piece_count() == 0
 
     @staticmethod
-    def get_score_breakdown(player: Player) -> Dict[str, int]:
+    def get_score_breakdown(player: Player) -> dict[str, int]:
         """
         Get detailed breakdown of player's score.
 
@@ -142,7 +140,7 @@ class ScoringSystem:
         }
 
     @staticmethod
-    def rank_players(game_state: GameState) -> List[Tuple[int, int, str]]:
+    def rank_players(game_state: GameState) -> list[tuple[int, int, str]]:
         """
         Rank players by their final scores.
 
@@ -178,7 +176,7 @@ class ScoringSystem:
         return ranked_players
 
     @staticmethod
-    def determine_winner(game_state: GameState) -> List[Player]:
+    def determine_winner(game_state: GameState) -> list[Player]:
         """
         Determine the winner(s) of the game.
 

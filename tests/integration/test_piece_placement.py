@@ -4,11 +4,9 @@ This test validates the entire piece placement process from selection
 through placement on the board, including validation and state updates.
 """
 
-import pytest
 from src.models.board import Board
-from src.models.player import Player
 from src.models.game_state import GameState
-from src.models.piece import Piece
+from src.models.player import Player
 
 
 class TestPiecePlacementFlow:

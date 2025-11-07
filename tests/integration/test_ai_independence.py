@@ -6,10 +6,11 @@ making distinct decisions based on their individual configurations.
 """
 
 import pytest
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import RandomStrategy, CornerStrategy, StrategicStrategy
+
 from src.models.ai_config import AIConfig, Difficulty
+from src.models.ai_player import AIPlayer
 from src.models.game_mode import GameMode, GameModeType
+from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
 
 
 class TestAIPlayerIndependence:
@@ -19,24 +20,13 @@ class TestAIPlayerIndependence:
         """Test that each AI player has an independent strategy instance."""
         # Create multiple AI players
         ai1 = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue",
-            name="AI-1"
+            player_id=2, strategy=RandomStrategy(), color="blue", name="AI-1"
         )
 
-        ai2 = AIPlayer(
-            player_id=3,
-            strategy=CornerStrategy(),
-            color="red",
-            name="AI-2"
-        )
+        ai2 = AIPlayer(player_id=3, strategy=CornerStrategy(), color="red", name="AI-2")
 
         ai3 = AIPlayer(
-            player_id=4,
-            strategy=StrategicStrategy(),
-            color="green",
-            name="AI-3"
+            player_id=4, strategy=StrategicStrategy(), color="green", name="AI-3"
         )
 
         # Each AI should have its own strategy instance
@@ -52,24 +42,15 @@ class TestAIPlayerIndependence:
     def test_independent_difficulty_levels(self):
         """Test that AI players have independent difficulty levels."""
         ai_easy = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue",
-            name="Easy AI"
+            player_id=2, strategy=RandomStrategy(), color="blue", name="Easy AI"
         )
 
         ai_medium = AIPlayer(
-            player_id=3,
-            strategy=CornerStrategy(),
-            color="red",
-            name="Medium AI"
+            player_id=3, strategy=CornerStrategy(), color="red", name="Medium AI"
         )
 
         ai_hard = AIPlayer(
-            player_id=4,
-            strategy=StrategicStrategy(),
-            color="green",
-            name="Hard AI"
+            player_id=4, strategy=StrategicStrategy(), color="green", name="Hard AI"
         )
 
         # Each AI should report correct difficulty
@@ -80,17 +61,11 @@ class TestAIPlayerIndependence:
     def test_independent_decision_making(self):
         """Test that AI players make independent decisions."""
         ai1 = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue",
-            name="Random AI"
+            player_id=2, strategy=RandomStrategy(), color="blue", name="Random AI"
         )
 
         ai2 = AIPlayer(
-            player_id=3,
-            strategy=CornerStrategy(),
-            color="red",
-            name="Corner AI"
+            player_id=3, strategy=CornerStrategy(), color="red", name="Corner AI"
         )
 
         # Create board with some pieces
@@ -120,17 +95,9 @@ class TestAIPlayerIndependence:
 
     def test_independent_state_management(self):
         """Test that AI players maintain independent state."""
-        ai1 = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue"
-        )
+        ai1 = AIPlayer(player_id=2, strategy=RandomStrategy(), color="blue")
 
-        ai2 = AIPlayer(
-            player_id=3,
-            strategy=CornerStrategy(),
-            color="red"
-        )
+        ai2 = AIPlayer(player_id=3, strategy=CornerStrategy(), color="red")
 
         # Initially, neither is calculating
         assert not ai1.is_calculating
@@ -157,14 +124,14 @@ class TestAIPlayerIndependence:
         """Test that AI players handle timeouts independently."""
         ai1 = AIPlayer(
             player_id=2,
-            strategy=RandomStrategy(),  # 3 second timeout
-            color="blue"
+            strategy=RandomStrategy(),
+            color="blue",  # 3 second timeout
         )
 
         ai2 = AIPlayer(
             player_id=3,
-            strategy=StrategicStrategy(),  # 8 second timeout
-            color="red"
+            strategy=StrategicStrategy(),
+            color="red",  # 8 second timeout
         )
 
         # Each AI should have different timeout
@@ -188,18 +155,10 @@ class TestAIPlayerIndependence:
         from src.config.pieces import get_full_piece_set
 
         ai1 = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue",
-            name="AI-1"
+            player_id=2, strategy=RandomStrategy(), color="blue", name="AI-1"
         )
 
-        ai2 = AIPlayer(
-            player_id=3,
-            strategy=CornerStrategy(),
-            color="red",
-            name="AI-2"
-        )
+        ai2 = AIPlayer(player_id=3, strategy=CornerStrategy(), color="red", name="AI-2")
 
         # Each should have full piece set
         full_pieces = get_full_piece_set()
@@ -221,18 +180,10 @@ class TestAIPlayerIndependence:
     def test_independent_scoring(self):
         """Test that AI players maintain independent scores."""
         ai1 = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue",
-            name="AI-1"
+            player_id=2, strategy=RandomStrategy(), color="blue", name="AI-1"
         )
 
-        ai2 = AIPlayer(
-            player_id=3,
-            strategy=CornerStrategy(),
-            color="red",
-            name="AI-2"
-        )
+        ai2 = AIPlayer(player_id=3, strategy=CornerStrategy(), color="red", name="AI-2")
 
         # Initially, both have score 0
         assert ai1.score == 0
@@ -249,17 +200,9 @@ class TestAIPlayerIndependence:
 
     def test_independent_pass_state(self):
         """Test that AI players manage pass state independently."""
-        ai1 = AIPlayer(
-            player_id=2,
-            strategy=RandomStrategy(),
-            color="blue"
-        )
+        ai1 = AIPlayer(player_id=2, strategy=RandomStrategy(), color="blue")
 
-        ai2 = AIPlayer(
-            player_id=3,
-            strategy=CornerStrategy(),
-            color="red"
-        )
+        ai2 = AIPlayer(player_id=3, strategy=CornerStrategy(), color="red")
 
         # Neither has passed initially
         assert not ai1.has_passed
@@ -284,15 +227,17 @@ class TestAIPlayerIndependence:
         """Test multiple AI players operating simultaneously."""
         # Create 4 AI players with different strategies
         ais = [
-            AIPlayer(
-                player_id=i,
-                strategy=strategy,
-                color=colors[i],
-                name=names[i]
+            AIPlayer(player_id=i, strategy=strategy, color=colors[i], name=names[i])
+            for i, (strategy, colors, names) in enumerate(
+                [
+                    (
+                        RandomStrategy(),
+                        ["blue", "red", "green", "yellow"],
+                        ["AI-1", "AI-2", "AI-3", "AI-4"],
+                    ),
+                ],
+                start=1,
             )
-            for i, (strategy, colors, names) in enumerate([
-                (RandomStrategy(), ["blue", "red", "green", "yellow"], ["AI-1", "AI-2", "AI-3", "AI-4"]),
-            ], start=1)
         ]
 
         # This is a simplified version - iterate through players
@@ -301,7 +246,7 @@ class TestAIPlayerIndependence:
                 player_id=player_id,
                 strategy=RandomStrategy(),
                 color=f"color_{player_id}",
-                name=f"AI-{player_id}"
+                name=f"AI-{player_id}",
             )
 
             board = [[0 for _ in range(20)] for _ in range(20)]
@@ -328,14 +273,14 @@ class TestAIIndependenceInGameMode:
             strategies = {
                 2: RandomStrategy(),
                 3: CornerStrategy(),
-                4: StrategicStrategy()
+                4: StrategicStrategy(),
             }
 
             ai_players[ai_config.position] = AIPlayer(
                 player_id=ai_config.position,
                 strategy=strategies[ai_config.position],
                 color=f"color_{ai_config.position}",
-                name=f"AI-{ai_config.position}"
+                name=f"AI-{ai_config.position}",
             )
 
         # Verify independence
@@ -358,7 +303,7 @@ class TestAIIndependenceInGameMode:
             RandomStrategy(),
             CornerStrategy(),
             StrategicStrategy(),
-            RandomStrategy()  # Can reuse strategy type
+            RandomStrategy(),  # Can reuse strategy type
         ]
         colors = ["blue", "red", "green", "yellow"]
         names = ["Alpha", "Beta", "Gamma", "Delta"]
@@ -368,7 +313,7 @@ class TestAIIndependenceInGameMode:
                 player_id=ai_config.position,
                 strategy=strategies[i],
                 color=colors[i],
-                name=names[i]
+                name=names[i],
             )
 
         # All should be independent
@@ -391,22 +336,18 @@ class TestAIIndependenceInGameMode:
         game_mode = GameMode(
             GameModeType.THREE_AI,
             difficulty=Difficulty.MEDIUM,
-            custom_ai_configs=custom_ais
+            custom_ai_configs=custom_ais,
         )
 
         # Create AI players based on config
-        ai_map = {
-            2: RandomStrategy(),
-            3: CornerStrategy(),
-            4: StrategicStrategy()
-        }
+        ai_map = {2: RandomStrategy(), 3: CornerStrategy(), 4: StrategicStrategy()}
 
         for ai_config in game_mode.ai_players:
             ai = AIPlayer(
                 player_id=ai_config.position,
                 strategy=ai_map[ai_config.position],
                 color=f"color_{ai_config.position}",
-                name=f"Custom-{ai_config.position}"
+                name=f"Custom-{ai_config.position}",
             )
 
             # Each AI should have correct difficulty

@@ -6,26 +6,31 @@ and configuring AI difficulty levels.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
-from typing import Optional, Callable, Dict, Any
-from src.models.game_mode import GameMode, GameModeType, Difficulty
+from collections.abc import Callable
+from tkinter import messagebox, ttk
+from typing import Any
+
+from src.models.game_mode import Difficulty, GameMode
 
 
 class GameModeSelector:
     """UI for selecting AI battle mode."""
 
-    def __init__(self, parent: Optional[tk.Widget] = None, callback: Optional[Callable] = None):
+    def __init__(
+        self, parent: tk.Widget | None = None, callback: Callable | None = None
+    ):
         """
         Initialize the game mode selector.
 
         Args:
             parent: Parent tkinter widget
-            callback: Callback function called with (mode_type, difficulty) when mode is selected
+            callback: Callback function called with (mode_type, difficulty)
+                when mode is selected
         """
         self.parent = parent
         self.callback = callback
-        self.result: Optional[Dict[str, Any]] = None
-        self.dialog: Optional[tk.Toplevel] = None
+        self.result: dict[str, Any] | None = None
+        self.dialog: tk.Toplevel | None = None
 
         # Selection variables
         self.selected_mode_var = tk.StringVar(value="single_ai")
@@ -33,13 +38,16 @@ class GameModeSelector:
         # Load saved difficulty preference
         try:
             from src.models.game_mode import GameMode, GameModeType
-            saved_difficulty = GameMode.get_difficulty_preference(GameModeType.SINGLE_AI)
+
+            saved_difficulty = GameMode.get_difficulty_preference(
+                GameModeType.SINGLE_AI
+            )
             self.selected_difficulty_var = tk.StringVar(value=saved_difficulty.value)
         except Exception:
             # Fallback to default if loading fails
             self.selected_difficulty_var = tk.StringVar(value="Medium")
 
-    def show(self) -> Optional[Dict[str, Any]]:
+    def show(self) -> dict[str, Any] | None:
         """
         Show the mode selection dialog and wait for user input.
 
@@ -65,15 +73,15 @@ class GameModeSelector:
 
         # Title
         title_label = ttk.Label(
-            main_frame,
-            text="AI Battle Mode",
-            font=("Arial", 16, "bold")
+            main_frame, text="AI Battle Mode", font=("Arial", 16, "bold")
         )
         title_label.grid(row=0, column=0, columnspan=2, pady=(0, 20))
 
         # Mode selection frame
         mode_frame = ttk.LabelFrame(main_frame, text="Game Mode", padding="10")
-        mode_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
+        mode_frame.grid(
+            row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10)
+        )
 
         # Mode options
         modes = [
@@ -88,21 +96,22 @@ class GameModeSelector:
                 text=text,
                 variable=self.selected_mode_var,
                 value=value,
-                command=self._on_mode_selected
+                command=self._on_mode_selected,
             )
             rb.grid(row=i, column=0, sticky=tk.W, pady=5)
 
             desc_label = ttk.Label(
-                mode_frame,
-                text=description,
-                font=("Arial", 9),
-                foreground="gray"
+                mode_frame, text=description, font=("Arial", 9), foreground="gray"
             )
             desc_label.grid(row=i, column=1, sticky=tk.W, padx=(10, 0), pady=5)
 
         # Difficulty selection frame
-        self.difficulty_frame = ttk.LabelFrame(main_frame, text="AI Difficulty", padding="10")
-        self.difficulty_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(10, 0))
+        self.difficulty_frame = ttk.LabelFrame(
+            main_frame, text="AI Difficulty", padding="10"
+        )
+        self.difficulty_frame.grid(
+            row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(10, 0)
+        )
 
         # Difficulty options
         difficulties = [
@@ -116,7 +125,7 @@ class GameModeSelector:
                 self.difficulty_frame,
                 text=text,
                 variable=self.selected_difficulty_var,
-                value=value
+                value=value,
             )
             rb.grid(row=i, column=0, sticky=tk.W, pady=5)
 
@@ -124,7 +133,7 @@ class GameModeSelector:
                 self.difficulty_frame,
                 text=description,
                 font=("Arial", 9),
-                foreground="gray"
+                foreground="gray",
             )
             desc_label.grid(row=i, column=1, sticky=tk.W, padx=(10, 0), pady=5)
 
@@ -133,7 +142,7 @@ class GameModeSelector:
             main_frame,
             text="Spectate mode uses mixed difficulty levels",
             font=("Arial", 9, "italic"),
-            foreground="blue"
+            foreground="blue",
         )
         self.hint_label.grid(row=3, column=0, columnspan=2, pady=(5, 0))
 
@@ -143,17 +152,13 @@ class GameModeSelector:
 
         # Start button
         start_button = ttk.Button(
-            button_frame,
-            text="Start Game",
-            command=self._on_start_clicked
+            button_frame, text="Start Game", command=self._on_start_clicked
         )
         start_button.grid(row=0, column=0, padx=(0, 10))
 
         # Cancel button
         cancel_button = ttk.Button(
-            button_frame,
-            text="Cancel",
-            command=self._on_cancel_clicked
+            button_frame, text="Cancel", command=self._on_cancel_clicked
         )
         cancel_button.grid(row=0, column=1)
 
@@ -183,8 +188,8 @@ class GameModeSelector:
         # Save difficulty preference for non-spectate modes
         if mode != "spectate":
             try:
-                from src.models.game_mode import GameMode, GameModeType
                 from src.models.ai_config import Difficulty as AIDifficulty
+                from src.models.game_mode import GameMode, GameModeType
 
                 # Convert string to Difficulty enum
                 diff_enum = AIDifficulty(difficulty)
@@ -201,13 +206,13 @@ class GameModeSelector:
             config = {
                 "mode_type": mode,
                 "difficulty": None,
-                "description": "Spectate AI vs AI match"
+                "description": "Spectate AI vs AI match",
             }
         else:
             config = {
                 "mode_type": mode,
                 "difficulty": difficulty,
-                "description": f"Human vs {difficulty} AI"
+                "description": f"Human vs {difficulty} AI",
             }
 
         self.result = config
@@ -226,7 +231,7 @@ class GameModeSelector:
         self.dialog.destroy()
 
     @staticmethod
-    def create_game_mode(mode_type: str, difficulty: Optional[str] = None) -> GameMode:
+    def create_game_mode(mode_type: str, difficulty: str | None = None) -> GameMode:
         """
         Create a GameMode instance from selected options.
 
@@ -250,9 +255,8 @@ class GameModeSelector:
 
 
 def show_game_mode_selector(
-    parent: Optional[tk.Widget] = None,
-    callback: Optional[Callable] = None
-) -> Optional[Dict[str, Any]]:
+    parent: tk.Widget | None = None, callback: Callable | None = None
+) -> dict[str, Any] | None:
     """
     Convenience function to show game mode selector.
 

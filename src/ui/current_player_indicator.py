@@ -7,9 +7,9 @@ the current player's turn and information.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional, List
-from src.models.player import Player
+
 from src.models.game_state import GameState
+from src.models.player import Player
 
 
 class CurrentPlayerIndicator(ttk.Frame):
@@ -18,7 +18,7 @@ class CurrentPlayerIndicator(ttk.Frame):
     def __init__(
         self,
         parent: tk.Widget,
-        game_state: Optional[GameState] = None,
+        game_state: GameState | None = None,
     ) -> None:
         """
         Initialize the current player indicator.
@@ -29,8 +29,8 @@ class CurrentPlayerIndicator(ttk.Frame):
         """
         super().__init__(parent)
         self.game_state = game_state
-        self.players: List[Player] = []
-        self.current_player: Optional[Player] = None
+        self.players: list[Player] = []
+        self.current_player: Player | None = None
 
         # Create widget
         self._create_widgets()
@@ -130,7 +130,7 @@ class CurrentPlayerIndicator(ttk.Frame):
             self.player_name_var.set("Game not started")
             self.player_id_var.set("")
 
-    def get_current_player(self) -> Optional[Player]:
+    def get_current_player(self) -> Player | None:
         """
         Get the currently displayed player.
 

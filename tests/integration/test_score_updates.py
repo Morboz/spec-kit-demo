@@ -5,14 +5,14 @@ This test verifies that scores are properly updated throughout the game
 as players place pieces, and that the UI reflects these updates correctly.
 """
 
-import pytest
 import tkinter as tk
-from src.models.player import Player
+
+from src.config.pieces import PIECE_DEFINITIONS
+from src.game.scoring import ScoringSystem
 from src.models.board import Board
 from src.models.game_state import GameState
-from src.game.scoring import ScoringSystem
+from src.models.player import Player
 from src.ui.scoreboard import Scoreboard
-from src.config.pieces import PIECE_DEFINITIONS
 
 
 class TestScoreUpdates:
@@ -36,9 +36,9 @@ class TestScoreUpdates:
             ScoringSystem.update_player_score(player)
 
             # Score should be greater than previous
-            assert player.score > previous_score, (
-                f"Score should increase after placing piece {i+1}"
-            )
+            assert (
+                player.score > previous_score
+            ), f"Score should increase after placing piece {i+1}"
 
             previous_score = player.score
 
@@ -106,23 +106,22 @@ class TestScoreUpdates:
                     player1.place_piece(piece_name, 0, 0)
                     ScoringSystem.update_player_score(player1)
                     player1_scores.append(player1.score)
-            else:  # Player 2's turn
-                if i < 14:
-                    piece_name = piece_names[(i + 1) // 2]
-                    player2.place_piece(piece_name, 0, 0)
-                    ScoringSystem.update_player_score(player2)
-                    player2_scores.append(player2.score)
+            elif i < 14:
+                piece_name = piece_names[(i + 1) // 2]
+                player2.place_piece(piece_name, 0, 0)
+                ScoringSystem.update_player_score(player2)
+                player2_scores.append(player2.score)
 
         # Both players should have increasing scores
         for i in range(1, len(player1_scores)):
-            assert player1_scores[i] >= player1_scores[i-1], (
-                f"Player 1's score should not decrease at turn {i}"
-            )
+            assert (
+                player1_scores[i] >= player1_scores[i - 1]
+            ), f"Player 1's score should not decrease at turn {i}"
 
         for i in range(1, len(player2_scores)):
-            assert player2_scores[i] >= player2_scores[i-1], (
-                f"Player 2's score should not decrease at turn {i}"
-            )
+            assert (
+                player2_scores[i] >= player2_scores[i - 1]
+            ), f"Player 2's score should not decrease at turn {i}"
 
     def test_real_time_score_update_trigger(self):
         """

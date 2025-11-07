@@ -5,7 +5,6 @@ This module defines the Piece class which represents a geometric piece
 that players place on the board.
 """
 
-from typing import List, Tuple, Optional
 from src.config.pieces import get_piece_coordinates
 
 
@@ -26,10 +25,10 @@ class Piece:
         self.coordinates = get_piece_coordinates(name).copy()
         self.size = len(self.coordinates)
         self.is_placed = False
-        self.placed_position: Optional[Tuple[int, int]] = None
+        self.placed_position: tuple[int, int] | None = None
 
     @classmethod
-    def from_coordinates(cls, name: str, coordinates: List[Tuple[int, int]]) -> "Piece":
+    def from_coordinates(cls, name: str, coordinates: list[tuple[int, int]]) -> "Piece":
         """
         Create a piece from explicit coordinates.
 
@@ -76,8 +75,8 @@ class Piece:
         return rotated
 
     def _rotate_coordinates(
-        self, coords: List[Tuple[int, int]], degrees: int
-    ) -> List[Tuple[int, int]]:
+        self, coords: list[tuple[int, int]], degrees: int
+    ) -> list[tuple[int, int]]:
         """
         Rotate coordinates by specified degrees.
 
@@ -120,7 +119,7 @@ class Piece:
 
     def get_absolute_positions(
         self, anchor_row: int, anchor_col: int
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """
         Calculate actual board positions when piece is anchored at position.
 
