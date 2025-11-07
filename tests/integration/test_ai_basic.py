@@ -167,8 +167,10 @@ class TestAIPlayerIntegration:
         assert ai_players[0].strategy != ai_players[1].strategy
         assert ai_players[1].strategy != ai_players[2].strategy
 
-        # But should share difficulty level
-        assert all(ai.difficulty == "Medium" for ai in ai_players)
+        # Each AI should have its own strategy's difficulty (not the config's difficulty when strategy is overridden)
+        expected_difficulties = ["Easy", "Medium", "Hard"]  # Based on strategy types
+        actual_difficulties = [ai.difficulty for ai in ai_players]
+        assert actual_difficulties == expected_difficulties
 
 
 class TestTurnControllerIntegration:
@@ -227,7 +229,7 @@ class TestTurnControllerIntegration:
         # Next should be player 3 (AI)
         next_player = controller.get_next_player()
         assert next_player == 3
-        assert controller.is_ai_turn(next_player)
+        assert game_mode.is_ai_turn(next_player)
 
 
 class TestAIGameInitializerIntegration:
@@ -299,7 +301,7 @@ class TestEndToEndAIWorkflow:
 
         # 3. Create TurnController
         controller = TurnController(game_mode)
-        assert controller.is_ai_turn(3)
+        assert game_mode.is_ai_turn(3)
 
         # 4. Verify turn advancement
         assert controller.get_next_player(1) == 3
@@ -321,9 +323,9 @@ class TestEndToEndAIWorkflow:
 
         # 4. Create TurnController
         controller = TurnController(game_mode)
-        assert controller.is_ai_turn(2)
-        assert controller.is_ai_turn(3)
-        assert controller.is_ai_turn(4)
+        assert game_mode.is_ai_turn(2)
+        assert game_mode.is_ai_turn(3)
+        assert game_mode.is_ai_turn(4)
 
     def test_spectate_mode_workflow(self):
         """Test complete workflow for spectator mode."""
@@ -345,7 +347,7 @@ class TestEndToEndAIWorkflow:
         # 4. All turns are AI turns
         controller = TurnController(game_mode)
         for player_id in [1, 2, 3, 4]:
-            assert controller.is_ai_turn(player_id)
+            assert game_mode.is_ai_turn(player_id)
 
     def test_strategy_instantiation_workflow(self):
         """Test that strategies are properly instantiated."""

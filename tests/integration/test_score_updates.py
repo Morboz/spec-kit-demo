@@ -5,7 +5,7 @@ This test verifies that scores are properly updated throughout the game
 as players place pieces, and that the UI reflects these updates correctly.
 """
 
-import tkinter as tk
+import pytest
 
 from blokus_game.config.pieces import PIECE_DEFINITIONS
 from blokus_game.game.scoring import ScoringSystem
@@ -24,8 +24,8 @@ class TestScoreUpdates:
         """
         player = Player(player_id=1, name="Test Player")
 
-        # Track scores after each placement
-        previous_score = 0
+        # Track scores after each placement (scores start negative and increase toward 0)
+        previous_score = -89  # All squares remaining = -89
         piece_names = list(PIECE_DEFINITIONS.keys())
 
         for i, piece_name in enumerate(piece_names[:10]):
@@ -35,53 +35,48 @@ class TestScoreUpdates:
             # Update score
             ScoringSystem.update_player_score(player)
 
-            # Score should be greater than previous
+            # Score should be greater than previous (less negative)
             assert (
                 player.score > previous_score
-            ), f"Score should increase after placing piece {i+1}"
+            ), f"Score should increase (be less negative) after placing piece {i+1}"
 
             previous_score = player.score
 
-    def test_scoreboard_updates_after_placements(self):
+    def test_scoreboard_updates_after_placements(self, tkinter_root):
         """
         Test that scoreboard reflects score changes after placements.
         """
-        root = tk.Tk()
-        root.withdraw()  # Hide window
+        root = tkinter_root  # Use the fixture-provided root
 
-        try:
-            player = Player(player_id=1, name="Test Player")
-            board = Board()
+        player = Player(player_id=1, name="Test Player")
+        board = Board()
 
-            # Create scoreboard
-            scoreboard = Scoreboard(root, board, [player])
+        # Create scoreboard
+        scoreboard = Scoreboard(root, board, [player])
 
-            # Initially no pieces placed
-            scoreboard.update_scores()
-            items = scoreboard.tree.get_children()
-            assert len(items) == 1
-            initial_values = scoreboard.tree.item(items[0])["values"]
-            assert initial_values[1] == 0  # No squares placed
+        # Initially no pieces placed
+        scoreboard.update_scores()
+        items = scoreboard.tree.get_children()
+        assert len(items) == 1
+        initial_values = scoreboard.tree.item(items[0])["values"]
+        assert initial_values[1] == 0  # No squares placed
 
-            # Place some pieces
-            piece_names = list(PIECE_DEFINITIONS.keys())
-            for piece_name in piece_names[:5]:
-                player.place_piece(piece_name, 10, 10)
-                board.place_piece(player.player_id, piece_name, 10, 10)
+        # Place some pieces
+        piece_names = list(PIECE_DEFINITIONS.keys())
+        for piece_name in piece_names[:5]:
+            player.place_piece(piece_name, 10, 10)
+            board.place_piece(player.player_id, piece_name, 10, 10)
 
-            # Update scoreboard
-            scoreboard.update_scores()
+        # Update scoreboard
+        scoreboard.update_scores()
 
-            # Check that squares placed updated
-            items = scoreboard.tree.get_children()
-            updated_values = scoreboard.tree.item(items[0])["values"]
-            assert updated_values[1] == 25  # 5 pieces placed
+        # Check that squares placed updated
+        items = scoreboard.tree.get_children()
+        updated_values = scoreboard.tree.item(items[0])["values"]
+        assert updated_values[1] == 25  # 5 pieces placed
 
-            # Check pieces remaining updated
-            assert updated_values[2] == 16  # 21 - 5 = 16 pieces remaining
-
-        finally:
-            root.destroy()
+        # Check pieces remaining updated
+        assert updated_values[2] == 16  # 21 - 5 = 16 pieces remaining
 
     def test_score_updates_tracked_throughout_game(self):
         """
@@ -93,9 +88,9 @@ class TestScoreUpdates:
         game_state = GameState()
         game_state.players = [player1, player2]
 
-        # Track score history
-        player1_scores = [0]
-        player2_scores = [0]
+        # Track score history (scores start at -89 with all squares remaining)
+        player1_scores = [-89]
+        player2_scores = [-89]
         piece_names = list(PIECE_DEFINITIONS.keys())
 
         # Simulate turns where players place pieces

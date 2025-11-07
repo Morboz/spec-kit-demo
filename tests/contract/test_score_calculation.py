@@ -28,21 +28,21 @@ class TestScoreCalculation:
         breakdown = ScoringSystem.get_score_breakdown(player)
 
         assert breakdown["placed_squares"] == 0
-        assert breakdown["unplaced_squares"] == 88  # Total squares in all pieces
-        assert breakdown["base_score"] == -88
+        assert breakdown["unplaced_squares"] == 89  # Total squares in all pieces
+        assert breakdown["base_score"] == -89
         assert breakdown["all_pieces_bonus"] == 0
-        assert breakdown["final_score"] == -88
+        assert breakdown["final_score"] == -89
 
     def test_calculate_score_with_all_pieces_placed(self):
         """
         Test score calculation when all pieces are placed.
 
-        Expected: Score should be 88 + 15 = 103
-        (88 squares + 15 bonus for placing all pieces)
+        Expected: Score should be 89 + 15 = 104
+        (89 squares + 15 bonus for placing all pieces)
         """
         player = Player(player_id=1, name="Test Player")
 
-        # Place all 21 pieces (total 88 squares)
+        # Place all 21 pieces (total 89 squares)
         piece_names = list(PIECE_DEFINITIONS.keys())
         for piece_name in piece_names:
             piece = player.get_piece(piece_name)
@@ -50,11 +50,11 @@ class TestScoreCalculation:
 
         breakdown = ScoringSystem.get_score_breakdown(player)
 
-        assert breakdown["placed_squares"] == 88
+        assert breakdown["placed_squares"] == 89
         assert breakdown["unplaced_squares"] == 0
-        assert breakdown["base_score"] == 88
+        assert breakdown["base_score"] == 89
         assert breakdown["all_pieces_bonus"] == 15
-        assert breakdown["final_score"] == 103
+        assert breakdown["final_score"] == 104
 
     def test_calculate_score_with_partial_pieces(self):
         """
@@ -73,7 +73,7 @@ class TestScoreCalculation:
         placed_count = sum(
             len(coords) for name, coords in list(PIECE_DEFINITIONS.items())[:5]
         )
-        unplaced_count = 88 - placed_count
+        unplaced_count = 89 - placed_count
 
         breakdown = ScoringSystem.get_score_breakdown(player)
 
@@ -103,7 +103,7 @@ class TestScoreCalculation:
         player = Player(player_id=1, name="Test Player")
 
         # Initially all squares remaining
-        assert ScoringSystem.calculate_squares_remaining(player) == 88
+        assert ScoringSystem.calculate_squares_remaining(player) == 89
 
         # Place a few pieces
         piece1 = player.get_piece("I2")
@@ -111,7 +111,7 @@ class TestScoreCalculation:
         piece2 = player.get_piece("I3")
         piece2.place_at(0, 0)  # 3 squares
 
-        assert ScoringSystem.calculate_squares_remaining(player) == 83
+        assert ScoringSystem.calculate_squares_remaining(player) == 84
 
     def test_score_calculation_matches_breakdown(self):
         """Test that update_player_score produces same result as get_score_breakdown."""

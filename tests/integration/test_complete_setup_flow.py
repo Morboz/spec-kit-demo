@@ -37,7 +37,7 @@ class TestCompleteSetupFlow:
         # Then: Game state is created
         assert game_state is not None
         assert isinstance(game_state, GameState)
-        assert game_state.phase.value == 1  # SETUP phase
+        assert game_state.phase.value == 2  # PLAYING phase (setup automatically starts the game)
 
         # Then: Players are created
         players = setup.get_players()

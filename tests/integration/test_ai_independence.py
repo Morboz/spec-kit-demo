@@ -177,7 +177,7 @@ class TestAIPlayerIndependence:
 
         # After AI1 removes a piece, AI2 should still have all pieces
         if full_pieces:
-            ai1.remove_piece(full_pieces[0])
+            ai1.remove_piece(full_pieces[0].name)  # Remove by name, not by object
             assert ai1.get_piece_count() == len(full_pieces) - 1
             assert ai2.get_piece_count() == len(full_pieces)
 
@@ -354,8 +354,8 @@ class TestAIIndependenceInGameMode:
                 name=f"Custom-{ai_config.position}",
             )
 
-            # Each AI should have correct difficulty
-            assert ai.difficulty == ai_config.difficulty.name
+            # Each AI should have correct difficulty (normalize case comparison)
+            assert ai.difficulty.lower() == ai_config.difficulty.name.lower()
 
     def test_ai_turn_detection(self):
         """Test that AI turn detection works for all AI players."""

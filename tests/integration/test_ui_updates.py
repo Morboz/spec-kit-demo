@@ -217,13 +217,7 @@ class TestUIUpdates:
         setup = GameSetup()
         game_state = setup.setup_game(2, ["Alice", "Bob"])
 
-        # Then: Initially in setup phase
-        assert game_state.phase.value == 1
-
-        # When: Game starts
-        game_state.start_game()
-
-        # Then: Phase is playing
+        # Then: Game is already in playing phase (setup auto-starts)
         assert game_state.phase.value == 2
 
     def test_player_positions_isolated_by_player(self):

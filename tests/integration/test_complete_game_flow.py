@@ -12,7 +12,7 @@ through game end, including:
 - Winner determination
 """
 
-import tkinter as tk
+import pytest
 
 from blokus_game.config.pieces import PIECE_DEFINITIONS
 from blokus_game.game.end_game_detector import EndGameDetector
@@ -33,7 +33,7 @@ from blokus_game.ui.scoreboard import Scoreboard
 class TestCompleteGameFlow:
     """Test suite for complete Blokus game flow from start to finish."""
 
-    def test_complete_two_player_game(self):
+    def test_complete_two_player_game(self, tkinter_root):
         """
         Test a complete two-player game from start to finish.
         """
@@ -54,13 +54,12 @@ class TestCompleteGameFlow:
         score_history = ScoreHistory(game_state)
 
         # Step 3: Initialize UI components (headless)
-        root = tk.Tk()
-        root.withdraw()
+        root = tkinter_root
 
         try:
             scoreboard = Scoreboard(root, board, [player1, player2])
             current_player_indicator = CurrentPlayerIndicator(root, game_state)
-            piece_inventory = PieceInventory(root, player1)
+            piece_inventory = PieceInventory(root, [player1])
 
             # Step 4: Record initial game state
             score_history.record_current_scores(0, 0)
@@ -73,7 +72,7 @@ class TestCompleteGameFlow:
                 current_player_name = current_player.name
 
                 # Get valid moves for current player
-                valid_moves = turn_validator.get_valid_moves(board)
+                valid_moves = turn_validator.get_player_valid_moves(current_player.player_id)
 
                 if valid_moves:
                     # Place a piece (use turn number to vary placement)
@@ -83,8 +82,10 @@ class TestCompleteGameFlow:
                     col = turn % 15
 
                     # Place piece
-                    current_player.place_piece(piece_name, row, col)
-                    board.place_piece(current_player.player_id, piece_name, row, col)
+                    piece = current_player.get_piece(piece_name)
+                    if piece:
+                        board.place_piece(piece, row, col, current_player.player_id)
+                        current_player.place_piece(piece_name, row, col)
 
                     # Update score
                     ScoringSystem.update_player_score(current_player)
@@ -150,7 +151,7 @@ class TestCompleteGameFlow:
         finally:
             root.destroy()
 
-    def test_complete_four_player_game(self):
+    def test_complete_four_player_game(self, tkinter_root):
         """
         Test a complete four-player game from start to finish.
         """
@@ -192,7 +193,7 @@ class TestCompleteGameFlow:
                 current_player = game_state.get_current_player()
 
                 # Get valid moves
-                valid_moves = turn_validator.get_valid_moves(board)
+                valid_moves = turn_validator.get_player_valid_moves(current_player.player_id)
 
                 if valid_moves and current_player.pieces_remaining > 0:
                     # Place a piece
@@ -202,8 +203,10 @@ class TestCompleteGameFlow:
                     col = (turn * 2) % 18
 
                     # Validate and place
-                    current_player.place_piece(piece_name, row, col)
-                    board.place_piece(current_player.player_id, piece_name, row, col)
+                    piece = current_player.get_piece(piece_name)
+                    if piece:
+                        board.place_piece(piece, row, col, current_player.player_id)
+                        current_player.place_piece(piece_name, row, col)
 
                     # Update score
                     ScoringSystem.update_player_score(current_player)
@@ -270,15 +273,15 @@ class TestCompleteGameFlow:
             original_player_id = current_player.player_id
 
             # Get valid moves
-            valid_moves = turn_validator.get_valid_moves(board)
+            valid_moves = turn_validator.get_player_valid_moves(current_player.player_id)
 
             if valid_moves and current_player.pieces_remaining > 0:
                 # Place piece
                 piece_name = piece_names[turn % len(piece_names)]
-                current_player.place_piece(piece_name, turn % 10, turn % 10)
-                board.place_piece(
-                    current_player.player_id, piece_name, turn % 10, turn % 10
-                )
+                piece = current_player.get_piece(piece_name)
+                if piece:
+                    board.place_piece(piece, turn % 10, turn % 10, current_player.player_id)
+                    current_player.place_piece(piece_name, turn % 10, turn % 10)
 
                 # Update score
                 ScoringSystem.update_player_score(current_player)
@@ -312,9 +315,11 @@ class TestCompleteGameFlow:
         piece_names = list(PIECE_DEFINITIONS.keys())
 
         # Player 1 makes first move (must be in corner)
-        player1.place_piece(piece_names[0], 0, 0)
-        board.place_piece(1, piece_names[0], 0, 0)
-        ScoringSystem.update_player_score(player1)
+        piece1 = player1.get_piece(piece_names[0])
+        if piece1:
+            board.place_piece(piece1, 0, 0, 1)
+            player1.place_piece(piece_names[0], 0, 0)
+            ScoringSystem.update_player_score(player1)
 
         # Try to place second piece touching own piece (should fail)
         from blokus_game.game.rules import Rules
@@ -325,9 +330,11 @@ class TestCompleteGameFlow:
         assert not result.is_valid
 
         # Player 2 makes valid move in corner
-        player2.place_piece(piece_names[1], 19, 19)
-        board.place_piece(2, piece_names[1], 19, 19)
-        ScoringSystem.update_player_score(player2)
+        piece2 = player2.get_piece(piece_names[1])
+        if piece2:
+            board.place_piece(piece2, 19, 19, 2)
+            player2.place_piece(piece_names[1], 19, 19)
+            ScoringSystem.update_player_score(player2)
 
         # Try to overlap (should fail)
         result = Rules.validate_move(
@@ -356,16 +363,12 @@ class TestCompleteGameFlow:
                                 flipped=flipped,
                             )
                             if result.is_valid:
-                                current_player.place_piece(
-                                    piece_names[turn % len(piece_names)], row, col
-                                )
-                                board.place_piece(
-                                    current_player.player_id,
-                                    piece_names[turn % len(piece_names)],
-                                    row,
-                                    col,
-                                )
-                                ScoringSystem.update_player_score(current_player)
+                                piece_name = piece_names[turn % len(piece_names)]
+                                piece = current_player.get_piece(piece_name)
+                                if piece:
+                                    board.place_piece(piece, row, col, current_player.player_id)
+                                    current_player.place_piece(piece_name, row, col)
+                                    ScoringSystem.update_player_score(current_player)
                                 valid_move_found = True
                                 break
                         if valid_move_found:
@@ -415,10 +418,10 @@ class TestCompleteGameFlow:
 
             # Place piece
             piece_name = piece_names[turn % len(piece_names)]
-            current_player.place_piece(piece_name, turn % 10, turn % 10)
-            board.place_piece(
-                current_player.player_id, piece_name, turn % 10, turn % 10
-            )
+            piece = current_player.get_piece(piece_name)
+            if piece:
+                board.place_piece(piece, turn % 10, turn % 10, current_player.player_id)
+                current_player.place_piece(piece_name, turn % 10, turn % 10)
 
             # Update score
             ScoringSystem.update_player_score(current_player)
@@ -456,7 +459,7 @@ class TestCompleteGameFlow:
         breakdown2 = ScoringSystem.get_score_breakdown(player2)
         assert player2.score == breakdown2["final_score"]
 
-    def test_ui_components_integration(self):
+    def test_ui_components_integration(self, tkinter_root):
         """
         Test that all UI components work together during game.
         """
@@ -470,15 +473,14 @@ class TestCompleteGameFlow:
 
         board = Board()
 
-        root = tk.Tk()
-        root.withdraw()
+        root = tkinter_root
 
         try:
             # Create all UI components
             scoreboard = Scoreboard(root, board, players)
             current_player_indicator = CurrentPlayerIndicator(root, game_state)
-            piece_inventory1 = PieceInventory(root, players[0])
-            piece_inventory2 = PieceInventory(root, players[1])
+            piece_inventory1 = PieceInventory(root, [players[0]])
+            piece_inventory2 = PieceInventory(root, [players[1]])
 
             # Verify initial state
             assert current_player_indicator.get_current_player_name() == "Player 1"
@@ -499,8 +501,10 @@ class TestCompleteGameFlow:
 
                 # Place piece
                 piece_name = piece_names[turn % len(piece_names)]
-                current_player.place_piece(piece_name, turn, turn)
-                board.place_piece(current_player.player_id, piece_name, turn, turn)
+                piece = current_player.get_piece(piece_name)
+                if piece:
+                    board.place_piece(piece, turn, turn, current_player.player_id)
+                    current_player.place_piece(piece_name, turn, turn)
 
                 # Update scores
                 ScoringSystem.update_player_score(current_player)
@@ -552,8 +556,10 @@ class TestCompleteGameFlow:
 
         # Player 1 places all pieces
         for piece_name in piece_names:
-            player1.place_piece(piece_name, 0, 0)
-        board.place_pieces(player1.player_id, player1.placed_pieces)
+            piece = player1.get_piece(piece_name)
+            if piece:
+                board.place_piece(piece, 0, 0, player1.player_id)
+                player1.place_piece(piece_name, 0, 0)
 
         # Check if game should end
         all_pieces_placed = end_detector.check_all_pieces_placed()
@@ -588,7 +594,7 @@ class TestCompleteGameFlow:
         assert len(final_scores) == 2
         assert all(score != 0 for score in final_scores.values())
 
-    def test_full_game_simulation(self):
+    def test_full_game_simulation(self, tkinter_root):
         """
         Simulate a complete game with realistic gameplay.
         """
@@ -612,8 +618,7 @@ class TestCompleteGameFlow:
         end_detector = EndGameDetector(game_state)
 
         # Initialize UI
-        root = tk.Tk()
-        root.withdraw()
+        root = tkinter_root
 
         try:
             scoreboard = Scoreboard(root, board, players)
@@ -653,8 +658,10 @@ class TestCompleteGameFlow:
                 col = turn_number % 18
 
                 # Place piece
-                current_player.place_piece(piece_name, row, col)
-                board.place_piece(current_player.player_id, piece_name, row, col)
+                piece = current_player.get_piece(piece_name)
+                if piece:
+                    board.place_piece(piece, row, col, current_player.player_id)
+                    current_player.place_piece(piece_name, row, col)
 
                 # Update score
                 ScoringSystem.update_player_score(current_player)
