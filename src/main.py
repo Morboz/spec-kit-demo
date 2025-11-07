@@ -548,6 +548,8 @@ class BlokusApp:
 
     def _pass_turn(self):
         """Pass the current player's turn."""
+        from src.game.turn_manager import TurnManager
+        
         current_player = self.game_state.get_current_player()
         if current_player:
             current_player.pass_turn()
@@ -557,14 +559,15 @@ class BlokusApp:
                 self._end_game()
                 return
             
-            # Advance to next player
-            self.game_state.next_turn()
+            # Use TurnManager to advance to next active player (skips already-passed players)
+            turn_manager = TurnManager(self.game_state)
+            next_player = turn_manager.advance_to_next_active_player()
+            
             # Update UI
             self._render_board()
             if self.state_synchronizer:
                 self.state_synchronizer.notify_turn_change()
             # Update piece inventory tab to show current player's pieces
-            next_player = self.game_state.get_current_player()
             if next_player and self.piece_inventory:
                 self.piece_inventory.select_player_tab(next_player.player_id)
             # Update piece selector to show next player's pieces
