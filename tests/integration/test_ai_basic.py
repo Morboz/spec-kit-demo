@@ -1,11 +1,15 @@
 """Integration tests for basic AI functionality."""
 
-from src.models.ai_config import AIConfig
-from src.models.ai_player import AIPlayer
-from src.models.game_mode import Difficulty, GameMode, GameModeType
-from src.models.turn_controller import TurnController, TurnState
-from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
-from src.ui.game_mode_selector import GameModeSelector
+from blokus_game.models.ai_config import AIConfig
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.models.game_mode import Difficulty, GameMode, GameModeType
+from blokus_game.models.turn_controller import TurnController, TurnState
+from blokus_game.services.ai_strategy import (
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
+from blokus_game.ui.game_mode_selector import GameModeSelector
 
 
 class TestAIGameModeIntegration:
@@ -231,7 +235,7 @@ class TestAIGameInitializerIntegration:
 
     def test_ai_game_initializer_creation(self):
         """Test creating AI game initializer."""
-        from src.game.ai_game_initializer import AIGameInitializer
+        from blokus_game.game.ai_game_initializer import AIGameInitializer
 
         initializer = AIGameInitializer()
         assert initializer.parent_window is None
@@ -240,7 +244,7 @@ class TestAIGameInitializerIntegration:
 
     def test_ai_player_spawning_from_config(self):
         """Test spawning AI players from configuration."""
-        from src.game.ai_game_initializer import AIGameInitializer
+        from blokus_game.game.ai_game_initializer import AIGameInitializer
 
         initializer = AIGameInitializer()
 
@@ -257,7 +261,7 @@ class TestAIGameInitializerIntegration:
 
     def test_create_ai_players_from_config(self):
         """Test creating AI players from mode config."""
-        from src.game.ai_game_initializer import AIGameInitializer
+        from blokus_game.game.ai_game_initializer import AIGameInitializer
 
         # Single AI
         ai_players = AIGameInitializer.create_ai_players_from_config(

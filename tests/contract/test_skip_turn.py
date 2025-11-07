@@ -4,8 +4,8 @@ This test validates that players can skip their turn when they have
 no valid moves, and that the game correctly handles skipped turns.
 """
 
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestSkipTurnContract:
@@ -48,7 +48,7 @@ class TestSkipTurnContract:
         Then: Skipped player is bypassed, others play in sequence
         """
         # Given: Three player game
-        from src.game.turn_manager import TurnManager
+        from blokus_game.game.turn_manager import TurnManager
 
         game_state = GameState()
         player1 = Player(player_id=1, name="Alice")

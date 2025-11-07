@@ -4,7 +4,7 @@ This test validates that Players can be properly created during game setup,
 ensuring each player has all necessary components for gameplay.
 """
 
-from src.models.player import Player
+from blokus_game.models.player import Player
 
 
 class TestPlayerCreationContract:

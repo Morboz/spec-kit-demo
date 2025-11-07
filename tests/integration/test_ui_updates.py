@@ -4,9 +4,9 @@ This test validates that UI components properly synchronize with game state
 changes and update in real-time as the game progresses.
 """
 
-from src.game.game_setup import GameSetup
-from src.game.placement_handler import PlacementHandler
-from src.models.piece import Piece
+from blokus_game.game.game_setup import GameSetup
+from blokus_game.game.placement_handler import PlacementHandler
+from blokus_game.models.piece import Piece
 
 
 class TestUIUpdates:

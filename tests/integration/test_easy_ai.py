@@ -5,8 +5,8 @@ Verifies that Easy AI uses RandomStrategy and makes random moves.
 
 import pytest
 
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import RandomStrategy
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.services.ai_strategy import RandomStrategy
 
 
 def test_easy_ai_has_random_strategy():

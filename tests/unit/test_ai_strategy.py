@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.config.pieces import get_piece
-from src.services.ai_strategy import AIStrategy
+from blokus_game.config.pieces import get_piece
+from blokus_game.services.ai_strategy import AIStrategy
 
 
 class TestMove:
@@ -11,7 +11,7 @@ class TestMove:
 
     def test_create_move_with_valid_data(self):
         """Test creating a move with all required fields."""
-        from src.services.ai_strategy import Move
+        from blokus_game.services.ai_strategy import Move
 
         piece = get_piece("I5")
         move = Move(piece=piece, position=(10, 10), rotation=0, player_id=1)
@@ -24,7 +24,7 @@ class TestMove:
 
     def test_create_pass_move(self):
         """Test creating a pass move."""
-        from src.services.ai_strategy import Move
+        from blokus_game.services.ai_strategy import Move
 
         move = Move(piece=None, position=None, rotation=0, player_id=1, is_pass=True)
 
@@ -104,7 +104,7 @@ class TestRandomStrategy:
 
     def test_random_strategy_exists(self):
         """Test that RandomStrategy can be imported."""
-        from src.services.ai_strategy import RandomStrategy
+        from blokus_game.services.ai_strategy import RandomStrategy
 
         strategy = RandomStrategy()
         assert strategy is not None
@@ -113,7 +113,7 @@ class TestRandomStrategy:
 
     def test_random_strategy_returns_move_or_none(self):
         """Test that RandomStrategy returns a move or None."""
-        from src.services.ai_strategy import RandomStrategy
+        from blokus_game.services.ai_strategy import RandomStrategy
 
         strategy = RandomStrategy()
 
@@ -132,7 +132,7 @@ class TestCornerStrategy:
 
     def test_corner_strategy_exists(self):
         """Test that CornerStrategy can be imported."""
-        from src.services.ai_strategy import CornerStrategy
+        from blokus_game.services.ai_strategy import CornerStrategy
 
         strategy = CornerStrategy()
         assert strategy is not None
@@ -141,7 +141,7 @@ class TestCornerStrategy:
 
     def test_corner_strategy_prefers_corners(self):
         """Test that CornerStrategy prefers corner placements."""
-        from src.services.ai_strategy import CornerStrategy
+        from blokus_game.services.ai_strategy import CornerStrategy
 
         strategy = CornerStrategy()
 
@@ -166,7 +166,7 @@ class TestStrategicStrategy:
 
     def test_strategic_strategy_exists(self):
         """Test that StrategicStrategy can be imported."""
-        from src.services.ai_strategy import StrategicStrategy
+        from blokus_game.services.ai_strategy import StrategicStrategy
 
         strategy = StrategicStrategy()
         assert strategy is not None
@@ -175,7 +175,7 @@ class TestStrategicStrategy:
 
     def test_strategic_strategy_performs_evaluation(self):
         """Test that StrategicStrategy can evaluate board positions."""
-        from src.services.ai_strategy import StrategicStrategy
+        from blokus_game.services.ai_strategy import StrategicStrategy
 
         strategy = StrategicStrategy()
 
@@ -190,7 +190,7 @@ class TestStrategicStrategy:
 
     def test_strategic_strategy_uses_lookahead(self):
         """Test that StrategicStrategy considers multiple moves."""
-        from src.services.ai_strategy import StrategicStrategy
+        from blokus_game.services.ai_strategy import StrategicStrategy
 
         strategy = StrategicStrategy()
 

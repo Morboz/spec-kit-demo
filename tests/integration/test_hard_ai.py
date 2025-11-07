@@ -5,8 +5,8 @@ Verifies that Hard AI uses StrategicStrategy.
 
 import pytest
 
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import StrategicStrategy
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.services.ai_strategy import StrategicStrategy
 
 
 def test_hard_ai_has_strategic_strategy():

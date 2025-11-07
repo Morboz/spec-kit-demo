@@ -5,9 +5,9 @@ This module contains integration tests that verify the complete flow from
 game play through game end detection, score calculation, and winner determination.
 """
 
-from src.game.scoring import ScoringSystem
-from src.models.game_state import GamePhase, GameState
-from src.models.player import Player
+from blokus_game.game.scoring import ScoringSystem
+from blokus_game.models.game_state import GamePhase, GameState
+from blokus_game.models.player import Player
 
 
 class TestEndGameFlow:

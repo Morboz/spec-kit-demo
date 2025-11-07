@@ -7,10 +7,14 @@ including multi-AI turn management, independent AI decision making, and game com
 
 import pytest
 
-from src.models.ai_config import Difficulty
-from src.models.ai_player import AIPlayer
-from src.models.game_mode import GameMode, GameModeType
-from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
+from blokus_game.models.ai_config import Difficulty
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.models.game_mode import GameMode, GameModeType
+from blokus_game.services.ai_strategy import (
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
 
 
 class TestThreeAIMode:
@@ -232,8 +236,8 @@ class TestThreeAIIntegrationFlow:
     @pytest.fixture
     def three_ai_game(self):
         """Create a Three AI game for testing."""
-        from src.models.board import Board
-        from src.models.player import Player
+        from blokus_game.models.board import Board
+        from blokus_game.models.player import Player
 
         game_mode = GameMode.three_ai(Difficulty.MEDIUM)
 

@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.config.pieces import PIECE_DEFINITIONS
-from src.models.piece import Piece
+from blokus_game.config.pieces import PIECE_DEFINITIONS
+from blokus_game.models.piece import Piece
 
 
 class TestPiece:

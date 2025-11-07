@@ -14,9 +14,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.models.game_mode import Difficulty, GameMode, GameModeType
-from src.models.game_stats import create_game_statistics
-from src.models.turn_controller import TurnController, TurnState
+from blokus_game.models.game_mode import Difficulty, GameMode, GameModeType
+from blokus_game.models.game_stats import create_game_statistics
+from blokus_game.models.turn_controller import TurnController, TurnState
 
 
 class TestSpectateMode:
@@ -87,7 +87,7 @@ class TestSpectateMode:
         # Controller should detect AI turns
         assert controller.is_ai_turn
 
-    @patch("src.models.turn_controller.time.sleep")
+    @patch("blokus_game.models.turn_controller.time.sleep")
     def test_spectate_mode_automated_turn_progression(self, mock_sleep):
         """Test that spectate mode automatically progresses turns."""
         game_mode = GameMode.spectate_ai()
@@ -399,7 +399,7 @@ class TestSpectateMode:
 
     def test_spectate_mode_ui_integration(self):
         """Test integration with spectator mode indicator UI."""
-        from src.ui.spectator_mode_indicator import SpectatorModeIndicator
+        from blokus_game.ui.spectator_mode_indicator import SpectatorModeIndicator
 
         # Create mock parent
         root = Mock()

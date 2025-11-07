@@ -2,7 +2,7 @@
 Unit tests for Move class flip field functionality.
 """
 
-from src.services.ai_strategy import Move
+from blokus_game.services.ai_strategy import Move
 
 
 def test_move_has_flip_field():

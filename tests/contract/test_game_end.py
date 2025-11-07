@@ -8,8 +8,8 @@ implementation must satisfy.
 
 import pytest
 
-from src.models.game_state import GamePhase, GameState
-from src.models.player import Player
+from blokus_game.models.game_state import GamePhase, GameState
+from blokus_game.models.player import Player
 
 
 class TestGameEndDetection:

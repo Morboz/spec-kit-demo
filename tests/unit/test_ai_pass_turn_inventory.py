@@ -8,12 +8,12 @@ next player (especially from AI to human player).
 
 import pytest
 
-from src.game.turn_manager import TurnManager
-from src.models.ai_config import Difficulty
-from src.models.board import Board
-from src.models.game_mode import GameMode, GameModeType
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.game.turn_manager import TurnManager
+from blokus_game.models.ai_config import Difficulty
+from blokus_game.models.board import Board
+from blokus_game.models.game_mode import GameMode, GameModeType
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestAIPassTurnInventory:

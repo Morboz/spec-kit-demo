@@ -6,9 +6,13 @@ Tests verify that different difficulty levels produce measurably different behav
 
 import pytest
 
-from src.config.pieces import get_piece
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
+from blokus_game.config.pieces import get_piece
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.services.ai_strategy import (
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
 
 
 class TestAIDifficultyBehavior:
@@ -18,7 +22,7 @@ class TestAIDifficultyBehavior:
         """Test that Easy AI calculates moves faster than Hard AI."""
         import time
 
-        from src.config.pieces import get_full_piece_set
+        from blokus_game.config.pieces import get_full_piece_set
 
         board = [[0] * 20 for _ in range(20)]
         pieces = get_full_piece_set()[:10]  # Use 10 pieces for test
@@ -177,7 +181,7 @@ class TestAIDifficultyBehavior:
 
     def test_ai_player_switching_affects_behavior(self):
         """Test that switching AI difficulty changes behavior."""
-        from src.models.ai_config import Difficulty
+        from blokus_game.models.ai_config import Difficulty
 
         board = [[0] * 20 for _ in range(20)]
         pieces = [get_piece("I1")]
@@ -205,7 +209,7 @@ class TestAIDifficultyBehavior:
         """Test performance characteristics across multiple moves."""
         import time
 
-        from src.config.pieces import get_full_piece_set
+        from blokus_game.config.pieces import get_full_piece_set
 
         # Setup
         board = [[0] * 20 for _ in range(20)]
@@ -284,8 +288,8 @@ class TestAIDifficultyBehavior:
 
     def test_difficulty_settings_work_in_full_game_context(self):
         """Test that difficulty settings integrate with game mode."""
-        from src.models.ai_config import Difficulty
-        from src.models.game_mode import GameMode, GameModeType
+        from blokus_game.models.ai_config import Difficulty
+        from blokus_game.models.game_mode import GameMode, GameModeType
 
         # Create game mode with specific difficulty
         game_mode = GameMode.single_ai(Difficulty.HARD)

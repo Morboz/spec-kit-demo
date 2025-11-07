@@ -4,10 +4,10 @@ This test validates that UI components can correctly display and update
 game state information including current player, scores, and piece inventory.
 """
 
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.piece import Piece
-from src.models.player import Player
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.piece import Piece
+from blokus_game.models.player import Player
 
 
 class TestStateDisplay:
@@ -231,7 +231,7 @@ class TestStateDisplay:
         assert game_state.phase.name == "SETUP"
 
         # When: Game starts
-        from src.models.game_state import GamePhase
+        from blokus_game.models.game_state import GamePhase
 
         game_state.phase = GamePhase.PLAYING
         assert game_state.phase.value == 2  # PLAYING

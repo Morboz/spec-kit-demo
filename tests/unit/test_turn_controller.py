@@ -7,9 +7,9 @@ including skipping inactive positions and tracking turn state.
 
 import pytest
 
-from src.models.ai_config import Difficulty
-from src.models.game_mode import GameMode
-from src.models.turn_controller import TurnController, TurnState
+from blokus_game.models.ai_config import Difficulty
+from blokus_game.models.game_mode import GameMode
+from blokus_game.models.turn_controller import TurnController, TurnState
 
 
 class TestTurnControllerMultiAI:

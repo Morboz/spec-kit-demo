@@ -11,10 +11,14 @@ import os
 import tempfile
 from pathlib import Path
 
-from src.models.ai_config import AIConfig, Difficulty
-from src.models.ai_player import AIPlayer
-from src.models.game_mode import GameMode, GameModeType
-from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
+from blokus_game.models.ai_config import AIConfig, Difficulty
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.models.game_mode import GameMode, GameModeType
+from blokus_game.services.ai_strategy import (
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
 
 
 def validate_t058_easy_vs_hard_behavior():

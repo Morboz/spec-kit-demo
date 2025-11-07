@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import Move, RandomStrategy
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.services.ai_strategy import Move, RandomStrategy
 
 
 def test_trigger_ai_move_calls_calculate_move():
@@ -117,7 +117,7 @@ def test_move_object_has_all_required_fields():
 
 def test_different_strategies_produce_different_moves():
     """Test that different strategies can produce different moves."""
-    from src.services.ai_strategy import CornerStrategy, RandomStrategy
+    from blokus_game.services.ai_strategy import CornerStrategy, RandomStrategy
 
     class MockPiece:
         name = "I1"

@@ -13,11 +13,15 @@ import time
 import psutil
 import pytest
 
-from src.models.ai_config import Difficulty
-from src.models.ai_player import AIPlayer
-from src.models.game_mode import GameMode
-from src.models.game_state import GameState
-from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
+from blokus_game.models.ai_config import Difficulty
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.models.game_mode import GameMode
+from blokus_game.models.game_state import GameState
+from blokus_game.services.ai_strategy import (
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
 
 
 class TestGamePerformance:
@@ -39,8 +43,8 @@ class TestGamePerformance:
         game_state = GameState()
 
         # Add players for Single AI (Player 1 human, Player 3 AI)
-        from src.models.player import Player
-        from src.services.ai_strategy import RandomStrategy
+        from blokus_game.models.player import Player
+        from blokus_game.services.ai_strategy import RandomStrategy
 
         human = Player(1, "Human")
         game_state.add_player(human)
@@ -106,8 +110,8 @@ class TestGamePerformance:
         game_state = GameState()
 
         # Add players for Single AI (Player 1 human, Player 3 AI)
-        from src.models.player import Player
-        from src.services.ai_strategy import RandomStrategy
+        from blokus_game.models.player import Player
+        from blokus_game.services.ai_strategy import RandomStrategy
 
         human = Player(1, "Human")
         game_state.add_player(human)
@@ -206,7 +210,7 @@ class TestGamePerformance:
         game_state = GameState()
 
         # Add players for Spectate (All 4 AI)
-        from src.services.ai_strategy import RandomStrategy
+        from blokus_game.services.ai_strategy import RandomStrategy
 
         for pos in [1, 2, 3, 4]:
             ai = AIPlayer(pos, RandomStrategy(), f"#{pos:02x}0000", f"AI {pos}")

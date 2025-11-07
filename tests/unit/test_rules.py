@@ -1,9 +1,9 @@
 """Unit tests for Rules validator."""
 
-from src.game.rules import BlokusRules, ValidationResult
-from src.models.game_state import GameState
-from src.models.piece import Piece
-from src.models.player import Player
+from blokus_game.game.rules import BlokusRules, ValidationResult
+from blokus_game.models.game_state import GameState
+from blokus_game.models.piece import Piece
+from blokus_game.models.player import Player
 
 
 class TestValidationResult:

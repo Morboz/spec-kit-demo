@@ -2,9 +2,9 @@
 
 import pytest
 
-from src.config.pieces import get_all_piece_names
-from src.models.piece import Piece
-from src.models.player import Player
+from blokus_game.config.pieces import get_all_piece_names
+from blokus_game.models.piece import Piece
+from blokus_game.models.player import Player
 
 
 class TestPlayer:

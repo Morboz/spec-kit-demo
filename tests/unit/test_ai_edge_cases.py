@@ -10,8 +10,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import AIStrategy
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.services.ai_strategy import AIStrategy
 
 
 class SlowStrategy(AIStrategy):
@@ -332,8 +332,8 @@ class TestTurnControllerEdgeCases:
 
     def test_check_game_over_all_passed(self):
         """Test game over detection when all players pass."""
-        from src.models.game_mode import GameMode
-        from src.models.turn_controller import TurnController, TurnState
+        from blokus_game.models.game_mode import GameMode
+        from blokus_game.models.turn_controller import TurnController, TurnState
 
         game_mode = GameMode.spectate_ai()
         controller = TurnController(game_mode, initial_player=1)
@@ -352,8 +352,8 @@ class TestTurnControllerEdgeCases:
 
     def test_check_consecutive_passes(self):
         """Test counting consecutive passes."""
-        from src.models.game_mode import GameMode
-        from src.models.turn_controller import TurnController, TurnState
+        from blokus_game.models.game_mode import GameMode
+        from blokus_game.models.turn_controller import TurnController, TurnState
 
         game_mode = GameMode.spectate_ai()
         controller = TurnController(game_mode, initial_player=1)
@@ -371,8 +371,8 @@ class TestTurnControllerEdgeCases:
 
     def test_should_end_due_to_no_moves(self):
         """Test detection of no moves scenario."""
-        from src.models.game_mode import GameMode
-        from src.models.turn_controller import TurnController
+        from blokus_game.models.game_mode import GameMode
+        from blokus_game.models.turn_controller import TurnController
 
         game_mode = GameMode.spectate_ai()
         controller = TurnController(game_mode, initial_player=1)
@@ -385,7 +385,7 @@ class TestTurnControllerEdgeCases:
 class TestLoggingEdgeCases:
     """Test logging behavior in edge cases."""
 
-    @patch("src.models.ai_player.ai_logger")
+    @patch("blokus_game.models.ai_player.ai_logger")
     def test_timeout_logging(self, mock_logger):
         """Test that timeouts are logged correctly."""
         strategy = SlowStrategy(delay_seconds=1.0)
@@ -403,7 +403,7 @@ class TestLoggingEdgeCases:
             or mock_logger.warning.called
         )
 
-    @patch("src.models.ai_player.ai_logger")
+    @patch("blokus_game.models.ai_player.ai_logger")
     def test_exception_logging(self, mock_logger):
         """Test that exceptions are logged correctly."""
         strategy = ErrorStrategy("Test error")
@@ -423,7 +423,7 @@ class TestLoggingEdgeCases:
         # Verify error was logged
         assert mock_logger.error.called
 
-    @patch("src.models.ai_player.ai_logger")
+    @patch("blokus_game.models.ai_player.ai_logger")
     def test_successful_calculation_logging(self, mock_logger):
         """Test that successful calculations are logged."""
         strategy = ValidMoveStrategy()
