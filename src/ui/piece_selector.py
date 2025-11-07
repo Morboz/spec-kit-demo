@@ -2,13 +2,14 @@
 Piece Selector UI Component
 
 This module provides the PieceSelector class which allows players to select
-from their available pieces during gameplay.
+from their available pieces during gameplay with visual representations.
 """
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Optional, List, Callable
+from typing import Optional, Callable, Dict
 from src.models.player import Player
+from src.config.pieces import PIECE_DEFINITIONS, get_player_color
 
 
 class PieceSelector(ttk.Frame):
@@ -32,8 +33,8 @@ class PieceSelector(ttk.Frame):
         self.player = player
         self.on_piece_selected = on_piece_selected
         self.selected_piece: Optional[str] = None
-        self.piece_buttons: List[ttk.Button] = []
-        self.selected_button: Optional[ttk.Button] = None
+        self.piece_canvases: Dict[str, tk.Canvas] = {}  # Map piece name to canvas
+        self.selected_canvas: Optional[tk.Canvas] = None
 
         self._create_widgets()
         self._update_piece_list()
@@ -64,24 +65,131 @@ class PieceSelector(ttk.Frame):
         scrollbar.pack(side="right", fill="y")
 
     def _update_piece_list(self) -> None:
-        """Update the list of available pieces."""
-        # Clear existing buttons
-        for button in self.piece_buttons:
-            button.destroy()
-        self.piece_buttons.clear()
+        """Update the list of available pieces with visual representations."""
+        # Clear existing widgets
+        for widget in self.scrollable_frame.winfo_children():
+            widget.destroy()
+        self.piece_canvases.clear()
 
-        # Get unplaced pieces
+        # Get unplaced pieces sorted by size
         unplaced_pieces = self.player.get_unplaced_pieces()
+        
+        # Sort by size (number of squares)
+        unplaced_pieces.sort(key=lambda p: (p.size, p.name))
 
-        # Create button for each piece
+        # Group by size and create visual representations
+        current_size = None
         for piece in unplaced_pieces:
-            button = ttk.Button(
-                self.scrollable_frame,
-                text=f"{piece.name} ({piece.size} squares)",
-                command=lambda p=piece.name: self._select_piece(p),
+            # Add separator between different sizes
+            if current_size is not None and current_size != piece.size:
+                ttk.Separator(self.scrollable_frame, orient='horizontal').pack(
+                    fill=tk.X, pady=3
+                )
+            current_size = piece.size
+            
+            # Create piece frame
+            piece_frame = ttk.Frame(self.scrollable_frame)
+            piece_frame.pack(fill=tk.X, pady=3, padx=5)
+
+            # Create canvas for piece visualization
+            canvas = tk.Canvas(
+                piece_frame,
+                width=100,
+                height=100,
+                bg="white",
+                highlightthickness=2,
+                highlightbackground="gray",
+                cursor="hand2"
             )
-            button.pack(fill=tk.X, padx=5, pady=2)
-            self.piece_buttons.append(button)
+            canvas.pack(side=tk.LEFT, padx=(0, 8))
+            
+            # Store canvas reference
+            self.piece_canvases[piece.name] = canvas
+            
+            # Draw the piece
+            self._draw_piece_on_canvas(canvas, piece.name)
+            
+            # Make canvas clickable
+            canvas.bind("<Button-1>", lambda e, pn=piece.name: self._select_piece(pn))
+            
+            # Info label
+            info_frame = ttk.Frame(piece_frame)
+            info_frame.pack(side=tk.LEFT, fill=tk.Y)
+            
+            name_label = ttk.Label(
+                info_frame,
+                text=piece.name,
+                font=("Arial", 10, "bold")
+            )
+            name_label.pack(anchor=tk.W)
+            
+            size_label = ttk.Label(
+                info_frame,
+                text=f"{piece.size} square{'s' if piece.size > 1 else ''}",
+                font=("Arial", 8),
+                foreground="gray"
+            )
+            size_label.pack(anchor=tk.W)
+    
+    def _draw_piece_on_canvas(
+        self, 
+        canvas: tk.Canvas, 
+        piece_name: str
+    ) -> None:
+        """
+        Draw a visual representation of a piece on canvas.
+
+        Args:
+            canvas: Canvas to draw on
+            piece_name: Name of the piece
+        """
+        if piece_name not in PIECE_DEFINITIONS:
+            return
+        
+        coords = PIECE_DEFINITIONS[piece_name]
+        
+        # Calculate bounds
+        rows = [r for r, c in coords]
+        cols = [c for r, c in coords]
+        min_row, max_row = min(rows), max(rows)
+        min_col, max_col = min(cols), max(cols)
+        
+        piece_height = max_row - min_row + 1
+        piece_width = max_col - min_col + 1
+        
+        # Calculate cell size to fit in canvas
+        canvas_width = 100
+        canvas_height = 100
+        padding = 8
+        
+        cell_size = min(
+            (canvas_width - 2 * padding) // max(piece_width, 1),
+            (canvas_height - 2 * padding) // max(piece_height, 1)
+        )
+        cell_size = min(cell_size, 22)  # Max cell size
+        
+        # Calculate offset to center the piece
+        total_width = piece_width * cell_size
+        total_height = piece_height * cell_size
+        offset_x = (canvas_width - total_width) // 2
+        offset_y = (canvas_height - total_height) // 2
+        
+        # Get player color
+        color = get_player_color(self.player.player_id)
+        
+        # Draw each square
+        for row, col in coords:
+            x = offset_x + (col - min_col) * cell_size
+            y = offset_y + (row - min_row) * cell_size
+            
+            # Draw filled rectangle
+            canvas.create_rectangle(
+                x, y,
+                x + cell_size, y + cell_size,
+                fill=color,
+                outline="black",
+                width=2
+            )
 
     def _select_piece(self, piece_name: str) -> None:
         """Handle piece selection.
@@ -91,22 +199,15 @@ class PieceSelector(ttk.Frame):
         """
         self.selected_piece = piece_name
 
-        # Clear all button states first
-        for button in self.piece_buttons:
-            button.state(["!pressed"])
+        # Clear all canvas highlights
+        for canvas in self.piece_canvases.values():
+            canvas.configure(highlightbackground="gray", highlightthickness=2)
 
-        # Find and highlight selected button
-        for piece in self.player.get_unplaced_pieces():
-            if piece.name == piece_name:
-                # Find corresponding button by text
-                for button in self.piece_buttons:
-                    if piece_name in button.cget("text"):
-                        # Apply pressed state to show selection
-                        button.state(["pressed"])
-                        # Store reference to selected button
-                        self.selected_button = button
-                        break
-                break
+        # Highlight selected canvas
+        if piece_name in self.piece_canvases:
+            canvas = self.piece_canvases[piece_name]
+            canvas.configure(highlightbackground="blue", highlightthickness=3)
+            self.selected_canvas = canvas
 
         # Call callback if provided
         if self.on_piece_selected:
@@ -124,9 +225,10 @@ class PieceSelector(ttk.Frame):
     def clear_selection(self) -> None:
         """Clear the current selection."""
         self.selected_piece = None
-        self.selected_button = None
-        for button in self.piece_buttons:
-            button.state(["!pressed"])
+        self.selected_canvas = None
+        # Reset all canvas borders
+        for canvas in self.piece_canvases.values():
+            canvas.configure(highlightbackground="gray", highlightthickness=2)
 
     def refresh(self) -> None:
         """Refresh the piece list (e.g., after placing a piece)."""
