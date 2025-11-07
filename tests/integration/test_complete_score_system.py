@@ -10,15 +10,15 @@ This test verifies that the entire score tracking system works together:
 
 import tkinter as tk
 
-from src.config.pieces import PIECE_DEFINITIONS
-from src.game.game_loop import GameLoop
-from src.game.score_history import ScoreHistory
-from src.game.scoring import ScoringSystem
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.player import Player
-from src.ui.score_breakdown import ScoreBreakdown
-from src.ui.scoreboard import Scoreboard
+from blokus_game.config.pieces import PIECE_DEFINITIONS
+from blokus_game.game.game_loop import GameLoop
+from blokus_game.game.score_history import ScoreHistory
+from blokus_game.game.scoring import ScoringSystem
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
+from blokus_game.ui.score_breakdown import ScoreBreakdown
+from blokus_game.ui.scoreboard import Scoreboard
 
 
 class TestCompleteScoreSystem:

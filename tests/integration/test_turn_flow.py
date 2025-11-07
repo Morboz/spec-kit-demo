@@ -4,10 +4,10 @@ This test validates the entire turn-based gameplay flow from start to finish,
 including piece placement, turn advancement, and round management.
 """
 
-from src.game.game_loop import GameLoop
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.game.game_loop import GameLoop
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestTurnFlowIntegration:

@@ -1,8 +1,8 @@
 """Unit tests for Scoring module."""
 
-from src.game.scoring import ScoringSystem
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.game.scoring import ScoringSystem
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestScoringSystem:

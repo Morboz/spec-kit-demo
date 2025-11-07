@@ -6,8 +6,8 @@ import tkinter as tk
 import unittest
 from unittest.mock import Mock, patch
 
-from src.models.ai_config import Difficulty
-from src.ui.game_mode_selector import GameModeSelector
+from blokus_game.models.ai_config import Difficulty
+from blokus_game.ui.game_mode_selector import GameModeSelector
 
 
 class TestGameModeSelector(unittest.TestCase):
@@ -50,7 +50,7 @@ class TestGameModeSelector(unittest.TestCase):
         self.assertEqual(selector.callback, self.callback)
         self.assertIsNone(selector.result)
 
-    @patch("src.models.game_mode.GameMode.get_difficulty_preference")
+    @patch("blokus_game.models.game_mode.GameMode.get_difficulty_preference")
     def test_loads_saved_difficulty(self, mock_get_pref):
         """Test that saved difficulty preference is loaded."""
         # Setup mock to return Hard difficulty
@@ -64,7 +64,7 @@ class TestGameModeSelector(unittest.TestCase):
     def test_fallback_to_default_on_error(self):
         """Test fallback to default difficulty if loading fails."""
         with patch(
-            "src.models.game_mode.GameMode.get_difficulty_preference"
+            "blokus_game.models.game_mode.GameMode.get_difficulty_preference"
         ) as mock_get_pref:
             # Simulate exception during loading
             mock_get_pref.side_effect = Exception("File not found")
@@ -87,7 +87,7 @@ class TestGameModeSelector(unittest.TestCase):
         selector.dialog.destroy = Mock()
 
         # Patch the imports that happen inside _on_start_clicked method
-        with patch("src.models.game_mode.GameMode") as mock_game_mode_class:
+        with patch("blokus_game.models.game_mode.GameMode") as mock_game_mode_class:
             mock_save = Mock()
             mock_game_mode_instance = Mock()
             mock_game_mode_instance.save_difficulty_preference = mock_save
@@ -99,7 +99,7 @@ class TestGameModeSelector(unittest.TestCase):
             # Verify save was called twice (once for SINGLE_AI, once for THREE_AI)
             self.assertEqual(mock_save.call_count, 2)
 
-    @patch("src.ui.game_mode_selector.GameMode")
+    @patch("blokus_game.ui.game_mode_selector.GameMode")
     def test_no_save_for_spectate_mode(self, mock_game_mode_class):
         """Test that difficulty is not saved for spectate mode."""
         mock_save = Mock()
@@ -226,7 +226,7 @@ class TestGameModeSelector(unittest.TestCase):
         self.assertIsNone(selector.result)
         selector.dialog.destroy.assert_called_once()
 
-    @patch("src.ui.game_mode_selector.messagebox")
+    @patch("blokus_game.ui.game_mode_selector.messagebox")
     def test_callback_invoked_on_start(self, mock_messagebox):
         """Test that callback is invoked when starting game."""
         selector = GameModeSelector(self.parent, self.callback)
@@ -258,7 +258,7 @@ class TestGameModeSelector(unittest.TestCase):
         selector.dialog.destroy = Mock()
 
         # Patch messagebox to avoid popup
-        with patch("src.ui.game_mode_selector.messagebox") as mock_messagebox:
+        with patch("blokus_game.ui.game_mode_selector.messagebox") as mock_messagebox:
             # Call _on_start_clicked - should not raise exception
             selector._on_start_clicked()
 
@@ -268,7 +268,7 @@ class TestGameModeSelector(unittest.TestCase):
     def test_create_game_mode_factory_method(self):
         """Test the static factory method for creating game modes."""
         # Test single_ai
-        with patch("src.ui.game_mode_selector.GameMode") as mock_game_mode:
+        with patch("blokus_game.ui.game_mode_selector.GameMode") as mock_game_mode:
             mock_instance = Mock()
             mock_game_mode.single_ai.return_value = mock_instance
 
@@ -281,9 +281,11 @@ class TestGameModeSelector(unittest.TestCase):
 
     def test_show_function(self):
         """Test the convenience show_game_mode_selector function."""
-        from src.ui.game_mode_selector import show_game_mode_selector
+        from blokus_game.ui.game_mode_selector import show_game_mode_selector
 
-        with patch("src.ui.game_mode_selector.GameModeSelector") as mock_selector_class:
+        with patch(
+            "blokus_game.ui.game_mode_selector.GameModeSelector"
+        ) as mock_selector_class:
             mock_instance = Mock()
             mock_selector_class.return_value = mock_instance
             mock_instance.show.return_value = {"mode_type": "single_ai"}

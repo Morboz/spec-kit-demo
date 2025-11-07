@@ -14,20 +14,20 @@ through game end, including:
 
 import tkinter as tk
 
-from src.config.pieces import PIECE_DEFINITIONS
-from src.game.end_game_detector import EndGameDetector
-from src.game.game_loop import GameLoop
-from src.game.score_history import ScoreHistory
-from src.game.scoring import ScoringSystem
-from src.game.turn_manager import TurnManager
-from src.game.turn_validator import TurnValidator
-from src.game.winner_determiner import WinnerDeterminer
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.player import Player
-from src.ui.current_player_indicator import CurrentPlayerIndicator
-from src.ui.piece_inventory import PieceInventory
-from src.ui.scoreboard import Scoreboard
+from blokus_game.config.pieces import PIECE_DEFINITIONS
+from blokus_game.game.end_game_detector import EndGameDetector
+from blokus_game.game.game_loop import GameLoop
+from blokus_game.game.score_history import ScoreHistory
+from blokus_game.game.scoring import ScoringSystem
+from blokus_game.game.turn_manager import TurnManager
+from blokus_game.game.turn_validator import TurnValidator
+from blokus_game.game.winner_determiner import WinnerDeterminer
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
+from blokus_game.ui.current_player_indicator import CurrentPlayerIndicator
+from blokus_game.ui.piece_inventory import PieceInventory
+from blokus_game.ui.scoreboard import Scoreboard
 
 
 class TestCompleteGameFlow:
@@ -317,7 +317,7 @@ class TestCompleteGameFlow:
         ScoringSystem.update_player_score(player1)
 
         # Try to place second piece touching own piece (should fail)
-        from src.game.rules import Rules
+        from blokus_game.game.rules import Rules
 
         result = Rules.validate_move(
             board, player2, piece_names[1], 0, 1, rotation=0, flipped=False

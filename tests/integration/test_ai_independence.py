@@ -7,10 +7,14 @@ making distinct decisions based on their individual configurations.
 
 import pytest
 
-from src.models.ai_config import AIConfig, Difficulty
-from src.models.ai_player import AIPlayer
-from src.models.game_mode import GameMode, GameModeType
-from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
+from blokus_game.models.ai_config import AIConfig, Difficulty
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.models.game_mode import GameMode, GameModeType
+from blokus_game.services.ai_strategy import (
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
 
 
 class TestAIPlayerIndependence:
@@ -152,7 +156,7 @@ class TestAIPlayerIndependence:
 
     def test_independent_piece_management(self):
         """Test that AI players manage pieces independently."""
-        from src.config.pieces import get_full_piece_set
+        from blokus_game.config.pieces import get_full_piece_set
 
         ai1 = AIPlayer(
             player_id=2, strategy=RandomStrategy(), color="blue", name="AI-1"

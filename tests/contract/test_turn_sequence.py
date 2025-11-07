@@ -4,8 +4,8 @@ This test validates that players take turns in the correct sequence
 and that the game properly advances through multiple rounds.
 """
 
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestTurnSequenceContract:
@@ -86,7 +86,7 @@ class TestTurnSequenceContract:
         Then: Active players rotate, eliminated player is skipped
         """
         # Given: Three player game
-        from src.game.turn_manager import TurnManager
+        from blokus_game.game.turn_manager import TurnManager
 
         game_state = GameState()
         player1 = Player(player_id=1, name="Alice")

@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.models.ai_config import AIConfig, Difficulty
-from src.models.game_mode import GameMode, GameModeType
+from blokus_game.models.ai_config import AIConfig, Difficulty
+from blokus_game.models.game_mode import GameMode, GameModeType
 
 
 class TestGameMode:

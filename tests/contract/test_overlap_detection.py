@@ -4,10 +4,10 @@ This test validates that pieces cannot overlap with any existing
 pieces on the board, regardless of player.
 """
 
-from src.game.rules import BlokusRules
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.game.rules import BlokusRules
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestOverlapDetection:

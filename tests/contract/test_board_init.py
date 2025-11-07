@@ -4,7 +4,7 @@ This test validates that Board can be properly initialized during game setup,
 ensuring it meets the requirements for a new Blokus game.
 """
 
-from src.models.board import Board
+from blokus_game.models.board import Board
 
 
 class TestBoardInitializationContract:

@@ -4,8 +4,8 @@ This test validates that all UI components correctly display and synchronize
 game state information in a real game scenario.
 """
 
-from src.game.game_setup import GameSetup
-from src.ui.state_sync import StateSynchronizer
+from blokus_game.game.game_setup import GameSetup
+from blokus_game.ui.state_sync import StateSynchronizer
 
 
 class TestCompleteStateVisibility:

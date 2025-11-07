@@ -16,13 +16,13 @@ Test covers the complete interaction flow to prevent regression.
 import os
 import time
 
-from src.game.error_handler import get_error_handler
-from src.game.placement_handler import PlacementHandler
+from blokus_game.game.error_handler import get_error_handler
+from blokus_game.game.placement_handler import PlacementHandler
 
 # Import game components
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestPiecePlacementBugRegression:

@@ -4,10 +4,10 @@ This test validates that the first move must be placed in the player's
 starting corner as per official Blokus rules.
 """
 
-from src.game.rules import BlokusRules
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.game.rules import BlokusRules
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestFirstMoveCornerRule:

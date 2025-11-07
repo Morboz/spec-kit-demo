@@ -10,7 +10,7 @@ import tempfile
 
 import pytest
 
-from src.models.game_stats import (
+from blokus_game.models.game_stats import (
     GameStatistics,
     PlayerStats,
     create_game_statistics,

@@ -9,9 +9,13 @@ import time
 
 import pytest
 
-from src.config.pieces import get_full_piece_set
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
+from blokus_game.config.pieces import get_full_piece_set
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.services.ai_strategy import (
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
 
 
 class TestAIPerformance:

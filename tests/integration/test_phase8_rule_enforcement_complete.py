@@ -11,12 +11,12 @@ This test validates the complete Phase 8 implementation.
 
 from unittest.mock import Mock
 
-from src.game.rules import BlokusRules, ValidationResult
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.player import Player
-from src.ui.error_display import ErrorDisplay
-from src.ui.placement_preview import PlacementPreview
+from blokus_game.game.rules import BlokusRules, ValidationResult
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
+from blokus_game.ui.error_display import ErrorDisplay
+from blokus_game.ui.placement_preview import PlacementPreview
 
 
 class TestPhase8CompleteRuleEnforcement:

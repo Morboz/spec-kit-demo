@@ -2,7 +2,7 @@
 Unit tests for AIStrategy _get_piece_positions with flip support.
 """
 
-from src.services.ai_strategy import AIStrategy
+from blokus_game.services.ai_strategy import AIStrategy
 
 
 def test_get_piece_positions_without_flip():

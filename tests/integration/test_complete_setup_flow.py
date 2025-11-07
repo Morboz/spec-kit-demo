@@ -6,9 +6,9 @@ from configuration through to a ready game state.
 
 import pytest
 
-from src.game.game_setup import GameSetup
-from src.models.board import Board
-from src.models.game_state import GameState
+from blokus_game.game.game_setup import GameSetup
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
 
 
 class TestCompleteSetupFlow:

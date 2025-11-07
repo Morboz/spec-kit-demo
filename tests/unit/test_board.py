@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.models.board import Board
-from src.models.piece import Piece
+from blokus_game.models.board import Board
+from blokus_game.models.piece import Piece
 
 
 class TestBoard:

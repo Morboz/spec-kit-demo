@@ -7,11 +7,15 @@ including move validation, AI turn management, and game completion.
 
 import pytest
 
-from src.models.ai_config import Difficulty
-from src.models.ai_player import AIPlayer
-from src.models.game_mode import GameMode, GameModeType
-from src.models.game_state import GamePhase, GameState
-from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
+from blokus_game.models.ai_config import Difficulty
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.models.game_mode import GameMode, GameModeType
+from blokus_game.models.game_state import GamePhase, GameState
+from blokus_game.services.ai_strategy import (
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
 
 
 class TestSingleAIMode:
@@ -79,7 +83,7 @@ class TestSingleAIMode:
 
     def test_ai_player_calculate_move(self):
         """Test AI player move calculation."""
-        from src.config.pieces import get_full_piece_set
+        from blokus_game.config.pieces import get_full_piece_set
 
         # Create AI player
         ai_player = AIPlayer(player_id=2, strategy=RandomStrategy(), color="blue")
@@ -220,8 +224,8 @@ class TestSingleAIIntegrationFlow:
     @pytest.fixture
     def single_ai_game(self):
         """Create a Single AI game for testing."""
-        from src.models.board import Board
-        from src.models.player import Player
+        from blokus_game.models.board import Board
+        from blokus_game.models.player import Player
 
         game_mode = GameMode.single_ai(Difficulty.MEDIUM)
 

@@ -14,12 +14,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pytest
 
-from src.models.ai_config import Difficulty
-from src.models.ai_player import AIPlayer
-from src.models.game_mode import GameMode, GameModeType
-from src.models.game_state import GameState
-from src.models.player import Player
-from src.services.ai_strategy import RandomStrategy
+from blokus_game.models.ai_config import Difficulty
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.models.game_mode import GameMode, GameModeType
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
+from blokus_game.services.ai_strategy import RandomStrategy
 
 
 class TestAIStress:

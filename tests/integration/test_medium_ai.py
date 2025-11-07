@@ -5,8 +5,8 @@ Verifies that Medium AI uses CornerStrategy.
 
 import pytest
 
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import CornerStrategy
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.services.ai_strategy import CornerStrategy
 
 
 def test_medium_ai_has_corner_strategy():

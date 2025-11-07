@@ -8,9 +8,9 @@ according to Blokus rules:
 - +15 points bonus for placing all pieces
 """
 
-from src.config.pieces import PIECE_DEFINITIONS
-from src.game.scoring import ScoringSystem
-from src.models.player import Player
+from blokus_game.config.pieces import PIECE_DEFINITIONS
+from blokus_game.game.scoring import ScoringSystem
+from blokus_game.models.player import Player
 
 
 class TestScoreCalculation:
@@ -137,7 +137,7 @@ class TestScoreCalculation:
         """
         Test that calculate_final_scores is consistent with individual player scores.
         """
-        from src.models.game_state import GameState
+        from blokus_game.models.game_state import GameState
 
         player = Player(player_id=1, name="Test Player")
 
@@ -161,7 +161,7 @@ class TestScoreCalculation:
 
     def test_ranking_players_by_score(self):
         """Test ranking of players by final scores."""
-        from src.models.game_state import GameState
+        from blokus_game.models.game_state import GameState
 
         # Create 3 players
         player1 = Player(player_id=1, name="Player 1")
@@ -206,7 +206,7 @@ class TestScoreCalculation:
 
     def test_determine_winner_single(self):
         """Test winner determination when there's a clear winner."""
-        from src.models.game_state import GameState
+        from blokus_game.models.game_state import GameState
 
         player1 = Player(player_id=1, name="Winner")
         player2 = Player(player_id=2, name="Loser")

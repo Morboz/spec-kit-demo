@@ -73,9 +73,61 @@ uv run pytest tests/integration/ # Run integration tests only
 5. Commit only succeeds if all checks pass
 
 ## Recent Changes
+- refactor-src-layout: Migrated to proper Python src layout structure with `blokus_game` package
 - 003-fix-ai-player: Added Python 3.11+ + tkinter (standard library), pytest (testing)
 - 002-ai-battle-mode: Added Python 3.11+ + tkinter (standard library)
 - 001-fix-piece-placement: Added Python 3.11+ + tkinter (standard library), pytest (testing)
+
+## Project Structure
+
+```text
+src/
+└── blokus_game/          # Main package directory
+    ├── __init__.py       # Package initialization
+    ├── main.py          # Application entry point
+    ├── game/            # Game logic and rules
+    │   ├── __init__.py
+    │   ├── game_loop.py
+    │   ├── game_setup.py
+    │   ├── placement_handler.py
+    │   ├── rules.py
+    │   └── ...
+    ├── models/          # Data models
+    │   ├── __init__.py
+    │   ├── game_state.py
+    │   ├── piece.py
+    │   ├── player.py
+    │   ├── board.py
+    │   └── ...
+    ├── services/        # Business logic
+    │   ├── __init__.py
+    │   └── ai_strategy.py
+    ├── ui/              # User interface components
+    │   ├── __init__.py
+    │   ├── board_renderer.py
+    │   ├── piece_selector.py
+    │   ├── game_mode_selector.py
+    │   └── ...
+    └── config/          # Configuration files
+        ├── __init__.py
+        ├── game_config.py
+        └── pieces.py
+
+tests/                   # Test files
+├── unit/               # Unit tests
+├── integration/        # Integration tests
+└── contract/           # Contract tests
+```
+
+## Package Import Usage
+
+```python
+# Import from the blokus_game package
+from blokus_game.models.game_state import GameState
+from blokus_game.game.rules import BlokusRules
+from blokus_game.ui.board_renderer import BoardRenderer
+from blokus_game.config.pieces import PIECE_DEFINITIONS
+```
 
 
 <!-- MANUAL ADDITIONS START -->

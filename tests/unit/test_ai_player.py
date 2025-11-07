@@ -2,9 +2,13 @@
 
 import pytest
 
-from src.config.pieces import get_piece
-from src.models.ai_player import AIPlayer
-from src.services.ai_strategy import CornerStrategy, RandomStrategy, StrategicStrategy
+from blokus_game.config.pieces import get_piece
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.services.ai_strategy import (
+    CornerStrategy,
+    RandomStrategy,
+    StrategicStrategy,
+)
 
 
 class TestAIPlayer:
@@ -295,7 +299,7 @@ class TestAIPlayer:
 
     def test_switch_to_difficulty_with_enum(self):
         """Test switching to difficulty level using Difficulty enum."""
-        from src.models.ai_config import Difficulty
+        from blokus_game.models.ai_config import Difficulty
 
         strategy = RandomStrategy()
         ai_player = AIPlayer(1, strategy, "blue")
@@ -320,7 +324,7 @@ class TestAIPlayer:
 
     def test_strategy_switching_preserves_player_properties(self):
         """Test that switching strategy preserves player properties."""
-        from src.models.ai_config import Difficulty
+        from blokus_game.models.ai_config import Difficulty
 
         strategy = RandomStrategy()
         ai_player = AIPlayer(1, strategy, "blue", "Test AI")

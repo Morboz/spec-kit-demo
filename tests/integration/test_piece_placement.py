@@ -4,9 +4,9 @@ This test validates the entire piece placement process from selection
 through placement on the board, including validation and state updates.
 """
 
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestPiecePlacementFlow:

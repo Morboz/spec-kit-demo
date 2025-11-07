@@ -9,12 +9,12 @@ Tests that PlacementHandler.current_player is correctly updated when:
 
 import pytest
 
-from src.game.placement_handler import PlacementHandler
-from src.models.ai_player import AIPlayer
-from src.models.board import Board
-from src.models.game_state import GameState
-from src.models.player import Player
-from src.services.ai_strategy import RandomStrategy
+from blokus_game.game.placement_handler import PlacementHandler
+from blokus_game.models.ai_player import AIPlayer
+from blokus_game.models.board import Board
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
+from blokus_game.services.ai_strategy import RandomStrategy
 
 
 class TestPlacementHandlerUpdate:
@@ -114,7 +114,7 @@ class TestPlacementHandlerUpdate:
         self.ai_player_2.pass_turn()
 
         # Advance back to human (skipping passed AI)
-        from src.game.turn_manager import TurnManager
+        from blokus_game.game.turn_manager import TurnManager
 
         turn_manager = TurnManager(self.game_state)
         next_player = turn_manager.advance_to_next_active_player()

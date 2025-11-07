@@ -7,11 +7,11 @@ winner determination, and UI components working together.
 
 import pytest
 
-from src.game.end_game_detector import EndGameDetector
-from src.game.game_loop import GameLoop
-from src.game.winner_determiner import WinnerDeterminer
-from src.models.game_state import GameState
-from src.models.player import Player
+from blokus_game.game.end_game_detector import EndGameDetector
+from blokus_game.game.game_loop import GameLoop
+from blokus_game.game.winner_determiner import WinnerDeterminer
+from blokus_game.models.game_state import GameState
+from blokus_game.models.player import Player
 
 
 class TestCompleteEndGameFlow:
