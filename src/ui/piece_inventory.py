@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Optional, List, Dict
 from src.models.player import Player
-from src.config.pieces import PIECE_DEFINITIONS, get_player_color
+from src.config.pieces import PIECE_DEFINITIONS
 
 
 class PieceInventory(ttk.Frame):
@@ -74,24 +74,63 @@ class PieceInventory(ttk.Frame):
         self.player_tabs[player.player_id] = tab_frame
 
         # Create scrollable frame for pieces
-        canvas = tk.Canvas(tab_frame)
+        canvas = tk.Canvas(tab_frame, bg="white", highlightthickness=0)
         scrollbar = ttk.Scrollbar(tab_frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all")),
-        )
+        # Update scroll region when frame size changes
+        def _on_frame_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            # Force canvas to update
+            canvas.update_idletasks()
 
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        scrollable_frame.bind("<Configure>", _on_frame_configure)
+
+        # Create window inside canvas
+        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        
+        # Make the scrollable frame fill the canvas width
+        def _on_canvas_configure(event):
+            canvas.itemconfig(canvas_window, width=event.width)
+        
+        canvas.bind("<Configure>", _on_canvas_configure)
         canvas.configure(yscrollcommand=scrollbar.set)
 
+        # Bind mouse wheel scrolling - only when mouse is over this canvas
+        def _on_mousewheel(event):
+            # macOS trackpad/mouse wheel
+            if event.delta:
+                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            # Linux mouse wheel
+            elif event.num == 4:
+                canvas.yview_scroll(-1, "units")
+            elif event.num == 5:
+                canvas.yview_scroll(1, "units")
+
+        # Bind mousewheel only when entering/leaving this canvas
+        def _bind_mousewheel(event):
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)  # Windows/macOS
+            canvas.bind_all("<Button-4>", _on_mousewheel)    # Linux scroll up
+            canvas.bind_all("<Button-5>", _on_mousewheel)    # Linux scroll down
+
+        def _unbind_mousewheel(event):
+            canvas.unbind_all("<MouseWheel>")
+            canvas.unbind_all("<Button-4>")
+            canvas.unbind_all("<Button-5>")
+
+        canvas.bind("<Enter>", _bind_mousewheel)
+        canvas.bind("<Leave>", _unbind_mousewheel)
+
         # Pack canvas and scrollbar
-        canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
 
         # Display player's pieces
         self._display_player_pieces(scrollable_frame, player)
+        
+        # Force initial scroll region update
+        tab_frame.update_idletasks()
+        canvas.configure(scrollregion=canvas.bbox("all"))
 
     def _display_player_pieces(self, parent: ttk.Frame, player: Player) -> None:
         """
@@ -143,8 +182,8 @@ class PieceInventory(ttk.Frame):
                 # Create clickable canvas for piece visualization
                 canvas = tk.Canvas(
                     piece_frame,
-                    width=120,
-                    height=120,
+                    width=100,
+                    height=100,
                     bg="white",
                     highlightthickness=1,
                     highlightbackground="gray",
@@ -153,7 +192,7 @@ class PieceInventory(ttk.Frame):
                 canvas.pack(side=tk.LEFT, padx=(0, 10))
                 
                 # Draw the piece
-                self._draw_piece_on_canvas(canvas, piece_name, player.player_id)
+                self._draw_piece_on_canvas(canvas, piece_name, player)
                 
                 # Make canvas clickable
                 canvas.bind("<Button-1>", lambda e, pn=piece_name: self._on_piece_click(pn))
@@ -219,7 +258,7 @@ class PieceInventory(ttk.Frame):
         self, 
         canvas: tk.Canvas, 
         piece_name: str, 
-        player_id: int
+        player: Player
     ) -> None:
         """
         Draw a visual representation of a piece on canvas.
@@ -227,7 +266,7 @@ class PieceInventory(ttk.Frame):
         Args:
             canvas: Canvas to draw on
             piece_name: Name of the piece
-            player_id: Player ID for color
+            player: Player object for color
         """
         if piece_name not in PIECE_DEFINITIONS:
             return
@@ -244,8 +283,8 @@ class PieceInventory(ttk.Frame):
         piece_width = max_col - min_col + 1
         
         # Calculate cell size to fit in canvas (with padding)
-        canvas_width = 120
-        canvas_height = 120
+        canvas_width = 100
+        canvas_height = 100
         padding = 10
         
         cell_size = min(
@@ -260,8 +299,8 @@ class PieceInventory(ttk.Frame):
         offset_x = (canvas_width - total_width) // 2
         offset_y = (canvas_height - total_height) // 2
         
-        # Get player color
-        color = get_player_color(player_id)
+        # Get player color from player object
+        color = player.color
         
         # Draw each square
         for row, col in coords:

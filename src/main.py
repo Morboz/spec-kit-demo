@@ -447,11 +447,21 @@ class BlokusApp:
                         f"{piece_name} placed successfully! Turn passes to next player.",
                     )
 
-        # Set callback for placement errors - AI mode: just log, don't show popup
+        # Set callback for placement errors - check if current player is AI or human
         def on_placement_error(error_msg: str):
-            """Handle placement error - just log for AI, don't show popup."""
-            # For AI mode, just print to console instead of showing error popup
-            print(f"AI placement error: {error_msg}")
+            """Handle placement error - different behavior for AI vs human."""
+            current_player = self.game_state.get_current_player()
+            if current_player:
+                # Check if current player is AI
+                if self.game_mode and self.game_mode.is_ai_turn(current_player.player_id):
+                    # For AI mode, just print to console instead of showing error popup
+                    print(f"AI placement error: {error_msg}")
+                else:
+                    # For human players, show error dialog
+                    messagebox.showerror("Invalid Move", error_msg)
+            else:
+                # Fallback: just log
+                print(f"Placement error: {error_msg}")
 
         # Configure callbacks
         self.placement_handler.set_callbacks(
@@ -562,6 +572,11 @@ class BlokusApp:
             # Use TurnManager to advance to next active player (skips already-passed players)
             turn_manager = TurnManager(self.game_state)
             next_player = turn_manager.advance_to_next_active_player()
+            
+            # CRITICAL: Update placement handler's current player
+            if next_player and self.placement_handler:
+                self.placement_handler.current_player = next_player
+                self.placement_handler.clear_selection()
             
             # Update UI
             self._render_board()
@@ -695,7 +710,7 @@ class BlokusApp:
         top_panel = ttk.Frame(main_frame)
         top_panel.pack(side=tk.TOP, fill=tk.X, pady=(0, 10))
 
-        # Left side of top panel - Current Player Indicator
+        # Left side of top panel - Current Player Indicator and Skip Turn Button
         current_player_frame = ttk.Frame(top_panel)
         current_player_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
 
@@ -707,6 +722,13 @@ class BlokusApp:
         self.state_synchronizer.attach_current_player_indicator(
             self.current_player_indicator
         )
+
+        # Skip turn button - placed right after current player indicator
+        self.skip_turn_button = SkipTurnButton(
+            current_player_frame,
+            on_skip_turn=self._on_skip_turn_clicked
+        )
+        self.skip_turn_button.pack(fill=tk.X, pady=(10, 0))
 
         # Center of top panel - Restart button (create temporary frame, will initialize button later)
         restart_frame = ttk.Frame(top_panel)
@@ -744,16 +766,9 @@ class BlokusApp:
         )
         self.piece_display.pack(fill=tk.X)
 
-        # Pass turn button
-        self.skip_turn_button = SkipTurnButton(
-            middle_left_panel,
-            on_skip_turn=self._on_skip_turn_clicked
-        )
-        self.skip_turn_button.pack(fill=tk.X, pady=(10, 0))
-
-        # Create middle-right panel (piece inventory)
-        middle_right_panel = ttk.Frame(main_frame, width=300)
-        middle_right_panel.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0))
+        # Create middle-right panel (piece inventory) - increased width for better display
+        middle_right_panel = ttk.Frame(main_frame, width=350)
+        middle_right_panel.pack(side=tk.RIGHT, fill=tk.BOTH, padx=(10, 0))
         middle_right_panel.pack_propagate(False)
 
         self.piece_inventory = PieceInventory(

@@ -5,7 +5,7 @@ This module defines the Player class which represents a player in the game,
 including their score, pieces, and turn state.
 """
 
-from typing import Dict, List, Optional, Set
+from typing import List, Optional, Set
 from src.models.piece import Piece
 from src.config.pieces import get_all_piece_names, get_player_color, get_starting_corner
 
@@ -14,7 +14,7 @@ class Player:
     """Represents a Blokus game player."""
 
     def __init__(
-        self, player_id: int, name: str, pieces: Optional[List[Piece]] = None
+        self, player_id: int, name: str, pieces: Optional[List[Piece]] = None, color: Optional[str] = None
     ) -> None:
         """
         Initialize a new player.
@@ -23,6 +23,7 @@ class Player:
             player_id: Unique ID (1-4)
             name: Player's display name
             pieces: List of pieces (defaults to all 21 standard pieces)
+            color: Player's color (defaults to standard color for player_id)
 
         Raises:
             ValueError: If player_id is not in range 1-4
@@ -33,6 +34,8 @@ class Player:
         self.player_id = player_id
         self.name = name
         self.score = 0
+        # Set color - use provided color or fallback to default
+        self.color = color if color is not None else get_player_color(player_id)
 
         # Initialize pieces
         if pieces is None:
@@ -159,7 +162,7 @@ class Player:
         Returns:
             Hex color string for the player
         """
-        return get_player_color(self.player_id)
+        return self.color
 
     def get_starting_corner(self) -> tuple:
         """

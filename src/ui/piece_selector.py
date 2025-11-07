@@ -1,15 +1,15 @@
 """
 Piece Selector UI Component
 
-This module provides the PieceSelector class which allows players to select
-from their available pieces during gameplay with visual representations.
+This module provides the PieceSelector class which allows players
+to select and manipulate their game pieces.
 """
 
 import tkinter as tk
 from tkinter import ttk
 from typing import Optional, Callable, Dict
 from src.models.player import Player
-from src.config.pieces import PIECE_DEFINITIONS, get_player_color
+from src.config.pieces import PIECE_DEFINITIONS
 
 
 class PieceSelector(ttk.Frame):
@@ -174,8 +174,8 @@ class PieceSelector(ttk.Frame):
         offset_x = (canvas_width - total_width) // 2
         offset_y = (canvas_height - total_height) // 2
         
-        # Get player color
-        color = get_player_color(self.player.player_id)
+        # Get player color from player object
+        color = self.player.color
         
         # Draw each square
         for row, col in coords:
