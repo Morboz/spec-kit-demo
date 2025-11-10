@@ -380,8 +380,6 @@ All game modes fully implemented with production-ready AI! 🎮
 **UI**:
 - src/ui/game_mode_selector.py
 - src/ui/keyboard_shortcuts.py
-- src/ui/ai_thinking_indicator.py
-- src/ui/ai_difficulty_indicator.py
 - src/ui/help_tooltips.py
 - src/ui/test_keyboard_shortcuts.py
 

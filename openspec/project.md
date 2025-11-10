@@ -63,8 +63,6 @@ src/
 ├── ui/              # User interface components
 │   ├── game_mode_selector.py
 │   ├── keyboard_shortcuts.py
-│   ├── ai_thinking_indicator.py
-│   ├── ai_difficulty_indicator.py
 │   └── help_tooltips.py
 └── config/          # Configuration files
 ```
