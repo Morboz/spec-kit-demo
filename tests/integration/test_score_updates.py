@@ -5,7 +5,6 @@ This test verifies that scores are properly updated throughout the game
 as players place pieces, and that the UI reflects these updates correctly.
 """
 
-
 from blokus_game.config.pieces import PIECE_DEFINITIONS
 from blokus_game.game.scoring import ScoringSystem
 from blokus_game.models.board import Board

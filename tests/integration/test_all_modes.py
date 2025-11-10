@@ -320,7 +320,9 @@ class TestAllGameModes:
         """Test player configuration is correct for all modes."""
         # Single AI: Human + 1 AI
         single = GameMode.single_ai(Difficulty.MEDIUM)
-        human_positions = [single.human_player_position] if single.human_player_position else []
+        human_positions = (
+            [single.human_player_position] if single.human_player_position else []
+        )
         ai_positions = [config.position for config in single.ai_players]
 
         assert human_positions == [1]
@@ -328,7 +330,9 @@ class TestAllGameModes:
 
         # Three AI: Human + 3 AI
         three = GameMode.three_ai(Difficulty.MEDIUM)
-        human_positions = [three.human_player_position] if three.human_player_position else []
+        human_positions = (
+            [three.human_player_position] if three.human_player_position else []
+        )
         ai_positions = [config.position for config in three.ai_players]
 
         assert human_positions == [1]
@@ -336,7 +340,9 @@ class TestAllGameModes:
 
         # Spectate: 4 AI, no human
         spectate = GameMode.spectate_ai()
-        human_positions = [spectate.human_player_position] if spectate.human_player_position else []
+        human_positions = (
+            [spectate.human_player_position] if spectate.human_player_position else []
+        )
         ai_positions = [config.position for config in spectate.ai_players]
 
         assert human_positions == []

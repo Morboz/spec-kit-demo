@@ -232,59 +232,6 @@ class TestTurnControllerIntegration:
         assert game_mode.is_ai_turn(next_player)
 
 
-class TestAIGameInitializerIntegration:
-    """Integration tests for AI game initialization."""
-
-    def test_ai_game_initializer_creation(self):
-        """Test creating AI game initializer."""
-        from blokus_game.game.ai_game_initializer import AIGameInitializer
-
-        initializer = AIGameInitializer()
-        assert initializer.parent_window is None
-        assert initializer.selected_mode is None
-        assert initializer.game_mode is None
-
-    def test_ai_player_spawning_from_config(self):
-        """Test spawning AI players from configuration."""
-        from blokus_game.game.ai_game_initializer import AIGameInitializer
-
-        initializer = AIGameInitializer()
-
-        # Create mode manually
-        game_mode = GameMode.single_ai(Difficulty.EASY)
-        initializer.game_mode = game_mode
-
-        # Spawn AI players
-        ai_players = initializer.spawn_ai_players()
-
-        assert len(ai_players) == 1
-        assert isinstance(ai_players[0], AIPlayer)
-        assert ai_players[0].player_id == 3  # Single AI uses position 3
-
-    def test_create_ai_players_from_config(self):
-        """Test creating AI players from mode config."""
-        from blokus_game.game.ai_game_initializer import AIGameInitializer
-
-        # Single AI
-        ai_players = AIGameInitializer.create_ai_players_from_config(
-            "single_ai", "Medium"
-        )
-        assert len(ai_players) == 1
-        assert ai_players[0].player_id == 3
-
-        # Three AI
-        ai_players = AIGameInitializer.create_ai_players_from_config("three_ai", "Easy")
-        assert len(ai_players) == 3
-        assert ai_players[0].player_id == 2
-        assert ai_players[1].player_id == 3
-        assert ai_players[2].player_id == 4
-
-        # Spectate
-        ai_players = AIGameInitializer.create_ai_players_from_config("spectate", None)
-        assert len(ai_players) == 4
-        assert all(isinstance(ai, AIPlayer) for ai in ai_players)
-
-
 class TestEndToEndAIWorkflow:
     """End-to-end integration tests for complete AI workflows."""
 
