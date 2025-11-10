@@ -2,17 +2,16 @@
 
 import os
 import sys
-from typing import Generator
 
 import pytest
 
 # Add src to Python path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 def _has_display() -> bool:
     """Check if a display is available for GUI operations."""
-    return bool(os.environ.get('DISPLAY') or sys.platform == 'darwin')
+    return bool(os.environ.get("DISPLAY") or sys.platform == "darwin")
 
 
 def _can_use_tkinter() -> bool:
@@ -22,6 +21,7 @@ def _can_use_tkinter() -> bool:
 
     try:
         import tkinter
+
         # Try to create a test root window
         test_root = tkinter.Tk()
         test_root.withdraw()  # Hide it immediately
@@ -49,6 +49,7 @@ def tkinter_root(has_gui, monkeypatch):
     """Provide a tkinter root window for GUI tests."""
     if has_gui:
         import tkinter
+
         root = tkinter.Tk()
         root.withdraw()  # Hide the window by default
         yield root
@@ -63,23 +64,23 @@ def gui_environment(request, has_gui):
     """Fixture to handle GUI test environment setup and cleanup."""
     if not has_gui:
         # Check if the test has been marked to skip when GUI is unavailable
-        if request.node.get_closest_marker('skip_if_no_gui'):
+        if request.node.get_closest_marker("skip_if_no_gui"):
             pytest.skip("GUI test skipped - no display available")
 
     # Set up environment variables if needed
-    original_display = os.environ.get('DISPLAY')
+    original_display = os.environ.get("DISPLAY")
     if not original_display and has_gui:
         # Try to set a default display for some systems
-        if sys.platform.startswith('linux'):
-            os.environ['DISPLAY'] = ':99'
+        if sys.platform.startswith("linux"):
+            os.environ["DISPLAY"] = ":99"
 
     yield
 
     # Cleanup: restore original environment
     if original_display is None:
-        os.environ.pop('DISPLAY', None)
+        os.environ.pop("DISPLAY", None)
     else:
-        os.environ['DISPLAY'] = original_display
+        os.environ["DISPLAY"] = original_display
 
 
 # Register marks for GUI tests
@@ -88,28 +89,26 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "skip_if_no_gui: skip test if GUI is not available"
     )
-    config.addinivalue_line(
-        "markers", "gui_test: mark test as GUI-dependent"
-    )
+    config.addinivalue_line("markers", "gui_test: mark test as GUI-dependent")
 
 
 def pytest_collection_modifyitems(config, items):
     """Automatically add skip_if_no_gui mark to GUI-dependent tests."""
     gui_test_files = [
-        'test_ui_updates.py',
-        'test_complete_state_visibility.py',
-        'test_score_updates.py',
-        'test_complete_setup_flow.py',
-        'test_spectate.py',
-        'test_complete_game_flow.py',
-        'test_complete_end_game_flow.py',
-        'test_complete_score_system.py'
+        "test_ui_updates.py",
+        "test_complete_state_visibility.py",
+        "test_score_updates.py",
+        "test_complete_setup_flow.py",
+        "test_spectate.py",
+        "test_complete_game_flow.py",
+        "test_complete_end_game_flow.py",
+        "test_complete_score_system.py",
     ]
 
     for item in items:
         # Check if the test file is GUI-dependent
         if any(gui_file in str(item.fspath) for gui_file in gui_test_files):
-            if not any(mark.name == 'skip_if_no_gui' for mark in item.iter_markers()):
+            if not any(mark.name == "skip_if_no_gui" for mark in item.iter_markers()):
                 item.add_marker(pytest.mark.skip_if_no_gui)
-            if not any(mark.name == 'gui_test' for mark in item.iter_markers()):
+            if not any(mark.name == "gui_test" for mark in item.iter_markers()):
                 item.add_marker(pytest.mark.gui_test)

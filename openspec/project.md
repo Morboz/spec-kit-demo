@@ -57,14 +57,14 @@ src/
 │   ├── ai_config.py
 │   ├── game_mode.py
 │   ├── game_state.py
-│   └── turn_controller.py
+│   ├── board.py
+│   ├── piece.py
+│   └── player.py
 ├── services/        # Business logic layer
 │   └── ai_strategy.py
 ├── ui/              # User interface components
 │   ├── game_mode_selector.py
 │   ├── keyboard_shortcuts.py
-│   ├── ai_thinking_indicator.py
-│   ├── ai_difficulty_indicator.py
 │   └── help_tooltips.py
 └── config/          # Configuration files
 ```

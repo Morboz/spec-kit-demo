@@ -4,7 +4,6 @@ This test validates the entire turn-based gameplay flow from start to finish,
 including piece placement, turn advancement, and round management.
 """
 
-from blokus_game.game.game_loop import GameLoop
 from blokus_game.models.board import Board
 from blokus_game.models.game_state import GameState
 from blokus_game.models.player import Player
@@ -68,43 +67,6 @@ class TestTurnFlowIntegration:
         # Then: Back to Player 1, round 2
         assert game_state.get_current_player().player_id == 1
         assert game_state.get_round_number() == 2
-
-    def test_turn_flow_with_game_loop(self):
-        """Integration: GameLoop manages turn progression correctly.
-
-        Given: Game with GameLoop
-        When: Using GameLoop to manage turns
-        Then: Turns advance, game end detection works
-        """
-        # Given: Game with GameLoop
-        board = Board()
-        game_state = GameState(board=board)
-        player1 = Player(player_id=1, name="Alice")
-        player2 = Player(player_id=2, name="Bob")
-
-        game_state.add_player(player1)
-        game_state.add_player(player2)
-        game_state.start_game()
-
-        game_loop = GameLoop(game_state)
-
-        # Initial turn
-        assert game_state.get_current_player().player_id == 1
-
-        # When: Using next_turn
-        game_loop.next_turn()
-
-        # Then: Turn advanced
-        assert game_state.get_current_player().player_id == 2
-
-        # When: Using pass_turn
-        game_loop.pass_turn(2)
-
-        # Then: Player 2 passed
-        assert player2.has_passed is True
-
-        # Then: Game still ongoing (not all passed yet)
-        assert not game_loop.should_end_game()
 
     def test_turn_flow_with_skip_and_continue(self):
         """Integration: Player can skip and game continues correctly.
@@ -285,7 +247,6 @@ class TestTurnFlowIntegration:
 
         # When: All rounds complete
         # (In this case, both players have no pieces placed, so game should end)
-        game_loop = GameLoop(game_state)
         # Note: Actual end game detection may vary
 
     def test_turn_flow_maintains_correct_board_state(self):

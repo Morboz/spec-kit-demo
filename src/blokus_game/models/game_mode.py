@@ -9,7 +9,11 @@ import json
 from enum import Enum
 from pathlib import Path
 
+from blokus_game.config.logger_config import get_logger
 from blokus_game.models.ai_config import AIConfig, Difficulty
+
+# Create logger for this module
+logger = get_logger(__name__)
 
 
 class GameModeType(Enum):
@@ -312,7 +316,7 @@ class GameMode:
                 json.dump(preferences, f, indent=2)
         except Exception as e:
             # Log error but don't crash
-            print(f"Warning: Failed to save difficulty preference: {e}")
+            logger.warning(f"Failed to save difficulty preference: {e}")
 
     @staticmethod
     def _load_difficulty_preferences() -> dict[str, str]:
@@ -361,4 +365,4 @@ class GameMode:
             if config_file.exists():
                 config_file.unlink()
         except Exception as e:
-            print(f"Warning: Failed to clear difficulty preferences: {e}")
+            logger.warning(f"Failed to clear difficulty preferences: {e}")

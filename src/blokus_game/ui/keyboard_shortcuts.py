@@ -15,6 +15,11 @@ import tkinter as tk
 from collections.abc import Callable
 from typing import Any
 
+from blokus_game.config.logger_config import get_logger
+
+# Create logger for this module
+logger = get_logger(__name__)
+
 
 class KeyboardShortcuts:
     """Manages keyboard shortcuts for the Blokus game."""
@@ -143,7 +148,7 @@ class KeyboardShortcuts:
             try:
                 self.callbacks[action]()
             except Exception as e:
-                print(f"Error executing action '{action}': {e}")
+                logger.error(f"Error executing action '{action}': {e}")
 
     def get_action_for_key(self, key: str) -> str | None:
         """
@@ -432,7 +437,7 @@ class GameKeyboardHandler:
         if self.on_mode_select_callback:
             self.on_mode_select_callback(mode)
         else:
-            print(f"Game mode selection callback not set: {mode}")
+            logger.warning(f"Game mode selection callback not set: {mode}")
 
     def _get_help_text(self) -> str:
         """Get help text for keyboard shortcuts."""

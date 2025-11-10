@@ -194,7 +194,7 @@ uv run mypy src/
 - [x] T050 [P] [US4] Implement winner determination in src/game/winner_determiner.py ✅
 - [x] T051 [US4] Implement GameResults UI in src/ui/game_results.py ✅
 - [x] T052 [US4] Add end game detection to game loop in src/game/game_loop.py ✅
-- [x] T053 [US4] Create UI integration example in src/ui/ui_integration_example.py ✅
+- [x] T053 [US4] Create UI integration example (REMOVED: integration now in main.py) ✅
 - [x] T054 [US4] Write integration test verifying complete game end flow ✅
 
 **Checkpoint**: Games automatically end with correct winner determination and score breakdown
@@ -225,7 +225,7 @@ uv run mypy src/
 - [x] T059 [P] [US5] Implement TurnValidator in src/game/turn_validator.py ✅
 - [x] T060 [US5] Implement SkipTurn UI control in src/ui/skip_turn_button.py ✅
 - [x] T061 [US5] Add turn management to game loop in src/game/game_loop.py ✅
-- [x] T062 [US5] Integrate turn flow with UI state updates in src/ui/turn_management_integration_example.py ✅
+- [x] T062 [US5] Integrate turn flow with UI state updates (REMOVED: integration now in main.py) ✅
 - [x] T063 [US5] Write integration test verifying complete turn sequence across multiple players ✅
 
 **Checkpoint**: Turn-based gameplay works correctly with automatic advancement and skip functionality
@@ -262,7 +262,7 @@ uv run mypy src/
 - [x] T069 [P] [US6] Enhance Rules validator with comprehensive error messages in src/game/rules.py ✅
 - [x] T070 [P] [US6] ValidationResult already exists in src/game/rules.py ✅
 - [x] T071 [US6] Add error message display in src/ui/error_display.py ✅
-- [x] T072 [US6] Integrate enhanced validation with piece placement flow in src/ui/rule_enforcement_integration_example.py ✅
+- [x] T072 [US6] Integrate enhanced validation with piece placement flow (REMOVED: integration now in main.py) ✅
 - [x] T073 [US6] Add hover/preview validation for better UX in src/ui/placement_preview.py ✅
 - [x] T074 [US6] Write integration test verifying all rule violations are caught with clear messages ✅
 

@@ -148,8 +148,6 @@ AIStrategy (ABC)
 
 **UI** (`src/ui/`):
 - `game_mode_selector.py` - Mode selection UI
-- `ai_thinking_indicator.py` - AI thinking animation
-- `ai_difficulty_indicator.py` - Difficulty display
 - `help_tooltips.py` - Help system
 - `keyboard_shortcuts.py` - Keyboard handling
 
