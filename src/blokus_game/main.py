@@ -21,12 +21,16 @@ Refactored: 2025-11-10
 import tkinter as tk
 from typing import Any
 
+from blokus_game.config.logger_config import get_logger
 from blokus_game.game.error_handler import get_error_handler, setup_error_handling
 from blokus_game.managers.ai_manager import AIManager
 from blokus_game.managers.event_handler_manager import EventHandlerManager
 from blokus_game.managers.game_flow_manager import GameFlowManager
 from blokus_game.managers.game_setup_manager import GameSetupManager
 from blokus_game.managers.ui_manager import UIManager
+
+# Create logger for this module
+logger = get_logger(__name__)
 
 
 class BlokusApp:
@@ -81,6 +85,7 @@ class BlokusApp:
             on_ai_turn_complete=lambda: None,  # No-op for now
             on_pass_turn=self._pass_turn,
             on_game_end=self._end_game,
+            on_render_board=self.ui_manager.render_board,
         )
 
         self.game_flow_manager = GameFlowManager(
@@ -107,7 +112,7 @@ class BlokusApp:
         try:
             self.root.mainloop()
         except KeyboardInterrupt:
-            print("Game interrupted by user")
+            logger.info("Game interrupted by user")
         except Exception as e:
             error_handler = get_error_handler()
             error_handler.handle_error(e, show_user_message=True)

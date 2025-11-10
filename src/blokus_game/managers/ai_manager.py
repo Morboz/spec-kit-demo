@@ -8,6 +8,8 @@ strategy allocation, move calculation and execution.
 from collections.abc import Callable
 from typing import Any
 
+from blokus_game.config.logger_config import get_logger
+
 
 class AIManager:
     """
@@ -26,6 +28,7 @@ class AIManager:
         on_ai_turn_complete: Callable[[], None],
         on_pass_turn: Callable[[], None],
         on_game_end: Callable[[], None],
+        on_render_board: Callable[[], None],
     ) -> None:
         """
         Initialize the AIManager.
@@ -36,18 +39,23 @@ class AIManager:
             on_ai_turn_complete: Callback when AI turn completes
             on_pass_turn: Callback to pass turn
             on_game_end: Callback when game should end
+            on_render_board: Callback to render the board
         """
         self.on_show_ai_thinking = on_show_ai_thinking
         self.on_hide_ai_thinking = on_hide_ai_thinking
         self.on_ai_turn_complete = on_ai_turn_complete
         self.on_pass_turn = on_pass_turn
         self.on_game_end = on_game_end
+        self.on_render_board = on_render_board
 
         # Game state attributes
         self.game_state: Any | None = None
         self.placement_handler: Any | None = None
         self.game_mode: Any | None = None
         self.root: Any | None = None
+
+        # Create logger
+        self.logger = get_logger(__name__)
 
     def set_context(
         self,
@@ -78,6 +86,13 @@ class AIManager:
         # Set callback for successful piece placement
         def on_piece_placed(piece_name: str):
             """Handle successful piece placement - AI version."""
+            # CRITICAL: Render board immediately to show the placed piece
+            self.on_render_board()
+
+            # Force UI update to ensure the board is rendered before continuing
+            if self.root:
+                self.root.update_idletasks()
+
             # Update current player
             current_player = self.game_state.get_current_player()
             if current_player:
@@ -105,8 +120,8 @@ class AIManager:
         # Set callback for placement errors
         def on_placement_error(error_msg: str):
             """Handle placement error - for AI players."""
-            # For AI mode, just print to console instead of showing error popup
-            print(f"AI placement error: {error_msg}")
+            # For AI mode, just log to console instead of showing error popup
+            self.logger.warning(f"AI placement error: {error_msg}")
 
         # Configure callbacks
         self.placement_handler.set_callbacks(
@@ -149,7 +164,7 @@ class AIManager:
                 # Select the piece
                 piece_selected = self.placement_handler.select_piece(move.piece.name)
                 if not piece_selected:
-                    print(f"AI failed to select piece: {move.piece.name}")
+                    self.logger.warning(f"AI failed to select piece: {move.piece.name}")
                     self.on_pass_turn()
                     return
 
@@ -168,17 +183,17 @@ class AIManager:
                 )
 
                 if not success:
-                    print(f"AI placement failed: {error_msg}")
+                    self.logger.warning(f"AI placement failed: {error_msg}")
                     self.on_pass_turn()
             else:
                 # No valid moves or pass action
-                print(
+                self.logger.info(
                     f"AI Player {ai_player.player_id} has no valid moves, passing turn"
                 )
                 self.on_pass_turn()
 
         except Exception as e:
-            print(f"AI calculation error: {e}")
+            self.logger.error(f"AI calculation error: {e}")
             import traceback
 
             traceback.print_exc()

@@ -10,7 +10,11 @@ from collections.abc import Callable
 from tkinter import messagebox, ttk
 from typing import Any
 
+from blokus_game.config.logger_config import get_logger
 from blokus_game.models.game_mode import Difficulty, GameMode
+
+# Create logger for this module
+logger = get_logger(__name__)
 
 
 class GameModeSelector:
@@ -199,7 +203,7 @@ class GameModeSelector:
                 game_mode.save_difficulty_preference(GameModeType.SINGLE_AI, diff_enum)
                 game_mode.save_difficulty_preference(GameModeType.THREE_AI, diff_enum)
             except Exception as e:
-                print(f"Warning: Failed to save difficulty preference: {e}")
+                logger.warning(f"Failed to save difficulty preference: {e}")
 
         # Create configuration
         if mode == "spectate":
@@ -278,21 +282,21 @@ if __name__ == "__main__":
 
     def on_mode_selected(mode_type: str, difficulty: str):
         """Callback for mode selection."""
-        print(f"Mode selected: {mode_type}, Difficulty: {difficulty}")
+        logger.info(f"Mode selected: {mode_type}, Difficulty: {difficulty}")
 
         # Create and display game mode
         try:
             game_mode = GameModeSelector.create_game_mode(mode_type, difficulty)
-            print(f"Created game mode: {game_mode}")
+            logger.info(f"Created game mode: {game_mode}")
         except Exception as e:
-            print(f"Error creating game mode: {e}")
+            logger.error(f"Error creating game mode: {e}")
 
     # Show selector
     result = show_game_mode_selector(root, on_mode_selected)
 
     if result:
-        print(f"Selected: {result}")
+        logger.info(f"Selected: {result}")
     else:
-        print("Cancelled")
+        logger.info("Cancelled")
 
     root.destroy()

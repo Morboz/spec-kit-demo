@@ -330,7 +330,7 @@ class TestAITimeoutHandling:
 class TestLoggingEdgeCases:
     """Test logging behavior in edge cases."""
 
-    @patch("blokus_game.models.ai_player.ai_logger")
+    @patch("blokus_game.models.ai_player.logger")
     def test_timeout_logging(self, mock_logger):
         """Test that timeouts are logged correctly."""
         strategy = SlowStrategy(delay_seconds=1.0)
@@ -348,7 +348,7 @@ class TestLoggingEdgeCases:
             or mock_logger.warning.called
         )
 
-    @patch("blokus_game.models.ai_player.ai_logger")
+    @patch("blokus_game.models.ai_player.logger")
     def test_exception_logging(self, mock_logger):
         """Test that exceptions are logged correctly."""
         strategy = ErrorStrategy("Test error")
@@ -368,7 +368,7 @@ class TestLoggingEdgeCases:
         # Verify error was logged
         assert mock_logger.error.called
 
-    @patch("blokus_game.models.ai_player.ai_logger")
+    @patch("blokus_game.models.ai_player.logger")
     def test_successful_calculation_logging(self, mock_logger):
         """Test that successful calculations are logged."""
         strategy = ValidMoveStrategy()

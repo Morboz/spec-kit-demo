@@ -5,26 +5,15 @@ This module defines the AIPlayer class which represents an AI-controlled
 player in the Blokus game with configurable strategy.
 """
 
-import logging
 import time
 
+from blokus_game.config.logger_config import get_logger
 from blokus_game.config.pieces import get_full_piece_set
 from blokus_game.models.piece import Piece
 from blokus_game.services.ai_strategy import AIStrategy, Move
 
-# Configure logger for AI players
-ai_logger = logging.getLogger("ai_player")
-ai_logger.setLevel(logging.DEBUG)
-
-# Create console handler if not already present
-if not ai_logger.handlers:
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    handler.setFormatter(formatter)
-    ai_logger.addHandler(handler)
+# Create logger for this module
+logger = get_logger(__name__)
 
 
 class AIPlayer:
@@ -132,7 +121,7 @@ class AIPlayer:
 
         # Determine effective time limit
         effective_limit = time_limit or self.timeout_seconds
-        ai_logger.debug(
+        logger.debug(
             f"AI Player {self.player_id} starting move calculation "
             f"(strategy={self.strategy.difficulty_name}, time_limit={effective_limit}s)"
         )
@@ -145,7 +134,7 @@ class AIPlayer:
             available_moves = self.get_available_moves(board, pieces)
 
             if not available_moves:
-                ai_logger.info(f"AI Player {self.player_id}: No valid moves available")
+                logger.info(f"AI Player {self.player_id}: No valid moves available")
                 # Record pass (no moves available)
                 elapsed = time.time() - start_time
                 self._record_calculation_time(
@@ -154,7 +143,7 @@ class AIPlayer:
                 self._pass_count += 1
                 return None
 
-            ai_logger.debug(
+            logger.debug(
                 f"AI Player {self.player_id}: Found {len(available_moves)} valid moves"
             )
 
@@ -169,20 +158,20 @@ class AIPlayer:
 
             # Check timeout
             if timed_out:
-                ai_logger.warning(
+                logger.warning(
                     f"AI Player {self.player_id}: Calculation exceeded time limit "
                     f"({elapsed:.2f}s > {effective_limit}s)"
                 )
 
                 # If we got a move anyway, use it with warning
                 if move:
-                    ai_logger.warning(
+                    logger.warning(
                         f"AI Player {self.player_id}: Using move despite timeout "
                         f"(elapsed={elapsed:.2f}s)"
                     )
                 else:
                     # Timeout with no move - try fallback to first available move
-                    ai_logger.info(
+                    logger.info(
                         f"AI Player {self.player_id}: Timeout, fallback to simple move"
                     )
                     # For timeout, return first available move (simplest valid move)
@@ -192,7 +181,7 @@ class AIPlayer:
             # Validate move
             if move and not move.is_pass:
                 if move.piece not in self.pieces:
-                    ai_logger.error(
+                    logger.error(
                         f"AI Player {self.player_id}: Invalid move - piece missing"
                     )
                     # Fall back to a valid move
@@ -208,18 +197,18 @@ class AIPlayer:
             if move:
                 if move.is_pass:
                     self._pass_count += 1
-                    ai_logger.info(
+                    logger.info(
                         f"AI Player {self.player_id}: Passed turn "
                         f"(elapsed={elapsed:.2f}s)"
                     )
                 else:
                     self._move_count += 1
-                    ai_logger.info(
+                    logger.info(
                         f"AI Player {self.player_id}: Calculated in {elapsed:.2f}s "
                         f"(piece={move.piece.name if move.piece else 'PASS'})"
                     )
             else:
-                ai_logger.info(
+                logger.info(
                     f"AI Player {self.player_id}: No move calculated "
                     f"(elapsed={elapsed:.2f}s)"
                 )
@@ -228,7 +217,7 @@ class AIPlayer:
 
         except Exception as e:
             elapsed = time.time() - self._calculation_start_time
-            ai_logger.error(
+            logger.error(
                 f"AI Player {self.player_id}: Calculation error after {elapsed:.2f}s: {e}",  # noqa: E501
                 exc_info=True,
             )
@@ -240,13 +229,13 @@ class AIPlayer:
             try:
                 available_moves = self.get_available_moves(board, pieces)
                 if available_moves:
-                    ai_logger.info(
+                    logger.info(
                         f"AI Player {self.player_id}: Falling back to first available move"  # noqa: E501
                     )
                     self._fallback_count += 1
                     return available_moves[0]
             except Exception as fallback_error:
-                ai_logger.error(
+                logger.error(
                     f"AI Player {self.player_id}: Fallback also failed: {fallback_error}"  # noqa: E501
                 )
 
@@ -254,7 +243,7 @@ class AIPlayer:
         finally:
             self.is_calculating = False
             final_elapsed = time.time() - self._calculation_start_time
-            ai_logger.debug(
+            logger.debug(
                 f"AI Player {self.player_id}: Calculation finished (time={final_elapsed:.2f}s)"  # noqa: E501
             )
 
@@ -283,7 +272,7 @@ class AIPlayer:
         self._calculation_start_time = time.time()
 
         effective_limit = time_limit or self.timeout_seconds
-        ai_logger.debug(
+        logger.debug(
             f"AI Player {self.player_id} calculating with game state validation"
         )
 
@@ -327,7 +316,7 @@ class AIPlayer:
                                     )
 
             if not valid_moves:
-                ai_logger.info(
+                logger.info(
                     f"AI Player {self.player_id}: No valid moves with rule validation"
                 )
                 elapsed = time.time() - self._calculation_start_time
@@ -337,7 +326,7 @@ class AIPlayer:
                 self._pass_count += 1
                 return None
 
-            ai_logger.debug(
+            logger.debug(
                 f"AI Player {self.player_id}: Found {len(valid_moves)} rule-valid moves"
             )
 
@@ -360,7 +349,7 @@ class AIPlayer:
 
         except Exception as e:
             elapsed = time.time() - self._calculation_start_time
-            ai_logger.error(
+            logger.error(
                 f"AI Player {self.player_id}: Calculation error: {e}", exc_info=True
             )
             self._record_calculation_time(elapsed, timed_out=False, used_fallback=True)
@@ -574,7 +563,7 @@ class AIPlayer:
         """Log performance summary for debugging and analysis."""
         metrics = self.get_performance_metrics()
 
-        ai_logger.info(
+        logger.info(
             f"AI Player {self.player_id} Performance Summary:\n"
             f"  Total Calculations: {metrics['total_calculations']}\n"
             f"  Moves Made: {metrics['moves_made']}, Passes: {metrics['passes_made']}\n"
@@ -595,7 +584,7 @@ class AIPlayer:
         self._fallback_count = 0
         self._total_calculation_time = 0.0
 
-        ai_logger.debug(f"AI Player {self.player_id}: Performance metrics reset")
+        logger.debug(f"AI Player {self.player_id}: Performance metrics reset")
 
     def _record_calculation_time(
         self, elapsed_time: float, timed_out: bool = False, used_fallback: bool = False

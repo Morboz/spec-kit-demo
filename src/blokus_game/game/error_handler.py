@@ -19,6 +19,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from blokus_game.config.logger_config import get_logger
+
 
 class ErrorSeverity(Enum):
     """Error severity levels."""
@@ -27,6 +29,10 @@ class ErrorSeverity(Enum):
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
+
+
+# Create logger for this module
+logger = get_logger(__name__)
 
 
 class ErrorCategory(Enum):
@@ -430,13 +436,13 @@ class ErrorHandler:
 
                 root.destroy()
             except Exception:
-                print(f"CRITICAL ERROR: {message}")
+                logger.critical(f"CRITICAL ERROR: {message}")
 
         elif error_record.severity == ErrorSeverity.HIGH:
-            print(f"ERROR: {message}")
+            logger.error(f"ERROR: {message}")
 
         elif error_record.severity == ErrorSeverity.MEDIUM:
-            print(f"WARNING: {message}")
+            logger.warning(f"WARNING: {message}")
 
         else:
             # Low severity - just log
