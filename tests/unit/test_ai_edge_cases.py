@@ -327,61 +327,6 @@ class TestAITimeoutHandling:
             assert move is None
 
 
-class TestTurnControllerEdgeCases:
-    """Test edge cases in TurnController."""
-
-    def test_check_game_over_all_passed(self):
-        """Test game over detection when all players pass."""
-        from blokus_game.models.game_mode import GameMode
-        from blokus_game.models.turn_controller import TurnController, TurnState
-
-        game_mode = GameMode.spectate_ai()
-        controller = TurnController(game_mode, initial_player=1)
-
-        # Simulate all players passing
-        controller._emit_event("TURN_PASSED", 1, TurnState.TRANSITION_AUTO)
-        controller._emit_event("TURN_PASSED", 2, TurnState.TRANSITION_AUTO)
-        controller._emit_event("TURN_PASSED", 3, TurnState.TRANSITION_AUTO)
-        controller._emit_event("TURN_PASSED", 4, TurnState.TRANSITION_AUTO)
-
-        # Check if game should be over
-        result = controller.check_game_over()
-
-        # In spectator mode with all AI passing, should detect game over
-        assert result is True  # Will be True due to our implementation
-
-    def test_check_consecutive_passes(self):
-        """Test counting consecutive passes."""
-        from blokus_game.models.game_mode import GameMode
-        from blokus_game.models.turn_controller import TurnController, TurnState
-
-        game_mode = GameMode.spectate_ai()
-        controller = TurnController(game_mode, initial_player=1)
-
-        # No passes yet
-        assert controller.check_consecutive_passes() == 0
-
-        # Add some passes
-        controller._emit_event("TURN_PASSED", 1, TurnState.TRANSITION_AUTO)
-        controller._emit_event("TURN_PASSED", 2, TurnState.TRANSITION_AUTO)
-
-        # Should count consecutive passes from end
-        passes = controller.check_consecutive_passes()
-        assert passes >= 0
-
-    def test_should_end_due_to_no_moves(self):
-        """Test detection of no moves scenario."""
-        from blokus_game.models.game_mode import GameMode
-        from blokus_game.models.turn_controller import TurnController
-
-        game_mode = GameMode.spectate_ai()
-        controller = TurnController(game_mode, initial_player=1)
-
-        # This is a placeholder method
-        result = controller.should_end_due_to_no_moves(1)
-        assert isinstance(result, bool)
-
-
 class TestLoggingEdgeCases:
     """Test logging behavior in edge cases."""
 

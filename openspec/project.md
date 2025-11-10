@@ -57,7 +57,9 @@ src/
 │   ├── ai_config.py
 │   ├── game_mode.py
 │   ├── game_state.py
-│   └── turn_controller.py
+│   ├── board.py
+│   ├── piece.py
+│   └── player.py
 ├── services/        # Business logic layer
 │   └── ai_strategy.py
 ├── ui/              # User interface components
