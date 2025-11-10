@@ -19,6 +19,7 @@ Refactored: 2025-11-10
 """
 
 import tkinter as tk
+from typing import Any
 
 from blokus_game.game.error_handler import get_error_handler, setup_error_handling
 from blokus_game.managers.ai_manager import AIManager
