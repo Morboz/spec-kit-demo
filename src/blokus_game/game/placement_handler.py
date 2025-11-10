@@ -95,7 +95,10 @@ class PlacementHandler:
             Tuple of (success, error_message)
         """
         if not self.selected_piece:
-            return False, "No piece selected"
+            error_msg = "No piece selected"
+            if self.on_placement_error:
+                self.on_placement_error(error_msg)
+            return False, error_msg
 
         # Log placement attempt
         error_handler = get_error_handler()
