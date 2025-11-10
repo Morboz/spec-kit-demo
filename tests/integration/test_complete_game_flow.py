@@ -12,7 +12,6 @@ through game end, including:
 - Winner determination
 """
 
-import pytest
 
 from blokus_game.config.pieces import PIECE_DEFINITIONS
 from blokus_game.game.end_game_detector import EndGameDetector
