@@ -5,12 +5,11 @@ This test verifies that scores are properly updated throughout the game
 as players place pieces, and that the UI reflects these updates correctly.
 """
 
-import tkinter as tk
-
 from blokus_game.config.pieces import PIECE_DEFINITIONS
 from blokus_game.game.scoring import ScoringSystem
 from blokus_game.models.board import Board
 from blokus_game.models.game_state import GameState
+from blokus_game.models.piece import Piece
 from blokus_game.models.player import Player
 from blokus_game.ui.scoreboard import Scoreboard
 
@@ -24,8 +23,8 @@ class TestScoreUpdates:
         """
         player = Player(player_id=1, name="Test Player")
 
-        # Track scores after each placement
-        previous_score = 0
+        # Track scores after each placement (scores start negative and increase toward 0)
+        previous_score = -89  # All squares remaining = -89
         piece_names = list(PIECE_DEFINITIONS.keys())
 
         for i, piece_name in enumerate(piece_names[:10]):
@@ -35,53 +34,49 @@ class TestScoreUpdates:
             # Update score
             ScoringSystem.update_player_score(player)
 
-            # Score should be greater than previous
+            # Score should be greater than previous (less negative)
             assert (
                 player.score > previous_score
-            ), f"Score should increase after placing piece {i+1}"
+            ), f"Score should increase (be less negative) after placing piece {i+1}"
 
             previous_score = player.score
 
-    def test_scoreboard_updates_after_placements(self):
+    def test_scoreboard_updates_after_placements(self, tkinter_root):
         """
         Test that scoreboard reflects score changes after placements.
         """
-        root = tk.Tk()
-        root.withdraw()  # Hide window
+        root = tkinter_root  # Use the fixture-provided root
 
-        try:
-            player = Player(player_id=1, name="Test Player")
-            board = Board()
+        player = Player(player_id=1, name="Test Player")
+        board = Board()
 
-            # Create scoreboard
-            scoreboard = Scoreboard(root, board, [player])
+        # Create scoreboard
+        scoreboard = Scoreboard(root, board, [player])
 
-            # Initially no pieces placed
-            scoreboard.update_scores()
-            items = scoreboard.tree.get_children()
-            assert len(items) == 1
-            initial_values = scoreboard.tree.item(items[0])["values"]
-            assert initial_values[1] == 0  # No squares placed
+        # Initially no pieces placed
+        scoreboard.update_scores()
+        items = scoreboard.tree.get_children()
+        assert len(items) == 1
+        initial_values = scoreboard.tree.item(items[0])["values"]
+        assert initial_values[1] == 0  # No squares placed
 
-            # Place some pieces
-            piece_names = list(PIECE_DEFINITIONS.keys())
-            for piece_name in piece_names[:5]:
-                player.place_piece(piece_name, 10, 10)
-                board.place_piece(player.player_id, piece_name, 10, 10)
+        # Place some pieces
+        piece_names = list(PIECE_DEFINITIONS.keys())
+        for piece_name in piece_names[:5]:
+            player.place_piece(piece_name, 10, 10)
+            piece = Piece(piece_name)
+            board.place_piece(piece, 10, 10, player.player_id)
 
-            # Update scoreboard
-            scoreboard.update_scores()
+        # Update scoreboard
+        scoreboard.update_scores()
 
-            # Check that squares placed updated
-            items = scoreboard.tree.get_children()
-            updated_values = scoreboard.tree.item(items[0])["values"]
-            assert updated_values[1] == 25  # 5 pieces placed
+        # Check that squares placed updated
+        items = scoreboard.tree.get_children()
+        updated_values = scoreboard.tree.item(items[0])["values"]
+        assert updated_values[1] == 25  # 5 pieces placed
 
-            # Check pieces remaining updated
-            assert updated_values[2] == 16  # 21 - 5 = 16 pieces remaining
-
-        finally:
-            root.destroy()
+        # Check pieces remaining updated
+        assert updated_values[2] == 16  # 21 - 5 = 16 pieces remaining
 
     def test_score_updates_tracked_throughout_game(self):
         """
@@ -93,9 +88,9 @@ class TestScoreUpdates:
         game_state = GameState()
         game_state.players = [player1, player2]
 
-        # Track score history
-        player1_scores = [0]
-        player2_scores = [0]
+        # Track score history (scores start at -89 with all squares remaining)
+        player1_scores = [-89]
+        player2_scores = [-89]
         piece_names = list(PIECE_DEFINITIONS.keys())
 
         # Simulate turns where players place pieces
@@ -131,13 +126,21 @@ class TestScoreUpdates:
         board = Board()
         piece_names = list(PIECE_DEFINITIONS.keys())
 
-        # Place several pieces
+        # Place several pieces at well-spaced positions
         for i, piece_name in enumerate(piece_names[:8]):
-            player.place_piece(piece_name, 0, 0)
+            # Get the actual piece from player's inventory
+            piece = player.get_piece(piece_name)
+
+            # Place pieces in a grid pattern to avoid overlap
+            row = (i // 4) * 10  # 0, 0, 0, 0, 10, 10, 10, 10
+            col = (i % 4) * 5    # 0, 5, 10, 15, 0, 5, 10, 15
 
             # Simulate what game loop would do
             # Place on board
-            board.place_piece(player.player_id, piece_name, 10 + i, 10 + i)
+            board.place_piece(piece, row, col, player.player_id)
+
+            # Note: player.place_piece() is not needed here because
+            # placing on the board already marks the piece as used
 
             # Update score
             ScoringSystem.update_player_score(player)
@@ -154,10 +157,14 @@ class TestScoreUpdates:
         board = Board()
         piece_names = list(PIECE_DEFINITIONS.keys())
 
-        # Place some pieces
+        # Place some pieces at well-spaced positions
         for i, piece_name in enumerate(piece_names[:7]):
-            player.place_piece(piece_name, i, i)
-            board.place_piece(player.player_id, piece_name, i, i)
+            # Get the actual piece from player's inventory
+            piece = player.get_piece(piece_name)
+            # Place pieces in a grid pattern to avoid overlap
+            row = (i // 4) * 10
+            col = (i % 4) * 5
+            board.place_piece(piece, row, col, player.player_id)
 
         # Update score
         ScoringSystem.update_player_score(player)
@@ -224,9 +231,10 @@ class TestScoreUpdates:
             row = i // 4
             col = (i % 4) * 5
             player.place_piece(piece_name, 0, 0)
+            piece = Piece(piece_name)
 
             # This would typically be done by game loop
-            board.place_piece(player.player_id, piece_name, row, col)
+            board.place_piece(piece, row, col, player.player_id)
 
             # Update score
             ScoringSystem.update_player_score(player)

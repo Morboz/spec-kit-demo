@@ -7,6 +7,7 @@ updates between UI components and the game state.
 
 from collections.abc import Callable
 
+from blokus_game.config.logger_config import get_logger
 from blokus_game.models.board import Board
 from blokus_game.models.game_state import GameState
 from blokus_game.models.player import Player
@@ -28,6 +29,9 @@ class StateSynchronizer:
         self.game_state = game_state
         self.board: Board | None = None
         self.players: list[Player] = []
+
+        # Create logger
+        self.logger = get_logger(__name__)
 
         # UI components
         self.current_player_indicator: CurrentPlayerIndicator | None = None
@@ -197,7 +201,7 @@ class StateSynchronizer:
                 callback()
             except Exception as e:
                 # Log error but don't crash
-                print(f"Error in update callback: {e}")
+                self.logger.error(f"Error in update callback: {e}")
 
     def get_current_player(self) -> Player | None:
         """

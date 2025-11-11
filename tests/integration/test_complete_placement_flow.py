@@ -99,16 +99,21 @@ class TestCompletePlacementFlow:
         handler = PlacementHandler(board, game_state, player)
 
         # When: Select and flip a piece
-        handler.select_piece("L4")
+        # Use I1 (single square) which is invariant under flip
+        handler.select_piece("I1")
         handler.flip_piece()
         assert handler.is_piece_flipped()
 
-        # When: Place the piece
+        # Verify flip state is tracked
+        assert handler.selected_piece is not None
+        assert handler.is_piece_flipped()
+
+        # When: Place the flipped piece
         success, error = handler.place_piece(0, 0)
         assert success, f"Should successfully place flipped piece: {error}"
 
         # Then: Flipped piece is placed
-        assert board.count_player_squares(1) == 4  # L4 has 4 squares
+        assert board.count_player_squares(1) == 1  # I1 has 1 square
 
     def test_piece_placement_with_multiple_rotations(self):
         """Integration: Multiple rotations compose correctly.

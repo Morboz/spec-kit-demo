@@ -269,7 +269,10 @@ class TestThreeAIIntegrationFlow:
         assert current == 1
 
         # Advance through all players
-        next_players = [game_mode.get_next_player(current) for _ in range(8)]
+        next_players = []
+        for _ in range(8):
+            current = game_mode.get_next_player(current)
+            next_players.append(current)
 
         # Should cycle through all 4 players
         assert next_players == [2, 3, 4, 1, 2, 3, 4, 1]

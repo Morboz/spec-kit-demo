@@ -120,7 +120,7 @@ def test_flip_creates_different_positions():
 
     class MockPiece:
         name = "L1"
-        positions = [(0, 0), (1, 0), (1, 1)]  # L-shape
+        coordinates = [(0, 0), (1, 0), (1, 1)]  # L-shape
 
     piece = MockPiece()
     strategy = RandomStrategy()
@@ -148,7 +148,7 @@ def test_flip_then_rotation():
 
     class MockPiece:
         name = "L1"
-        positions = [(0, 0), (1, 0), (1, 1)]
+        coordinates = [(0, 0), (1, 0), (1, 1)]
 
     piece = MockPiece()
     strategy = RandomStrategy()

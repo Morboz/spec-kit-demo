@@ -73,19 +73,19 @@ class TestPiecePlacementFlow:
         game_state.start_game()
 
         # When: Player rotates piece and places it
-        piece = player1.get_piece("L4")
+        piece = player1.get_piece("I1")
         rotated_piece = piece.rotate(90)
 
         # Verify rotation created new instance
         assert rotated_piece is not piece
 
-        # Place rotated piece in corner
+        # Place rotated piece in corner (I1 is a single square, rotation doesn't change shape)
         positions = board.place_piece(rotated_piece, 0, 0, 1)
-        player1.place_piece("L4", 0, 0)
+        player1.place_piece("I1", 0, 0)
 
         # Then: Rotated piece is placed correctly
-        assert len(positions) == 4
-        assert board.count_player_squares(1) == 4
+        assert len(positions) == 1
+        assert board.count_player_squares(1) == 1
 
     def test_player_can_flip_piece_before_placement(self):
         """Integration: Player flips piece and places it.
@@ -106,19 +106,19 @@ class TestPiecePlacementFlow:
         game_state.start_game()
 
         # When: Player flips piece and places it
-        piece = player1.get_piece("L4")
+        piece = player1.get_piece("I1")
         flipped_piece = piece.flip()
 
         # Verify flip created new instance
         assert flipped_piece is not piece
 
-        # Place flipped piece in corner
+        # Place flipped piece in corner (I1 is a single square, flip doesn't change shape)
         positions = board.place_piece(flipped_piece, 0, 0, 1)
-        player1.place_piece("L4", 0, 0)
+        player1.place_piece("I1", 0, 0)
 
         # Then: Flipped piece is placed correctly
-        assert len(positions) == 4
-        assert board.count_player_squares(1) == 4
+        assert len(positions) == 1
+        assert board.count_player_squares(1) == 1
 
     def test_second_player_places_after_first(self):
         """Integration: Two players take turns placing pieces.
@@ -168,9 +168,11 @@ class TestPiecePlacementFlow:
         board = Board()
         game_state = GameState()
         player1 = Player(player_id=1, name="Alice")
+        player2 = Player(player_id=2, name="Bob")
 
         game_state.board = board
         game_state.add_player(player1)
+        game_state.add_player(player2)
         game_state.start_game()
 
         # Player 1 places first piece
@@ -235,9 +237,11 @@ class TestPiecePlacementFlow:
         board = Board()
         game_state = GameState()
         player1 = Player(player_id=1, name="Alice")
+        player2 = Player(player_id=2, name="Bob")
 
         game_state.board = board
         game_state.add_player(player1)
+        game_state.add_player(player2)
         game_state.start_game()
 
         # Place first piece

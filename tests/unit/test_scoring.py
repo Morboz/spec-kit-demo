@@ -19,9 +19,9 @@ class TestScoringSystem:
 
         scores = ScoringSystem.calculate_final_scores(game_state)
 
-        # All 88 squares remaining, -88 points each
-        assert scores[1] == -88
-        assert scores[2] == -88
+        # All 89 squares remaining, -89 points each
+        assert scores[1] == -89
+        assert scores[2] == -89
 
     def test_calculate_final_scores_some_pieces_placed(self):
         """Test scoring with some pieces placed."""
@@ -38,8 +38,8 @@ class TestScoringSystem:
         # Update score
         ScoringSystem.update_player_score(player1)
 
-        # 6 placed - 82 unplaced = -76
-        assert player1.get_score() == -76
+        # 6 placed - 83 unplaced = -77
+        assert player1.get_score() == -77
 
     def test_calculate_final_scores_all_pieces_placed(self):
         """Test scoring when all pieces are placed."""
@@ -51,16 +51,16 @@ class TestScoringSystem:
         # Place all pieces (simulate by removing pieces from unplaced)
         # In reality we'd need to place all 21 pieces, but for test we'll calculate
 
-        # Calculate score: 88 placed - 0 unplaced + 15 bonus = 103
+        # Calculate score: 89 placed - 0 unplaced + 15 bonus = 104
         # For testing, we'll just verify the calculation logic
 
         # Manually set score to verify the calculation
-        placed_score = 88
+        placed_score = 89
         unplaced_score = 0
         bonus = 15
         expected_score = placed_score - unplaced_score + bonus
 
-        assert expected_score == 103
+        assert expected_score == 104
 
     def test_update_player_score(self):
         """Test updating player's score."""
@@ -75,8 +75,8 @@ class TestScoringSystem:
         # Update score
         ScoringSystem.update_player_score(player1)
 
-        # 5 placed - 83 unplaced = -78
-        assert player1.get_score() == -78
+        # 5 placed - 84 unplaced = -79
+        assert player1.get_score() == -79
 
     def test_calculate_squares_placed(self):
         """Test calculating number of squares placed."""
@@ -97,13 +97,13 @@ class TestScoringSystem:
         player = Player(1, "Alice")
 
         # All squares remaining
-        assert ScoringSystem.calculate_squares_remaining(player) == 88
+        assert ScoringSystem.calculate_squares_remaining(player) == 89
 
         # Place some pieces
         player.place_piece("I1", 0, 0)  # 1 square
         player.place_piece("I2", 5, 5)  # 2 squares
 
-        assert ScoringSystem.calculate_squares_remaining(player) == 85
+        assert ScoringSystem.calculate_squares_remaining(player) == 86
 
     def test_check_bonus_eligibility(self):
         """Test checking if player is eligible for bonus."""
@@ -133,10 +133,10 @@ class TestScoringSystem:
         breakdown = ScoringSystem.get_score_breakdown(player)
 
         assert breakdown["placed_squares"] == 9
-        assert breakdown["unplaced_squares"] == 79
-        assert breakdown["base_score"] == 9 - 79
+        assert breakdown["unplaced_squares"] == 80
+        assert breakdown["base_score"] == 9 - 80
         assert breakdown["all_pieces_bonus"] == 0
-        assert breakdown["final_score"] == 9 - 79
+        assert breakdown["final_score"] == 9 - 80
 
     def test_get_score_breakdown_with_bonus(self):
         """Test score breakdown with all-pieces bonus."""
@@ -313,10 +313,10 @@ class TestScoringSystem:
 
         # V3 has 3 squares
         assert breakdown["placed_squares"] == 3
-        assert breakdown["unplaced_squares"] == 85
-        assert breakdown["base_score"] == 3 - 85
+        assert breakdown["unplaced_squares"] == 86
+        assert breakdown["base_score"] == 3 - 86
         assert breakdown["all_pieces_bonus"] == 0
-        assert breakdown["final_score"] == 3 - 85
+        assert breakdown["final_score"] == 3 - 86
 
     def test_multiple_players_different_scores(self):
         """Test scoring with multiple players having very different scores."""

@@ -332,14 +332,7 @@ class TestCompleteStateVisibility:
         setup = GameSetup()
         game_state = setup.setup_game(2, ["Alice", "Bob"])
 
-        # Then: Phase is SETUP
-        assert game_state.phase.value == 1
-        assert game_state.phase.name == "SETUP"
-
-        # When: Game starts
-        game_state.start_game()
-
-        # Then: Phase is PLAYING
+        # Then: Game is already in PLAYING phase (setup auto-starts)
         assert game_state.phase.value == 2
         assert game_state.phase.name == "PLAYING"
 
