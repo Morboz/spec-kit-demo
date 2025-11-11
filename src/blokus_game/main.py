@@ -161,6 +161,8 @@ class BlokusApp:
             placement_handler=self.game_setup_manager.placement_handler,
             game_mode=self.game_setup_manager.game_mode,
             root=self.root,
+            piece_selector=self.ui_manager.piece_selector,
+            piece_inventory=self.ui_manager.piece_inventory,
         )
 
         # Set up game flow manager context

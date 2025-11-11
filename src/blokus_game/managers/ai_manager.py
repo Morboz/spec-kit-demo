@@ -53,6 +53,8 @@ class AIManager:
         self.placement_handler: Any | None = None
         self.game_mode: Any | None = None
         self.root: Any | None = None
+        self.piece_selector: Any | None = None
+        self.piece_inventory: Any | None = None
 
         # Create logger
         self.logger = get_logger(__name__)
@@ -63,6 +65,8 @@ class AIManager:
         placement_handler: Any,
         game_mode: Any | None = None,
         root: Any | None = None,
+        piece_selector: Any | None = None,
+        piece_inventory: Any | None = None,
     ) -> None:
         """
         Set the game context for AI operations.
@@ -72,11 +76,15 @@ class AIManager:
             placement_handler: The placement handler instance
             game_mode: The game mode (for AI turn checking)
             root: The main window (for scheduling)
+            piece_selector: The piece selector widget
+            piece_inventory: The piece inventory widget
         """
         self.game_state = game_state
         self.placement_handler = placement_handler
         self.game_mode = game_mode
         self.root = root
+        self.piece_selector = piece_selector
+        self.piece_inventory = piece_inventory
 
     def setup_ai_callbacks(self) -> None:
         """Setup callbacks for AI game."""
@@ -98,6 +106,14 @@ class AIManager:
             if current_player:
                 self.placement_handler.current_player = current_player
                 self.placement_handler.clear_selection()
+
+                # Update piece inventory tab to show current player's pieces
+                if self.piece_inventory:
+                    self.piece_inventory.select_player_tab(current_player.player_id)
+
+                # Update piece selector to show current player's pieces
+                if self.piece_selector:
+                    self.piece_selector.set_player(current_player)
 
                 # Check if game should end (all players have passed or no moves left)
                 if self.game_state.should_end_game():
