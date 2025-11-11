@@ -403,7 +403,11 @@ class UIManager:
                     board_row, board_col
                 )
 
-                if not success:
+                if success:
+                    # Clear preview on successful placement
+                    if self.placement_preview:
+                        self.placement_preview.deactivate()
+                else:
                     # Show error message (success case is handled by callback)
                     messagebox.showerror(
                         "Invalid Move",
