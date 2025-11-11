@@ -9,6 +9,7 @@ from blokus_game.config.pieces import PIECE_DEFINITIONS
 from blokus_game.game.scoring import ScoringSystem
 from blokus_game.models.board import Board
 from blokus_game.models.game_state import GameState
+from blokus_game.models.piece import Piece
 from blokus_game.models.player import Player
 from blokus_game.ui.scoreboard import Scoreboard
 
@@ -63,7 +64,8 @@ class TestScoreUpdates:
         piece_names = list(PIECE_DEFINITIONS.keys())
         for piece_name in piece_names[:5]:
             player.place_piece(piece_name, 10, 10)
-            board.place_piece(player.player_id, piece_name, 10, 10)
+            piece = Piece(piece_name)
+            board.place_piece(piece, 10, 10, player.player_id)
 
         # Update scoreboard
         scoreboard.update_scores()
@@ -124,13 +126,21 @@ class TestScoreUpdates:
         board = Board()
         piece_names = list(PIECE_DEFINITIONS.keys())
 
-        # Place several pieces
+        # Place several pieces at well-spaced positions
         for i, piece_name in enumerate(piece_names[:8]):
-            player.place_piece(piece_name, 0, 0)
+            # Get the actual piece from player's inventory
+            piece = player.get_piece(piece_name)
+
+            # Place pieces in a grid pattern to avoid overlap
+            row = (i // 4) * 10  # 0, 0, 0, 0, 10, 10, 10, 10
+            col = (i % 4) * 5    # 0, 5, 10, 15, 0, 5, 10, 15
 
             # Simulate what game loop would do
             # Place on board
-            board.place_piece(player.player_id, piece_name, 10 + i, 10 + i)
+            board.place_piece(piece, row, col, player.player_id)
+
+            # Note: player.place_piece() is not needed here because
+            # placing on the board already marks the piece as used
 
             # Update score
             ScoringSystem.update_player_score(player)
@@ -147,10 +157,14 @@ class TestScoreUpdates:
         board = Board()
         piece_names = list(PIECE_DEFINITIONS.keys())
 
-        # Place some pieces
+        # Place some pieces at well-spaced positions
         for i, piece_name in enumerate(piece_names[:7]):
-            player.place_piece(piece_name, i, i)
-            board.place_piece(player.player_id, piece_name, i, i)
+            # Get the actual piece from player's inventory
+            piece = player.get_piece(piece_name)
+            # Place pieces in a grid pattern to avoid overlap
+            row = (i // 4) * 10
+            col = (i % 4) * 5
+            board.place_piece(piece, row, col, player.player_id)
 
         # Update score
         ScoringSystem.update_player_score(player)
@@ -217,9 +231,10 @@ class TestScoreUpdates:
             row = i // 4
             col = (i % 4) * 5
             player.place_piece(piece_name, 0, 0)
+            piece = Piece(piece_name)
 
             # This would typically be done by game loop
-            board.place_piece(player.player_id, piece_name, row, col)
+            board.place_piece(piece, row, col, player.player_id)
 
             # Update score
             ScoringSystem.update_player_score(player)
