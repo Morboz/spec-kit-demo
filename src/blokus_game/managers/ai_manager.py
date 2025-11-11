@@ -55,6 +55,7 @@ class AIManager:
         self.root: Any | None = None
         self.piece_selector: Any | None = None
         self.piece_inventory: Any | None = None
+        self.state_synchronizer: Any | None = None
 
         # Create logger
         self.logger = get_logger(__name__)
@@ -67,6 +68,7 @@ class AIManager:
         root: Any | None = None,
         piece_selector: Any | None = None,
         piece_inventory: Any | None = None,
+        state_synchronizer: Any | None = None,
     ) -> None:
         """
         Set the game context for AI operations.
@@ -78,6 +80,7 @@ class AIManager:
             root: The main window (for scheduling)
             piece_selector: The piece selector widget
             piece_inventory: The piece inventory widget
+            state_synchronizer: The state synchronizer instance
         """
         self.game_state = game_state
         self.placement_handler = placement_handler
@@ -85,6 +88,7 @@ class AIManager:
         self.root = root
         self.piece_selector = piece_selector
         self.piece_inventory = piece_inventory
+        self.state_synchronizer = state_synchronizer
 
     def setup_ai_callbacks(self) -> None:
         """Setup callbacks for AI game."""
@@ -101,11 +105,23 @@ class AIManager:
             if self.root:
                 self.root.update_idletasks()
 
+            # Update state synchronizer to refresh scoreboard
+            if self.state_synchronizer:
+                self.state_synchronizer.notify_board_update()
+                if self.placement_handler and self.placement_handler.current_player:
+                    self.state_synchronizer.notify_player_update(
+                        self.placement_handler.current_player.player_id
+                    )
+
             # Update current player
             current_player = self.game_state.get_current_player()
             if current_player:
                 self.placement_handler.current_player = current_player
                 self.placement_handler.clear_selection()
+
+                # Notify turn change
+                if self.state_synchronizer:
+                    self.state_synchronizer.notify_turn_change()
 
                 # Update piece inventory tab to show current player's pieces
                 if self.piece_inventory:

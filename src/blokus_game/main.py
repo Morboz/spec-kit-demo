@@ -163,6 +163,7 @@ class BlokusApp:
             root=self.root,
             piece_selector=self.ui_manager.piece_selector,
             piece_inventory=self.ui_manager.piece_inventory,
+            state_synchronizer=self.ui_manager.state_synchronizer,
         )
 
         # Set up game flow manager context
