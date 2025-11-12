@@ -139,6 +139,9 @@ class BlokusApp:
         )
         self.ui_manager.show_game_ui()
 
+        # Hide the unused root window - only game window should be visible
+        self.root.withdraw()
+
         # Set up event handler callbacks now that UI components exist
         self.event_handler_manager.set_context(
             game_state=self.game_setup_manager.game_state,

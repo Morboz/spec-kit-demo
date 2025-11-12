@@ -23,6 +23,10 @@ from blokus_game.services.ai_strategy import (
     StrategicStrategy,
 )
 from blokus_game.ui.game_mode_selector import GameModeSelector, show_game_mode_selector
+from blokus_game.ui.unified_game_mode_selector import (
+    UnifiedGameModeSelector,
+    show_unified_game_mode_selector,
+)
 from blokus_game.ui.restart_button import GameRestartDialog
 
 
@@ -91,79 +95,36 @@ class GameSetupManager:
                 self.root.quit()
             return
 
-        # First, ask if user wants AI battle mode
-        use_ai_mode = messagebox.askyesno(
-            "Blokus Game Setup",
-            "Play against AI?\n\n"
-            "Yes - Select AI battle mode (Single AI, Three AI, Spectate)\n"
-            "No - Traditional multiplayer (2-4 players)",
-            icon="question",
-        )
+        # Show unified game mode selector
+        result = show_unified_game_mode_selector(self.root)
+        if result is None:
+            self.root.quit()
+            return
 
-        if use_ai_mode:
-            # Show AI game mode selector
-            result = show_game_mode_selector(self.root)
-            if result is None:
-                self.root.quit()
-                return
+        mode_type = result["mode_type"]
 
-            # Create game mode from selection
+        # Handle PvP Local mode
+        if mode_type == "pvp_local":
             try:
-                self.game_mode = GameModeSelector.create_game_mode(
-                    result["mode_type"], result.get("difficulty")
-                )
+                self._setup_pvp_game(result)
             except Exception as e:
-                messagebox.showerror("Error", f"Failed to create game mode: {e}")
+                error_handler = get_error_handler()
+                error_handler.handle_error(e, show_user_message=True)
                 self.root.quit()
-                return
+            return
+
+        # Handle AI modes (single_ai, three_ai, spectate)
+        try:
+            # Create game mode from selection
+            game_mode = UnifiedGameModeSelector.create_game_mode(mode_type, result)
+            self.game_mode = game_mode
 
             # Setup the game with AI mode
-            try:
-                self._setup_ai_game()
-            except Exception as e:
-                error_handler = get_error_handler()
-                error_handler.handle_error(e, show_user_message=True)
-                self.root.quit()
-        else:
-            # Traditional multiplayer setup
-            use_preset = messagebox.askyesno(
-                "Game Setup",
-                "Use a preset configuration?\n\n"
-                "Yes - Choose from preset (Casual, Tournament, etc.)\n"
-                "No - Custom configuration",
-                icon="question",
-            )
+            self._setup_ai_game()
 
-            if use_preset:
-                # Show preset selection
-                preset_names = ["casual", "tournament", "high_contrast"]
-                preset_choice = self._choose_preset(preset_names)
-                if preset_choice:
-                    self.game_config = create_config_from_preset(preset_choice)
-                else:
-                    self.root.quit()
-                    return
-            else:
-                # Use custom configuration dialog
-                dialog = GameRestartDialog(self.root)
-                config_dict = dialog.show()
-                if config_dict is None:
-                    self.root.quit()
-                    return
-
-                # Create config from dialog result
-                self.game_config = GameConfig()
-                for i, name in enumerate(config_dict["player_names"]):
-                    color = self.game_config.get_player_color(i + 1)
-                    self.game_config.add_player(i + 1, name, color)
-
-            # Setup the game with config
-            try:
-                self._setup_game_from_config()
-            except Exception as e:
-                error_handler = get_error_handler()
-                error_handler.handle_error(e, show_user_message=True)
-                self.root.quit()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to create game mode: {e}")
+            self.root.quit()
 
     def _choose_preset(self, preset_names: list[str]) -> str | None:
         """
@@ -261,6 +222,54 @@ class GameSetupManager:
         self.on_show_ui()
 
         # NOW setup callbacks after PieceSelector is created
+        if current_player:
+            self.on_setup_callbacks()
+
+    def _setup_pvp_game(self, config: dict) -> None:
+        """
+        Setup PvP local multiplayer game.
+
+        Args:
+            config: Configuration dictionary from unified selector
+        """
+        # Create game config
+        self.game_config = GameConfig()
+
+        # Add players from config
+        player_count = config["player_count"]
+        player_names = config["player_names"]
+
+        for i, name in enumerate(player_names):
+            player_id = i + 1
+            color = self.game_config.get_player_color(player_id)
+            self.game_config.add_player(player_id, name, color)
+
+        # Validate config
+        errors = self.game_config.validate()
+        if errors:
+            error_msg = "\n".join(errors)
+            messagebox.showerror("Configuration Error", error_msg)
+            self.root.quit()
+            return
+
+        # Setup the game
+        self.game_setup = GameSetup()
+        self.game_state = self.game_setup.setup_game(
+            num_players=player_count,
+            player_names=player_names,
+        )
+
+        # Initialize placement handler
+        current_player = self.game_state.get_current_player()
+        if current_player:
+            self.placement_handler = PlacementHandler(
+                self.game_state.board, self.game_state, current_player
+            )
+
+        # Show the game UI
+        self.on_show_ui()
+
+        # Setup callbacks
         if current_player:
             self.on_setup_callbacks()
 
