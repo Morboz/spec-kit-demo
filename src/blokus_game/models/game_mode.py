@@ -22,6 +22,7 @@ class GameModeType(Enum):
     SINGLE_AI = "single_ai"
     THREE_AI = "three_ai"
     SPECTATE = "spectate"
+    PVP_LOCAL = "pvp_local"
 
 
 class GameMode:
@@ -70,7 +71,7 @@ class GameMode:
         if not self.validate():
             raise ValueError(f"Invalid game mode configuration: {mode_type.value}")
 
-    def _initialize_default_config(self):
+    def _initialize_default_config(self) -> None:
         """Initialize default configuration based on mode type."""
         if self.mode_type == GameModeType.SINGLE_AI:
             self._init_single_ai()
@@ -78,8 +79,10 @@ class GameMode:
             self._init_three_ai()
         elif self.mode_type == GameModeType.SPECTATE:
             self._init_spectate()
+        elif self.mode_type == GameModeType.PVP_LOCAL:
+            self._init_pvp_local()
 
-    def _set_human_position_for_custom_config(self):
+    def _set_human_position_for_custom_config(self) -> None:
         """Set human player position when using custom AI configs."""
         # Find first available position not used by AI
         ai_positions = {config.position for config in self.ai_players}
@@ -88,12 +91,12 @@ class GameMode:
                 self.human_player_position = pos
                 break
 
-    def _init_single_ai(self):
+    def _init_single_ai(self) -> None:
         """Initialize single AI mode configuration."""
         self.human_player_position = 1
         self.ai_players = [AIConfig(position=3, difficulty=self.difficulty)]
 
-    def _init_three_ai(self):
+    def _init_three_ai(self) -> None:
         """Initialize three AI mode configuration."""
         self.human_player_position = 1
         self.ai_players = [
@@ -102,7 +105,7 @@ class GameMode:
             AIConfig(position=4, difficulty=self.difficulty),
         ]
 
-    def _init_spectate(self):
+    def _init_spectate(self) -> None:
         """Initialize spectator mode configuration."""
         self.human_player_position = None
         # Mix of difficulties for interesting games
@@ -112,6 +115,17 @@ class GameMode:
             AIConfig(position=3, difficulty=Difficulty.HARD),
             AIConfig(position=4, difficulty=Difficulty.MEDIUM),
         ]
+
+    def _init_pvp_local(self, player_count: int = 2) -> None:
+        """
+        Initialize PvP local mode configuration.
+
+        Args:
+            player_count: Number of players (2-4)
+        """
+        self.human_player_position = None  # All players are human
+        self.ai_players = []  # No AI players in PvP mode
+        self.pvp_player_count = player_count  # Track PvP player count
 
     def is_ai_turn(self, current_player: int) -> bool:
         """
@@ -123,6 +137,10 @@ class GameMode:
         Returns:
             True if player is AI, False if human
         """
+        # PvP mode has no AI players
+        if self.mode_type == GameModeType.PVP_LOCAL:
+            return False
+
         if self.human_player_position == current_player:
             return False
 
@@ -192,23 +210,41 @@ class GameMode:
             return self._validate_three_ai(positions)
         elif self.mode_type == GameModeType.SPECTATE:
             return self._validate_spectate(positions)
+        elif self.mode_type == GameModeType.PVP_LOCAL:
+            return self._validate_pvp_local(positions)
 
         return False
 
-    def _validate_single_ai(self, positions: set) -> bool:
+    def _validate_single_ai(self, positions: set[int]) -> bool:
         """Validate single AI mode configuration."""
         # Exactly 2 players (1 human + 1 AI)
         return len(positions) == 2
 
-    def _validate_three_ai(self, positions: set) -> bool:
+    def _validate_three_ai(self, positions: set[int]) -> bool:
         """Validate three AI mode configuration."""
         # Exactly 4 players (1 human + 3 AI)
         return len(positions) == 4
 
-    def _validate_spectate(self, positions: set) -> bool:
+    def _validate_spectate(self, positions: set[int]) -> bool:
         """Validate spectator mode configuration."""
         # Exactly 4 players, all AI
         return len(positions) == 4 and self.human_player_position is None
+
+    def _validate_pvp_local(self, positions: set[int]) -> bool:
+        """Validate PvP local mode configuration."""
+        # All players must be human (no AI players)
+        if self.ai_players:
+            return False
+
+        # No human player position (all are equal)
+        if self.human_player_position is not None:
+            return False
+
+        # For PvP mode, positions set will be empty because all players are human
+        # and there's no special human player position. This is expected.
+        # The actual player count is tracked separately.
+
+        return True
 
     @classmethod
     def single_ai(cls, difficulty: Difficulty | None = None) -> "GameMode":
@@ -250,6 +286,37 @@ class GameMode:
         """
         return cls(GameModeType.SPECTATE)
 
+    @classmethod
+    def pvp_local(cls, player_count: int = 2) -> "GameMode":
+        """
+        Create PvP local multiplayer configuration.
+
+        Args:
+            player_count: Number of players (2-4)
+
+        Returns:
+            GameMode configured for local PvP with specified player count
+
+        Raises:
+            ValueError: If player_count is not between 2 and 4
+        """
+        if not 2 <= player_count <= 4:
+            raise ValueError(
+                f"Player count must be between 2 and 4, got {player_count}"
+            )
+
+        game_mode = cls.__new__(cls)
+        game_mode.mode_type = GameModeType.PVP_LOCAL
+        game_mode.difficulty = Difficulty.MEDIUM
+        game_mode.human_player_position = None
+        game_mode.ai_players = []
+        game_mode._init_pvp_local(player_count)
+
+        if not game_mode.validate():
+            raise ValueError(f"Invalid PvP game mode configuration")
+
+        return game_mode
+
     def get_player_count(self) -> int:
         """
         Get total number of players in this mode.
@@ -257,6 +324,10 @@ class GameMode:
         Returns:
             Number of players (human + AI)
         """
+        # PvP mode has no AI players, all are human
+        if self.mode_type == GameModeType.PVP_LOCAL:
+            return getattr(self, "pvp_player_count", 2)
+
         count = len(self.ai_players)
         if self.human_player_position:
             count += 1
@@ -294,7 +365,7 @@ class GameMode:
 
     def save_difficulty_preference(
         self, mode_type: GameModeType, difficulty: Difficulty
-    ):
+    ) -> None:
         """
         Save difficulty preference for a game mode.
 
@@ -356,7 +427,7 @@ class GameMode:
         except ValueError:
             return Difficulty.MEDIUM
 
-    def clear_difficulty_preferences(self):
+    def clear_difficulty_preferences(self) -> None:
         """
         Clear all saved difficulty preferences.
         """
